@@ -1,0 +1,901 @@
+#include "plugin.hpp"
+#include "rnd.h"
+#include "C42ExpanderMessage.hpp"
+
+#define MAX_SIZE 32
+extern Model *modelC42E;
+
+struct LifeWorld {
+  bool grid[MAX_SIZE][MAX_SIZE]={};
+  bool gridSave[MAX_SIZE][MAX_SIZE]={};
+  int size=32;
+
+  std::vector<bool> survive={0,0,1,1,0,0,0,0,0};
+  std::vector<bool> birth={0,0,0,1,0,0,0,0,0};
+
+  std::vector <std::string> ruleLabels={"B3/S23","B34/S34","B245/S","B2/S","B1/S1","B36/S125","B345/S5"};
+
+  void setRule(unsigned r) {
+    rule=r;
+    switch(r) {
+      case 1:
+        survive={0,0,0,1,1,0,0,0,0};
+        birth={0,0,0,1,1,0,0,0,0};
+        break;
+      case 2:
+        survive={0,0,0,0,0,0,0,0,0};
+        birth={0,0,1,0,1,1,0,0,0};
+        break;
+      case 3:
+        survive={0,0,0,0,0,0,0,0,0};
+        birth={0,0,1,0,0,0,0,0,0};
+        break;
+      case 4:
+        survive={0,1,0,0,0,0,0,0,0};
+        birth={0,1,0,0,0,0,0,0,0};
+        break;
+      case 5:
+        survive={0,1,1,0,0,1,0,0,0};
+        birth={0,0,0,1,0,0,1,0,0};
+        break;
+      case 6:
+        survive={0,0,0,0,0,1,0,0,0};
+        birth={0,0,0,1,1,1,0,0,0};
+        break;
+      default:
+        survive={0,0,1,1,0,0,0,0,0};
+        birth={0,0,0,1,0,0,0,0,0};
+    }
+  }
+
+  unsigned getRule() {
+    return rule;
+  }
+
+  void randomize(float dens) {
+    for(int x=0;x<size;x++) {
+      for(int y=0;y<size;y++) {
+        grid[x][y]=rnd.nextCoin(1.0-dens);
+        gridSave[x][y]=grid[x][y];
+      }
+    }
+  }
+
+  bool getCell(int row,int col) {
+    return grid[row][col];
+  }
+
+  int getRowSum(int row,int col) {
+    int sum=0;
+    for(int k=0;k<size;k++) {
+      if(getCell(row,k)&&(k!=col))
+        sum++;
+    }
+    return sum;
+  }
+
+  int getLeftRowSum(int row,int col) {
+    int sum=0;
+    for(int k=0;k<col;k++) {
+      if(getCell(row,k))
+        sum++;
+    }
+    return sum;
+  }
+
+  int getRightRowSum(int row,int col) {
+    int sum=0;
+    for(int k=col+1;k<size;k++) {
+      if(getCell(row,k))
+        sum++;
+    }
+    return sum;
+  }
+
+  int getColSum(int row,int col) {
+    int sum=0;
+    for(int k=0;k<size;k++) {
+      if(getCell(k,col)&&(k!=row))
+        sum++;
+    }
+    return sum;
+  }
+
+  int getTopColSum(int row,int col) {
+    int sum=0;
+    for(int k=0;k<row;k++) {
+      if(getCell(k,col))
+        sum++;
+    }
+    return sum;
+  }
+
+  int getBottomColSum(int row,int col) {
+    int sum=0;
+    for(int k=row+1;k<size;k++) {
+      if(getCell(k,col))
+        sum++;
+    }
+    return sum;
+  }
+
+  int getTopLeftSum(int row,int col) {
+    int sum=0;
+    for(int k=1;;k++) {
+      if(row-k<0||col-k<0)
+        break;
+      if(getCell(row-k,col-k))
+        sum++;
+    }
+    return sum;
+  }
+
+  int getTopRightSum(int row,int col) {
+    int sum=0;
+    for(int k=1;;k++) {
+      if(row-k<0||col+k>=size)
+        break;
+      if(getCell(row-k,col+k))
+        sum++;
+    }
+    return sum;
+  }
+
+  int getBottomRightSum(int row,int col) {
+    int sum=0;
+    for(int k=1;;k++) {
+      if(row+k>=size||col+k>=size)
+        break;
+      if(getCell(row+k,col+k))
+        sum++;
+    }
+    return sum;
+  }
+
+  int getBottomLeftSum(int row,int col) {
+    int sum=0;
+    for(int k=1;;k++) {
+      if(row+k>=size||col-k<0)
+        break;
+      if(getCell(row+k,col-k))
+        sum++;
+    }
+    return sum;
+  }
+
+  void setCell(int row,int col,bool on=true) {
+    grid[row][col]=on;
+    for(int x=0;x<size;x++)
+      for(int y=0;y<size;y++) {
+        gridSave[x][y]=grid[x][y];
+      }
+  }
+
+  void reset() {
+    for(int x=0;x<size;x++)
+      for(int y=0;y<size;y++) {
+        grid[x][y]=gridSave[x][y];
+      }
+  }
+
+  void clear() {
+    for(int x=0;x<MAX_SIZE;x++)
+      for(int y=0;y<MAX_SIZE;y++) {
+        grid[x][y]=gridSave[x][y]=false;
+      }
+  }
+
+  bool nextGeneration() {
+    bool grid2[size][size+1]={};
+    for(int x=0;x<size;x++)
+      for(int y=0;y<size;y++)
+        grid2[x][y]=grid[x][y];
+
+    bool deadWorld=true;
+    for(int a=0;a<size;a++) {
+      for(int b=0;b<size;b++) {
+        int life=0;
+        int w=size;
+        int h=size;
+        int top=a==0?h-1:a-1;
+        int bottom=a==h-1?0:a+1;
+        int left=b==0?w-1:b-1;
+        int right=b==w-1?0:b+1;
+        if(grid2[top][left])
+          life++;
+        if(grid2[top][b])
+          life++;
+        if(grid2[top][right])
+          life++;
+        if(grid2[a][left])
+          life++;
+        if(grid2[a][right])
+          life++;
+        if(grid2[bottom][left])
+          life++;
+        if(grid2[bottom][b])
+          life++;
+        if(grid2[bottom][right])
+          life++;
+
+        if(grid[a][b])
+          grid[a][b]=survive[life];
+        else
+          grid[a][b]=birth[life];
+      }
+    }
+
+    return deadWorld;
+  }
+
+  void fromJson(json_t *jWorld) {
+    json_t *jSize=json_object_get(jWorld,"size");
+    if(jSize)
+      size=json_integer_value(jSize);
+    json_t *jRule=json_object_get(jWorld,"rule");
+    unsigned r=0;
+    if(jRule)
+      r=json_integer_value(jRule);
+    setRule(r);
+    json_t *jGrid=json_object_get(jWorld,"grid");
+    json_t *jGridSave=json_object_get(jWorld,"gridSave");
+    for(int k=0;k<size;k++) {
+      json_t *row=json_array_get(jGrid,k);
+      json_t *rowSave=json_array_get(jGridSave,k);
+      for(int j=0;j<size;j++) {
+        json_t *col=json_array_get(row,j);
+        json_t *colSave=json_array_get(rowSave,j);
+        grid[k][j]=json_integer_value(col);
+        gridSave[k][j]=json_integer_value(colSave);
+      }
+    }
+
+  }
+
+  json_t *toJson() {
+    json_t *jWorld=json_object();
+    json_object_set_new(jWorld,"size",json_integer(size));
+    json_object_set_new(jWorld,"rule",json_integer(rule));
+    json_t *dataGridSave=json_array();
+    json_t *dataGrid=json_array();
+    for(int k=0;k<size;k++) {
+      json_t *rowSave=json_array();
+      json_t *row=json_array();
+      for(int j=0;j<size;j++) {
+        json_array_append_new(rowSave,json_integer(gridSave[k][j]));
+        json_array_append_new(row,json_integer(grid[k][j]));
+      }
+      json_array_append_new(dataGridSave,rowSave);
+      json_array_append_new(dataGrid,row);
+    }
+    json_object_set_new(jWorld,"gridSave",dataGridSave);
+    json_object_set_new(jWorld,"grid",dataGrid);
+    return jWorld;
+  }
+
+private:
+  RND rnd;
+  unsigned rule=0;
+};
+
+struct CellColors {
+  NVGcolor offColor=nvgRGB(0x22,0x22,0x22);
+  NVGcolor onColor=nvgRGB(0xa2,0xd6,0xc6);
+  NVGcolor selectOnColor=nvgRGB(0xff,0xff,0xff);
+  NVGcolor selectOffColor=nvgRGB(0x44,0x44,0xaa);
+  NVGcolor chnColors[16]={nvgRGB(255,0,0),nvgRGB(0,255,0),nvgRGB(55,55,255),nvgRGB(255,255,0),nvgRGB(255,0,255),nvgRGB(0,255,255),
+                          nvgRGB(128,0,0),nvgRGB(196,85,55),nvgRGB(128,128,80),nvgRGB(255,128,0),nvgRGB(255,0,128),
+                          nvgRGB(0,128,255),nvgRGB(128,66,128),nvgRGB(128,255,0),nvgRGB(128,128,255),nvgRGB(128,255,255)};
+};
+using MLIGHT1 = TLight<GrayModuleLightWidget,255,0,0>;
+using MLIGHT2 = TLight<GrayModuleLightWidget,0,255,0>;
+using MLIGHT3 = TLight<GrayModuleLightWidget,55,55,255>;
+using MLIGHT4 = TLight<GrayModuleLightWidget,255,255,0>;
+using MLIGHT5 = TLight<GrayModuleLightWidget,255,0,255>;
+using MLIGHT6 = TLight<GrayModuleLightWidget,0,255,255>;
+using MLIGHT7 = TLight<GrayModuleLightWidget,128,0,0>;
+using MLIGHT8 = TLight<GrayModuleLightWidget,196,85,55>;
+using MLIGHT9 = TLight<GrayModuleLightWidget,128,128,80>;
+using MLIGHT10 = TLight<GrayModuleLightWidget,255,128,0>;
+using MLIGHT11 = TLight<GrayModuleLightWidget,255,0,128>;
+using MLIGHT12 = TLight<GrayModuleLightWidget,0,128,255>;
+using MLIGHT13 = TLight<GrayModuleLightWidget,128,66,128>;
+using MLIGHT14 = TLight<GrayModuleLightWidget,128,255,0>;
+using MLIGHT15 = TLight<GrayModuleLightWidget,128,128,255>;
+using MLIGHT16 = TLight<GrayModuleLightWidget,128,255,255>;
+
+template<typename M>
+struct C42Display : OpenGlWidget {
+  M *module;
+  int numRows;
+  const int margin=2;
+  int oldC=-1;
+  int oldR=-1;
+  Vec dragPosition;
+  CellColors cellColors;
+  bool current;
+
+  NVGcolor getCellColor(int row,int col) {
+    std::vector<int> selected=module->getSelected(row,col);
+    switch(selected.size()) {
+      case 0:
+        if(module->isOn(row,col)) {
+          return cellColors.onColor;
+        }
+        return cellColors.offColor;
+        break;
+      case 1:
+        if(module->isOn(row,col)) {
+          return cellColors.chnColors[selected[0]];
+        }
+        return nvgLerpRGBA(cellColors.offColor,cellColors.chnColors[selected[0]],0.5f);
+        break;
+      default:
+        if(module->isOn(row,col)) {
+          return cellColors.selectOnColor;
+        }
+        return cellColors.selectOffColor;
+
+    }
+    if(!selected.empty()) {
+      if(module->isOn(row,col)) {
+        return cellColors.selectOnColor;
+      }
+      return cellColors.selectOffColor;
+    }
+    if(module->isOn(row,col)) {
+      return cellColors.onColor;
+    }
+    return cellColors.offColor;
+  }
+
+  void drawFramebuffer() override {
+    if(module==nullptr)
+      return;
+    numRows=module->world.size;
+
+    Vec size=box.size.mult(getAbsoluteZoom());
+    float cellSize=size.x/numRows-margin;
+
+    glViewport(0.0,0.0,size.x,size.y);
+    glClearColor(0.0,0.0,0.0,1.0);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0,size.x,0.0,size.y,-1.0,1.0);
+
+    float posY=size.y-cellSize-margin;
+    for(int r=0;r<numRows;r++) {
+      float posX=0;
+      for(int c=0;c<numRows;c++) {
+        glBegin(GL_QUADS);
+        NVGcolor dg=getCellColor(r,c);
+        glColor3f(dg.r,dg.g,dg.b); //colore lancetta
+
+        glVertex3f(posX,posY,0); // top left
+        glVertex3f(posX+cellSize,posY,0); // top right
+        glVertex3f(posX+cellSize,posY+cellSize,0); // bottom right
+        glVertex3f(posX,posY+cellSize,0); // bottom left
+        glEnd();
+        posX+=cellSize+margin;
+      }
+
+      posY-=cellSize+margin;
+    }
+  }
+
+  virtual void onButton(const event::Button &e) override {
+    if(e.action==GLFW_PRESS&&e.button==GLFW_MOUSE_BUTTON_LEFT&&(e.mods&RACK_MOD_MASK)==0) {
+      int c=oldC=floor(e.pos.x/(box.size.x/float(numRows)));
+      int r=oldR=floor(e.pos.y/(box.size.y/float(numRows)));
+      current=module->toggleCell(r,c);
+      e.consume(this);
+      dragPosition=e.pos;
+    }
+  }
+
+  void onDragMove(const event::DragMove &e) override {
+    dragPosition=dragPosition.plus(e.mouseDelta.div(getAbsoluteZoom()));
+    if(isMouseInDrawArea(dragPosition)) {
+      int c=floor(dragPosition.x/(box.size.x/float(numRows)));
+      int r=floor(dragPosition.y/(box.size.y/float(numRows)));
+      if(c!=oldC||r!=oldR) {
+        module->setCell(r,c,current);
+      }
+      oldC=c;
+      oldR=r;
+    }
+  }
+
+  bool isMouseInDrawArea(Vec position) {
+    if(position.x<0)
+      return (false);
+    if(position.y<0)
+      return (false);
+    if(position.x>=box.size.x)
+      return (false);
+    if(position.y>=box.size.y)
+      return (false);
+    return (true);
+  }
+
+};
+
+
+struct C42 : Module {
+  enum ParamId {
+    CV_X_PARAM,CV_Y_PARAM,STEP_PARAM,ON_PARAM,RST_PARAM,DENS_PARAM,RND_PARAM,LEVEL_PARAM,CV_ON_X_PARAM,CV_ON_Y_PARAM,PARAMS_LEN
+  };
+  enum InputId {
+    CV_X_INPUT,CV_Y_INPUT,STEP_INPUT,RST_INPUT,ON_INPUT,DENS_INPUT,LEVEL_INPUT,RND_INPUT,CV_ON_X_INPUT,CV_ON_Y_INPUT,INPUTS_LEN
+  };
+  enum OutputId {
+    TRIG_OUTPUT,ROW_LEFT_OUTPUT,ROW_RIGHT_OUTPUT,COL_TOP_OUTPUT,COL_BOTTOM_OUTPUT,TOP_LEFT_OUTPUT,TOP_RIGHT_OUTPUT,BOTTOM_LEFT_OUTPUT,BOTTOM_RIGHT_OUTPUT,MIDDLE_OUTPUT,GATE_OUTPUT,CLOCK_OUTPUT,OUTPUTS_LEN
+  };
+  enum LightId {
+    GATE_LIGHT,LIGHTS_LEN=GATE_LIGHT+16
+  };
+
+  int lastRow[16]={};
+  int lastCol[16]={};
+
+  int curRow[16];
+  int curCol[16];
+  int dirty=0;
+  int counter=-1;
+  int channels;
+  LifeWorld world;
+  bool sizeSetFromJson=false;
+  dsp::PulseGenerator trigPulse[16];
+  dsp::SchmittTrigger stepTrigger;
+  dsp::SchmittTrigger manualStepTrigger;
+  dsp::SchmittTrigger rstTrigger;
+  dsp::SchmittTrigger rstManualTrigger;
+  dsp::PulseGenerator rstPulse;
+  dsp::SchmittTrigger rndTrigger;
+  dsp::SchmittTrigger manualRndTrigger;
+  dsp::ClockDivider divider;
+
+  C42ExpanderMessage rightMessages[2][1];
+
+  C42() {
+    config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
+    configParam(CV_X_PARAM,0,world.size,world.size/2,"X");
+    getParamQuantity(CV_X_PARAM)->snapEnabled=true;
+    configParam(CV_Y_PARAM,0,world.size,world.size/2,"Y");
+    getParamQuantity(CV_Y_PARAM)->snapEnabled=true;
+    configButton(STEP_PARAM,"Step");
+
+    configParam(DENS_PARAM,0,1,0.5,"Random Density");
+    configParam(LEVEL_PARAM,0.01,1,0.1,"Out Level Factor");
+    configButton(RST_PARAM,"Reset");
+    configButton(ON_PARAM,"Generation On");
+    configButton(CV_ON_X_PARAM,"CV X Input On");
+    configButton(CV_ON_Y_PARAM,"CV Y Input On");
+    configInput(CV_X_INPUT,"CV X");
+    configInput(CV_Y_INPUT,"CV_Y");
+    configInput(STEP_INPUT,"Step");
+    configInput(RST_INPUT,"Reset");
+    configInput(ON_INPUT,"Generation On");
+    configInput(CV_ON_X_INPUT,"CV X On");
+    configInput(CV_ON_Y_INPUT,"CV Y On");
+    configInput(DENS_INPUT,"Random Density");
+    configInput(LEVEL_INPUT,"Out Level Factor");
+    configInput(ON_INPUT,"On");
+    configOutput(GATE_OUTPUT,"Gate");
+
+    configOutput(ROW_LEFT_OUTPUT,"CV Row-Left");
+    configOutput(ROW_RIGHT_OUTPUT,"CV Row-Right");
+    configOutput(COL_TOP_OUTPUT,"CV Col-Top");
+    configOutput(COL_BOTTOM_OUTPUT,"CV Col-Bottom");
+    configOutput(TOP_LEFT_OUTPUT,"CV Top-Left");
+    configOutput(TOP_RIGHT_OUTPUT,"CV Top-Right");
+    configOutput(BOTTOM_LEFT_OUTPUT,"CV Bottom-Left");
+    configOutput(BOTTOM_RIGHT_OUTPUT,"CV Bottom-Right");
+    configOutput(MIDDLE_OUTPUT,"CV Gate");
+    configOutput(TRIG_OUTPUT,"Trigger");
+    configOutput(CLOCK_OUTPUT,"Clock");
+    divider.setDivision(32);
+
+    rightExpander.producerMessage=rightMessages[0];
+    rightExpander.consumerMessage=rightMessages[1];
+  }
+
+  void onAdd(const AddEvent &e) override {
+     if(!sizeSetFromJson) setSize(16);
+  }
+
+  void dataFromJson(json_t *root) override {
+
+    json_t *jWorld=json_object_get(root,"world");
+    if(jWorld) {
+      world.fromJson(jWorld);
+      setSize(world.size);
+    } else {
+      setSize(16);
+    }
+    sizeSetFromJson=true;
+  }
+
+  json_t *dataToJson() override {
+    json_t *root=json_object();
+    json_object_set_new(root,"world",world.toJson());
+    return root;
+  }
+
+
+  std::vector<int> getSelected(int row,int col) {
+    std::vector<int> ret;
+    for(int chn=0;chn<channels;chn++) {
+      if(row==curRow[chn]&&col==curCol[chn]) {
+        ret.push_back(chn);
+      }
+    }
+    return ret;
+  }
+
+  bool isOn(int row,int col) {
+    return world.getCell(row,col);
+  }
+
+  void setCell(int row,int col,bool on=true) {
+    world.setCell(row,col,on);
+  }
+
+  bool toggleCell(int row,int col) {
+    if(isOn(row,col)) {
+      setCell(row,col,false);
+      return false;
+    }
+    setCell(row,col,true);
+    return true;
+  }
+
+  void populateOutputs(float level,int chn) {
+
+    outputs[ROW_RIGHT_OUTPUT].setVoltage(world.getRightRowSum(curRow[chn],curCol[chn])*level,chn);
+    outputs[ROW_LEFT_OUTPUT].setVoltage(world.getLeftRowSum(curRow[chn],curCol[chn])*level,chn);
+    outputs[COL_TOP_OUTPUT].setVoltage(world.getTopColSum(curRow[chn],curCol[chn])*level,chn);
+    outputs[COL_BOTTOM_OUTPUT].setVoltage(world.getBottomColSum(curRow[chn],curCol[chn])*level,chn);
+    outputs[TOP_LEFT_OUTPUT].setVoltage(world.getTopLeftSum(curRow[chn],curCol[chn])*level,chn);
+    outputs[TOP_RIGHT_OUTPUT].setVoltage(world.getTopRightSum(curRow[chn],curCol[chn])*level,chn);
+    outputs[BOTTOM_RIGHT_OUTPUT].setVoltage(world.getBottomRightSum(curRow[chn],curCol[chn])*level,chn);
+    outputs[BOTTOM_LEFT_OUTPUT].setVoltage(world.getBottomLeftSum(curRow[chn],curCol[chn])*level,chn);
+
+  }
+
+  void populateExpanderChannel(C42ExpanderMessage *message,float level,int chn) {
+    message->rowRight[chn]=world.getRightRowSum(curRow[chn],curCol[chn])*level;
+    message->rowLeft[chn]=world.getLeftRowSum(curRow[chn],curCol[chn])*level;
+    message->colTop[chn]=world.getTopColSum(curRow[chn],curCol[chn])*level;
+    message->colBottom[chn]=world.getBottomColSum(curRow[chn],curCol[chn])*level;
+    message->topLeft[chn]=world.getTopLeftSum(curRow[chn],curCol[chn])*level;
+    message->topRight[chn]=world.getTopRightSum(curRow[chn],curCol[chn])*level;
+    message->bottomRight[chn]=world.getBottomRightSum(curRow[chn],curCol[chn])*level;
+    message->bottomLeft[chn]=world.getBottomLeftSum(curRow[chn],curCol[chn])*level;
+  }
+
+  void process(const ProcessArgs &args) override {
+    if(divider.process()) {
+      _process(args);
+    }
+  }
+
+  void _process(const ProcessArgs &args) {
+
+    if(inputs[ON_INPUT].isConnected()) {
+      getParamQuantity(ON_PARAM)->setValue(inputs[ON_INPUT].getVoltage()>1.f);
+    }
+    if(inputs[CV_ON_X_INPUT].isConnected()) {
+      getParamQuantity(CV_ON_X_PARAM)->setValue(inputs[CV_ON_X_INPUT].getVoltage()>1.f);
+    }
+    if(inputs[CV_ON_Y_INPUT].isConnected()) {
+      getParamQuantity(CV_ON_Y_PARAM)->setValue(inputs[CV_ON_Y_INPUT].getVoltage()>1.f);
+    }
+    if(inputs[RND_INPUT].isConnected()) {
+      getParamQuantity(RND_PARAM)->setValue(inputs[RND_INPUT].getVoltage()>1.f);
+    }
+    if(inputs[DENS_INPUT].isConnected()) {
+      getParamQuantity(DENS_PARAM)->setValue(inputs[DENS_INPUT].getVoltage()/10.f);
+    }
+    if(inputs[LEVEL_INPUT].isConnected()) {
+      getParamQuantity(LEVEL_PARAM)->setValue(inputs[LEVEL_INPUT].getVoltage()/10.f);
+    }
+    int channelsX=0;
+    if(inputs[CV_X_INPUT].isConnected()&&params[CV_ON_X_PARAM].getValue()>0.f) {
+      channelsX=inputs[CV_X_INPUT].getChannels();
+      for(int chn=0;chn<16;chn++) {
+        int index=int(inputs[CV_X_INPUT].getVoltage(chn)/10.f*float(world.size));
+        index+=params[CV_X_PARAM].getValue();
+        while(index<0)
+          index+=world.size;
+        index%=world.size;
+        curCol[chn]=index;
+        //getParamQuantity(CV_X_PARAM)->setValue(index);
+      }
+    } else {
+      curCol[0]=(int(params[CV_X_PARAM].getValue())%world.size);
+    }
+    int channelsY=0;
+    if(inputs[CV_Y_INPUT].isConnected()&&params[CV_ON_Y_PARAM].getValue()>0.f) {
+      channelsY=inputs[CV_Y_INPUT].getChannels();
+      for(int chn=0;chn<16;chn++) {
+        int index=int(inputs[CV_Y_INPUT].getVoltage(chn)/10.f*float(world.size));
+        index+=params[CV_Y_PARAM].getValue();
+        while(index<0)
+          index+=world.size;
+        index%=world.size;
+        curRow[chn]=index;
+        //getParamQuantity(CV_Y_PARAM)->setValue(index);
+      }
+    } else {
+      curRow[0]=(int(params[CV_Y_PARAM].getValue())%world.size);
+    }
+    channels=std::max(std::max(channelsX,channelsY),1);
+    bool on[16]={};
+    if(rndTrigger.process(inputs[RND_INPUT].getVoltage())|manualRndTrigger.process(params[RND_PARAM].getValue())) {
+      rstPulse.trigger(0.001f);
+      world.randomize(params[DENS_PARAM].getValue());
+    }
+    if(rstTrigger.process(inputs[RST_INPUT].getVoltage())|rstManualTrigger.process(params[RST_PARAM].getValue())) {
+      rstPulse.trigger(0.001f);
+      counter=0;
+      world.reset();
+    }
+    bool rstGate=rstPulse.process(args.sampleTime*32);
+
+    if(!rstGate&&(stepTrigger.process(inputs[STEP_INPUT].getVoltage())&&params[ON_PARAM].getValue()>0.f)|manualStepTrigger.process(params[STEP_PARAM].getValue())) {
+      if(world.nextGeneration()) {
+        if(counter>=0) {
+          INFO("Dead in %d",counter);
+          counter=-1;
+        }
+      } else {
+        counter++;
+      }
+      for(int chn=0;chn<channels;chn++)
+        on[chn]=isOn(curRow[chn],curCol[chn]);
+    }
+
+    for(int chn=0;chn<channels;chn++) {
+      if(curRow[chn]!=lastRow[chn]||curCol[chn]!=lastCol[chn]) {
+        on[chn]=isOn(curRow[chn],curCol[chn]);
+      }
+      if(on[chn])
+        trigPulse[chn].trigger(0.01f);
+      if(trigPulse[chn].process(args.sampleTime*32)) {
+        outputs[TRIG_OUTPUT].setVoltage(10.f,chn);
+        lights[GATE_LIGHT+chn].setSmoothBrightness(1.f,args.sampleTime*32);
+      } else {
+        outputs[TRIG_OUTPUT].setVoltage(0.f,chn);
+        lights[GATE_LIGHT+chn].setSmoothBrightness(0.f,args.sampleTime*32);
+      }
+      populateOutputs(params[LEVEL_PARAM].getValue(),chn);
+      if(isOn(curRow[chn],curCol[chn])) {
+        outputs[GATE_OUTPUT].setVoltage(10.f,chn);
+        if(params[ON_PARAM].getValue()>0.f)
+          outputs[CLOCK_OUTPUT].setVoltage(inputs[STEP_INPUT].getVoltage(),chn);
+        else
+          outputs[CLOCK_OUTPUT].setVoltage(0.f,chn);
+        outputs[MIDDLE_OUTPUT].setVoltage(params[LEVEL_PARAM].getValue(),chn);
+      } else {
+        outputs[GATE_OUTPUT].setVoltage(0.f,chn);
+        outputs[MIDDLE_OUTPUT].setVoltage(0.f,chn);
+        outputs[CLOCK_OUTPUT].setVoltage(0.f,chn);
+      }
+      lastRow[chn]=curRow[chn];
+      lastCol[chn]=curCol[chn];
+    }
+
+    outputs[ROW_RIGHT_OUTPUT].setChannels(channels);
+    outputs[ROW_LEFT_OUTPUT].setChannels(channels);
+    outputs[COL_TOP_OUTPUT].setChannels(channels);
+    outputs[COL_BOTTOM_OUTPUT].setChannels(channels);
+    outputs[TOP_LEFT_OUTPUT].setChannels(channels);
+    outputs[TOP_RIGHT_OUTPUT].setChannels(channels);
+    outputs[BOTTOM_RIGHT_OUTPUT].setChannels(channels);
+    outputs[BOTTOM_LEFT_OUTPUT].setChannels(channels);
+    outputs[TRIG_OUTPUT].setChannels(channels);
+    outputs[GATE_OUTPUT].setChannels(channels);
+    outputs[MIDDLE_OUTPUT].setChannels(channels);
+    outputs[CLOCK_OUTPUT].setChannels(channels);
+
+    if(rightExpander.module) {
+      if(rightExpander.module->model==modelC42E) {
+
+        C42ExpanderMessage *messageToExpander=(C42ExpanderMessage *)(rightExpander.module->leftExpander.producerMessage);
+        messageToExpander->channels=channels;
+        for(int k=0;k<channels;k++) {
+          populateExpanderChannel(messageToExpander,params[LEVEL_PARAM].getValue(),k);
+        }
+        rightExpander.module->leftExpander.messageFlipRequested=true;
+      }
+    }
+
+  }
+
+  void setSize(int size) {
+    world.size=size;
+    float valueX=getParamQuantity(CV_X_PARAM)->getValue();
+    float valueY=getParamQuantity(CV_Y_PARAM)->getValue();
+    if(valueX>size)
+      valueX=size;
+    if(valueY>size)
+      valueY=size;
+    configParam(CV_X_PARAM,0,world.size,world.size/2,"X");
+    getParamQuantity(CV_X_PARAM)->snapEnabled=true;
+    configParam(CV_Y_PARAM,0,world.size,world.size/2,"Y");
+    getParamQuantity(CV_Y_PARAM)->snapEnabled=true;
+    getParamQuantity(CV_X_PARAM)->setValue(valueX);
+    getParamQuantity(CV_Y_PARAM)->setValue(valueY);
+    dirty=2;
+  }
+
+  int getSize() {
+    return world.size;
+  }
+};
+
+struct RuleSelectItem : MenuItem {
+  C42 *module;
+  std::vector <std::string> labels;
+
+  RuleSelectItem(C42 *_module,std::vector <std::string> _labels) : module(_module),labels(std::move(_labels)) {
+  }
+
+  Menu *createChildMenu() override {
+    Menu *menu=new Menu;
+    for(unsigned k=0;k<labels.size();k++) {
+      menu->addChild(createCheckMenuItem(labels[k],"",[=]() {
+        return module->world.getRule()==k;
+      },[=]() {
+        module->world.setRule(k);
+      }));
+    }
+    return menu;
+  }
+};
+
+struct C42Widget : ModuleWidget {
+  C42Widget(C42 *module) {
+    setModule(module);
+    setPanel(createPanel(asset::plugin(pluginInstance,"res/C42.svg")));
+
+    addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH,0)));
+    addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,0)));
+    addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
+    addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
+
+    auto display=createWidget<C42Display<C42>>(mm2px(Vec(7,MHEIGHT-9-112)));
+    display->box.size=mm2px(Vec(112,112));
+    display->module=module;
+    addChild(display);
+    float x=125.5;
+    float y=TY(114);
+    addParam(createParam<MLEDM>(mm2px(Vec(x,y)),module,C42::STEP_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,C42::STEP_INPUT));
+    addParam(createParam<MLED>(mm2px(Vec(x+18,y)),module,C42::ON_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5,y)),module,C42::ON_INPUT));
+
+    addInput(createInput<SmallPort>(mm2px(Vec(133.5,TY(103))),module,C42::RST_INPUT));
+    addParam(createParam<MLEDM>(mm2px(Vec(143,TY(103))),module,C42::RST_PARAM));
+
+    y=TY(90);
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,C42::DENS_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,C42::DENS_INPUT));
+    addParam(createParam<MLEDM>(mm2px(Vec(x+18,y)),module,C42::RND_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5,y)),module,C42::RND_INPUT));
+
+    y+=13;
+    auto param=createParam<MKnob<C42>>(mm2px(Vec(x,y)),module,C42::CV_X_PARAM);
+    param->module=module;
+    addParam(param);
+    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,C42::CV_X_INPUT));
+    addParam(createParam<MLED>(mm2px(Vec(x+18,y)),module,C42::CV_ON_X_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5,y)),module,C42::CV_ON_X_INPUT));
+    y+=11;
+
+    param=createParam<MKnob<C42>>(mm2px(Vec(x,y)),module,C42::CV_Y_PARAM);
+    param->module=module;
+    addParam(param);
+    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,C42::CV_Y_INPUT));
+    addParam(createParam<MLED>(mm2px(Vec(x+18,y)),module,C42::CV_ON_Y_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5,y)),module,C42::CV_ON_Y_INPUT));
+
+    y=TY(53);
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(133.5,y)),module,C42::LEVEL_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(143,y)),module,C42::LEVEL_INPUT));
+
+
+    x=128;
+    y=TY(43.5);
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x,y)),module,C42::TOP_LEFT_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+11,y)),module,C42::COL_TOP_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+22,y)),module,C42::TOP_RIGHT_OUTPUT));
+    y+=11;
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x,y)),module,C42::ROW_LEFT_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+11,y)),module,C42::MIDDLE_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+22,y)),module,C42::ROW_RIGHT_OUTPUT));
+    y+=11;
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x,y)),module,C42::BOTTOM_LEFT_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+11,y)),module,C42::COL_BOTTOM_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+22,y)),module,C42::BOTTOM_RIGHT_OUTPUT));
+
+    addOutput(createOutput<SmallPort>(mm2px(Vec(128,TY(9))),module,C42::GATE_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(139,TY(9))),module,C42::CLOCK_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(150,TY(9))),module,C42::TRIG_OUTPUT));
+    x=125;
+    y=MHEIGHT-6-1;
+    int k=0;
+    addChild(createLight<SmallSimpleLight<MLIGHT1>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT2>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT3>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT4>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT5>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT6>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT7>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT8>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT9>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT10>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT11>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT12>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT13>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT14>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT15>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT16>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+    addChild(createLight<SmallSimpleLight<MLIGHT1>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
+    x+=2;k++;
+  }
+
+  void appendContextMenu(Menu *menu) override {
+    C42 *module=dynamic_cast<C42 *>(this->module);
+    assert(module);
+    menu->addChild(new MenuSeparator);
+    std::vector<int> sizes={8,16,32};
+    auto sizeSelectItem=new SizeSelectItem<C42>(module,sizes);
+    sizeSelectItem->text="size";
+    sizeSelectItem->rightText=string::f("%d",module->getSize())+"  "+RIGHT_ARROW;
+    menu->addChild(sizeSelectItem);
+    struct ClearItem : ui::MenuItem {
+      C42 *module;
+      int nr;
+
+      ClearItem(C42 *m) : module(m) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        if(!module)
+          return;
+        module->world.clear();
+      }
+    };
+    auto clearMenu=new ClearItem(module);
+    clearMenu->text="Clear";
+    menu->addChild(clearMenu);
+    auto ruleSelectItem=new RuleSelectItem(module,module->world.ruleLabels);
+    ruleSelectItem->text="Rule";
+    ruleSelectItem->rightText=module->world.ruleLabels[module->world.getRule()]+"  "+ +RIGHT_ARROW;
+    menu->addChild(ruleSelectItem);
+  }
+
+};
+
+
+Model *modelC42=createModel<C42,C42Widget>("C42");
