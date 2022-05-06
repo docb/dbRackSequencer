@@ -6,7 +6,7 @@ struct TD4 : Module {
 		PARAMS_LEN=16
 	};
 	enum InputId {
-		CV_INPUT,GATE_INPUT=CV_INPUT+16,POLY_CV_INPUT=GATE_INPUT+16,INPUTS_LEN
+		CV_INPUT,GATE_INPUT=CV_INPUT+16,POLY_CV_INPUT=GATE_INPUT+16,POLY_ADDR_INPUT,INPUTS_LEN
 	};
 	enum OutputId {
 		CV_OUTPUT,SINGLE_GATE_OUTPUT=CV_OUTPUT+16,GATE_OUTPUT=SINGLE_GATE_OUTPUT+16,POLY_CV_OUTPUT=GATE_OUTPUT+16,POLY_GATE_OUTPUT,POLY_CV_STATIC_OUTPUT,OUTPUTS_LEN
@@ -34,6 +34,7 @@ struct TD4 : Module {
       }
     }
     configInput(POLY_CV_INPUT,"Poly CV");
+    configInput(POLY_ADDR_INPUT,"Poly Address CV");
     configOutput(POLY_CV_STATIC_OUTPUT,"Poly Static CV ");
     configOutput(POLY_CV_OUTPUT,"Poly CV ");
     configOutput(POLY_GATE_OUTPUT,"Poly Gate ");
@@ -58,6 +59,7 @@ struct TD4 : Module {
         getParamQuantity(CV_INPUT+k)->setValue(inputs[POLY_CV_INPUT].getVoltage(k));
       }
     }
+    int channels;
     for(int k=0;k<16;k++) {
       outputs[GATE_OUTPUT+k].setVoltage(0.f);
       for(int j=0;j<16;j++) {
@@ -65,10 +67,24 @@ struct TD4 : Module {
         outputs[SINGLE_GATE_OUTPUT+j].setVoltage(0.f,k);
         outputs[POLY_CV_STATIC_OUTPUT].setVoltage(getCVParam(k),k);
       }
-      if(inputs[CV_INPUT+k].isConnected()) {
-        int index=int(inputs[CV_INPUT+k].getVoltage()*1.6f);
-        while(index<0) index+=16;
-        index %= 16;
+      int index=-1;
+      if(inputs[POLY_ADDR_INPUT].isConnected()) {
+        channels = inputs[POLY_ADDR_INPUT].getChannels();
+        if(k<channels) {
+          index=int(inputs[POLY_ADDR_INPUT].getVoltage(k)*1.6f);
+          while(index<0)
+            index+=16;
+          index%=16;
+        }
+      } else if(inputs[CV_INPUT+k].isConnected()) {
+        index=int(inputs[CV_INPUT+k].getVoltage()*1.6f);
+        while(index<0)
+          index+=16;
+        index%=16;
+        channels=k+1;
+      }
+
+      if(index>=0) {
         float a=getCVParam(index);
         outputs[CV_OUTPUT+k].setVoltage(a);
         outputs[POLY_CV_OUTPUT].setVoltage(a,k);
@@ -85,8 +101,8 @@ struct TD4 : Module {
     }
     outputs[SINGLE_GATE_OUTPUT].setChannels(16);
     outputs[POLY_CV_STATIC_OUTPUT].setChannels(16);
-    outputs[POLY_GATE_OUTPUT].setChannels(16);
-    outputs[POLY_CV_OUTPUT].setChannels(16);
+    outputs[POLY_GATE_OUTPUT].setChannels(channels);
+    outputs[POLY_CV_OUTPUT].setChannels(channels);
 	}
 
   void reconfig() {
@@ -126,7 +142,22 @@ struct TD4 : Module {
     reconfig();
   }
 };
-
+using MLIGHT1 = TLight<GrayModuleLightWidget,255,0,0>;
+using MLIGHT2 = TLight<GrayModuleLightWidget,0,255,0>;
+using MLIGHT3 = TLight<GrayModuleLightWidget,55,55,255>;
+using MLIGHT4 = TLight<GrayModuleLightWidget,255,255,0>;
+using MLIGHT5 = TLight<GrayModuleLightWidget,255,0,255>;
+using MLIGHT6 = TLight<GrayModuleLightWidget,0,255,255>;
+using MLIGHT7 = TLight<GrayModuleLightWidget,128,0,0>;
+using MLIGHT8 = TLight<GrayModuleLightWidget,196,85,55>;
+using MLIGHT9 = TLight<GrayModuleLightWidget,128,128,80>;
+using MLIGHT10 = TLight<GrayModuleLightWidget,255,128,0>;
+using MLIGHT11 = TLight<GrayModuleLightWidget,255,0,128>;
+using MLIGHT12 = TLight<GrayModuleLightWidget,0,128,255>;
+using MLIGHT13 = TLight<GrayModuleLightWidget,128,66,128>;
+using MLIGHT14 = TLight<GrayModuleLightWidget,128,255,0>;
+using MLIGHT15 = TLight<GrayModuleLightWidget,128,128,255>;
+using MLIGHT16 = TLight<GrayModuleLightWidget,128,255,255>;
 
 struct TD4Widget : ModuleWidget {
 	TD4Widget(TD4* module) {
@@ -149,11 +180,41 @@ struct TD4Widget : ModuleWidget {
       auto param=createParam<MKnob<TD4>>(mm2px(Vec(x,y)),module,k);
       param->module=module;
       addParam(param);
-      for(int j=0;j<2;j++) {
-        for(int l=0;l<8;l++) {
-          addChild(createLight<SmallSimpleLight<GreenLight>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
-        }
-      }
+
+        int j=0;
+        int l=0;
+        addChild(createLight<SmallSimpleLight<MLIGHT1>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT2>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT3>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT4>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT5>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT6>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT7>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT8>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        j++;l=0;
+        addChild(createLight<SmallSimpleLight<MLIGHT9>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT10>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT11>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT12>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT13>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT14>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT15>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+        l++;
+        addChild(createLight<SmallSimpleLight<MLIGHT16>>(mm2px(Vec(x+l*1.8-0.25,y+7.75+j*1.8)),module,k*16+j*8+l));
+
       addOutput(createOutput<SmallPort>(mm2px(Vec(x+8,y)),module,TD4::SINGLE_GATE_OUTPUT+k));
       x+=16;
       if(k%4==3) {
@@ -173,10 +234,16 @@ struct TD4Widget : ModuleWidget {
       }
     }
     y=TY(2);
-    addInput(createInput<SmallPort>(mm2px(Vec(21,y)),module,TD4::POLY_CV_INPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(29,y)),module,TD4::POLY_CV_STATIC_OUTPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(37,y)),module,TD4::POLY_GATE_OUTPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(45,y)),module,TD4::POLY_CV_OUTPUT));
+    x=17;
+    addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,TD4::POLY_ADDR_INPUT));
+    x+=8;
+    addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,TD4::POLY_CV_INPUT));
+    x+=8;
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x,y)),module,TD4::POLY_CV_STATIC_OUTPUT));
+    x+=8;
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x,y)),module,TD4::POLY_GATE_OUTPUT));
+    x+=8;
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x,y)),module,TD4::POLY_CV_OUTPUT));
 	}
 
   void appendContextMenu(Menu *menu) override {

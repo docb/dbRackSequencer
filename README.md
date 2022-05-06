@@ -8,11 +8,11 @@ This type of sequencer does not have any clock inputs.
 The current steps are selected via voltage inputs, 
 similar to using the step CV input from Bogaudio's ADDR sequencer.
 However, the plugin provides some modules which do the job of addressing based on a clock.
-But every other module which outputs step functions (e.g. S&H) can be used. Another advantage is that
-f.e. for an 8-step sequencer there are 40320 possibilities to make a sequence (permutation) from 8 values
-and not only one (1,2,3,4,5,6,7,8).
+But every other module which outputs step functions (e.g. S&H) can be used. 
 
 ### TD4
+![](images/TD4Doc.png?raw=true)
+
 
 This module provides 16 Tracks of a 4x4 Grid Sequencer. It is intended to be a building block 
 for simulating hardware sequencers like Rene or Z8000. It is inspired by the Z8K and the Renato module
@@ -35,4 +35,6 @@ On the bottom there are some additional polyphonic inputs and outputs.
 - A polyphonic CV output which reflects the current voltages of each knob
 - A polyphonic gate output which reflects the 16 monophonic gate outputs
 - A polyphonic cv output which reflects the 16 monophonic CV outputs.
+
+### P4
 
