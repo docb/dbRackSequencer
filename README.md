@@ -40,7 +40,11 @@ On the bottom there are some additional polyphonic inputs and outputs.
 
 ### P4
 
-<video src='https://player.vimeo.com/video/707706716' width=180></video>
+
+
+https://user-images.githubusercontent.com/1134412/167376290-2db45a30-5376-4b62-821d-282e32d2d18c.mp4
+
+
 
 
 ### C42
