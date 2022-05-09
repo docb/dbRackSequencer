@@ -38,11 +38,28 @@ On the bottom there are some additional polyphonic inputs and outputs.
 
 ![](images/TD4Doc.png?raw=true)
 
-### P4
+
+Here are some modules which are suited for a clocked addressing of the TD4 but not limited to. 
+
+#### P4
 
 
 
-https://user-images.githubusercontent.com/1134412/167376290-2db45a30-5376-4b62-821d-282e32d2d18c.mp4
+https://user-images.githubusercontent.com/1134412/167461678-ca6a8c83-2a86-48d4-830f-3fba07001cec.mp4
+
+
+
+https://user-images.githubusercontent.com/1134412/167461717-dcd016cd-858e-4bdb-9e3b-25aaaae53013.mp4
+
+
+
+https://user-images.githubusercontent.com/1134412/167403636-a7df029f-7f20-447d-914b-bb02f3699082.mp4
+
+
+#### P16
+
+
+https://user-images.githubusercontent.com/1134412/167461807-b4f6fbb2-5726-4762-abbb-8dfcab86d55c.mp4
 
 
 
