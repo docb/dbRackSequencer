@@ -3,7 +3,7 @@
 
 struct PXY : Module {
   enum ParamId {
-    START_X_PARAM,START_Y_PARAM,SIZE_X_PARAM,SIZE_Y_PARAM,PARAMS_LEN
+    START_X_PARAM,START_Y_PARAM,LENGTH_X_PARAM,LENGTH_Y_PARAM,SIZE_PARAM,PARAMS_LEN
   };
   enum InputId {
     RST_INPUT,LEFT_INPUT,RIGHT_INPUT,DOWN_INPUT,UP_INPUT,START_X_INPUT,START_Y_INPUT,INPUTS_LEN
@@ -24,18 +24,20 @@ struct PXY : Module {
   int stepY=0;
   int sizeX=4;
   int sizeY=4;
-  int gridSize=16;
+
 
   PXY() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     configParam(START_X_PARAM,0,31,0,"Start X");
     configParam(START_Y_PARAM,0,31,0,"Start Y");
-    configParam(SIZE_X_PARAM,2,32,4,"Size X");
-    configParam(SIZE_Y_PARAM,2,32,4,"Size Y");
+    configParam(LENGTH_X_PARAM,2,32,4,"Length X");
+    configParam(LENGTH_Y_PARAM,2,32,4,"Length Y");
+    configParam(SIZE_PARAM,2,32,16,"Size");
     getParamQuantity(START_X_PARAM)->snapEnabled=true;
     getParamQuantity(START_Y_PARAM)->snapEnabled=true;
-    getParamQuantity(SIZE_X_PARAM)->snapEnabled=true;
-    getParamQuantity(SIZE_Y_PARAM)->snapEnabled=true;
+    getParamQuantity(LENGTH_X_PARAM)->snapEnabled=true;
+    getParamQuantity(LENGTH_Y_PARAM)->snapEnabled=true;
+    getParamQuantity(SIZE_PARAM)->snapEnabled=true;
     configInput(LEFT_INPUT,"Step left");
     configInput(RIGHT_INPUT,"Step right");
     configInput(DOWN_INPUT,"Step down");
@@ -48,8 +50,9 @@ struct PXY : Module {
   }
 
   void process(const ProcessArgs &args) override {
-    sizeX=params[SIZE_X_PARAM].getValue();
-    sizeY=params[SIZE_Y_PARAM].getValue();
+    sizeX=params[LENGTH_X_PARAM].getValue();
+    sizeY=params[LENGTH_Y_PARAM].getValue();
+    int gridSize=params[SIZE_PARAM].getValue();
     if(inputs[START_X_INPUT].isConnected()) {
       int c=(clamp(inputs[START_X_INPUT].getVoltage(),0.f,9.99f)/10.f)*float(sizeX);
       getParamQuantity(START_X_PARAM)->setValue(c);
@@ -92,7 +95,7 @@ struct PXY : Module {
     outputs[CV_Y_OUTPUT].setVoltage(float(sy)/(gridSize/10.f));
     outputs[CV_OUTPUT].setVoltage(float(sy*sizeY+sx)/(gridSize/10.f));
   }
-
+/*
   void setSize(int size) {
     gridSize=size;
   }
@@ -113,7 +116,7 @@ struct PXY : Module {
     json_object_set_new(root,"size",json_integer(gridSize));
     return root;
   }
-
+*/
 };
 
 
@@ -137,16 +140,18 @@ struct PXYWidget : ModuleWidget {
     addParam(createParam<TrimbotWhite>(mm2px(Vec(4,TY(75))),module,PXY::START_X_PARAM));
     addParam(createParam<TrimbotWhite>(mm2px(Vec(15,TY(75))),module,PXY::START_Y_PARAM));
 
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(4,TY(58))),module,PXY::SIZE_X_PARAM));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(15,TY(58))),module,PXY::SIZE_Y_PARAM));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(4,TY(58))),module,PXY::LENGTH_X_PARAM));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(15,TY(58))),module,PXY::LENGTH_Y_PARAM));
 
     addInput(createInput<SmallPort>(mm2px(Vec(9.4,TY(44))),module,PXY::RST_INPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(4,TY(28))),module,PXY::CV_X_OUTPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(15,TY(28))),module,PXY::CV_Y_OUTPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(9.4,TY(32))),module,PXY::SIZE_PARAM));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(4,TY(19))),module,PXY::CV_X_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(15,TY(19))),module,PXY::CV_Y_OUTPUT));
 
-    addOutput(createOutput<SmallPort>(mm2px(Vec(9.4,TY(11))),module,PXY::CV_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(9.4,TY(8))),module,PXY::CV_OUTPUT));
   }
 
+  /*
   void appendContextMenu(Menu *menu) override {
     PXY *module=dynamic_cast<PXY *>(this->module);
     assert(module);
@@ -157,6 +162,7 @@ struct PXYWidget : ModuleWidget {
     sizeSelectItem->rightText=string::f("%d",module->getSize())+"  "+RIGHT_ARROW;
     menu->addChild(sizeSelectItem);
   }
+   */
 
 };
 

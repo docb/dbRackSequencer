@@ -17,18 +17,18 @@ struct TD4 : Module {
 
   float min=-2;
   float max=2;
-  bool quantize;
+  bool quantize=false;
   int dirty=0;
   dsp::ClockDivider divider;
 	TD4() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
     for(int k=0;k<16;k++) {
       configParam(k,min,max,0,"CV " + std::to_string(k+1));
-      configInput(CV_INPUT+k,"CV Addr " + std::to_string(k+1));
-      configInput(GATE_INPUT+k,"Gate "+ std::to_string(k+1));
-      configOutput(GATE_OUTPUT+k,"Step Gate "+ std::to_string(k+1));
-      configOutput(SINGLE_GATE_OUTPUT+k,"Single Gate "+ std::to_string(k+1));
-      configOutput(CV_OUTPUT+k,"CV "+ std::to_string(k+1));
+      configInput(CV_INPUT+k,"CV Addr Track" + std::to_string(k+1));
+      configInput(GATE_INPUT+k,"Gate Track "+ std::to_string(k+1));
+      configOutput(GATE_OUTPUT+k,"Step Gate Track "+ std::to_string(k+1));
+      configOutput(SINGLE_GATE_OUTPUT+k,"Single Step Gate "+ std::to_string(k+1));
+      configOutput(CV_OUTPUT+k,"CV Track "+ std::to_string(k+1));
       for(int j=0;j<16;j++) {
         configLight(k*16+j,"Step " + std::to_string(k+1) + " Input " + std::to_string(j+1));
       }
@@ -59,7 +59,7 @@ struct TD4 : Module {
         getParamQuantity(CV_INPUT+k)->setValue(inputs[POLY_CV_INPUT].getVoltage(k));
       }
     }
-    int channels;
+    int channels=0;
     for(int k=0;k<16;k++) {
       outputs[GATE_OUTPUT+k].setVoltage(0.f);
       for(int j=0;j<16;j++) {

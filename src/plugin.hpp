@@ -629,21 +629,6 @@ struct SizeSelectItem : MenuItem {
   }
 };
 
-template<typename T>
-struct DCBlocker {
-  T x = 0.f;
-  T y = 0.f;
-  T process(T v) {
-    y = v - x + y * 0.99f;
-    x = v;
-    return y;
-  }
-  void reset() {
-    x = 0.f;
-    y = 0.f;
-  }
-};
 
-#define TWOPIF 6.2831853f
 #define MHEIGHT 128.5f
 #define TY(x) MHEIGHT-(x)-6.237

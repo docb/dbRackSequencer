@@ -10,10 +10,10 @@ struct LifeWorld {
   bool gridSave[MAX_SIZE][MAX_SIZE]={};
   int size=32;
 
-  std::vector<bool> survive={0,0,1,1,0,0,0,0,0};
-  std::vector<bool> birth={0,0,0,1,0,0,0,0,0};
+  std::vector<int> survive={0,0,1,1,0,0,0,0,0};
+  std::vector<int> birth={0,0,0,1,0,0,0,0,0};
 
-  std::vector <std::string> ruleLabels={"B3/S23","B34/S34","B245/S","B2/S","B1/S1","B36/S125","B345/S5"};
+  std::vector <std::string> ruleLabels={"B3/S23","B34/S34","B234/S","B2/S","B1/S1","B36/S125","B345/S5"};
 
   void setRule(unsigned r) {
     rule=r;
@@ -24,7 +24,7 @@ struct LifeWorld {
         break;
       case 2:
         survive={0,0,0,0,0,0,0,0,0};
-        birth={0,0,1,0,1,1,0,0,0};
+        birth={0,0,1,1,1,0,0,0,0};
         break;
       case 3:
         survive={0,0,0,0,0,0,0,0,0};
@@ -185,13 +185,12 @@ struct LifeWorld {
       }
   }
 
-  bool nextGeneration() {
+  void nextGeneration() {
     bool grid2[size][size+1]={};
     for(int x=0;x<size;x++)
       for(int y=0;y<size;y++)
         grid2[x][y]=grid[x][y];
 
-    bool deadWorld=true;
     for(int a=0;a<size;a++) {
       for(int b=0;b<size;b++) {
         int life=0;
@@ -224,8 +223,6 @@ struct LifeWorld {
           grid[a][b]=birth[life];
       }
     }
-
-    return deadWorld;
   }
 
   void fromJson(json_t *jWorld) {
@@ -337,16 +334,6 @@ struct C42Display : OpenGlWidget {
         return cellColors.selectOffColor;
 
     }
-    if(!selected.empty()) {
-      if(module->isOn(row,col)) {
-        return cellColors.selectOnColor;
-      }
-      return cellColors.selectOffColor;
-    }
-    if(module->isOn(row,col)) {
-      return cellColors.onColor;
-    }
-    return cellColors.offColor;
   }
 
   void drawFramebuffer() override {
@@ -371,7 +358,7 @@ struct C42Display : OpenGlWidget {
       for(int c=0;c<numRows;c++) {
         glBegin(GL_QUADS);
         NVGcolor dg=getCellColor(r,c);
-        glColor3f(dg.r,dg.g,dg.b); //colore lancetta
+        glColor3f(dg.r,dg.g,dg.b);
 
         glVertex3f(posX,posY,0); // top left
         glVertex3f(posX+cellSize,posY,0); // top right
@@ -443,8 +430,7 @@ struct C42 : Module {
   int curRow[16];
   int curCol[16];
   int dirty=0;
-  int counter=-1;
-  int channels;
+  int channels=0;
   LifeWorld world;
   bool sizeSetFromJson=false;
   dsp::PulseGenerator trigPulse[16];
@@ -627,7 +613,6 @@ struct C42 : Module {
           index+=world.size;
         index%=world.size;
         curRow[chn]=index;
-        //getParamQuantity(CV_Y_PARAM)->setValue(index);
       }
     } else {
       curRow[0]=(int(params[CV_Y_PARAM].getValue())%world.size);
@@ -640,20 +625,12 @@ struct C42 : Module {
     }
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage())|rstManualTrigger.process(params[RST_PARAM].getValue())) {
       rstPulse.trigger(0.001f);
-      counter=0;
       world.reset();
     }
     bool rstGate=rstPulse.process(args.sampleTime*32);
 
     if(!rstGate&&(stepTrigger.process(inputs[STEP_INPUT].getVoltage())&&params[ON_PARAM].getValue()>0.f)|manualStepTrigger.process(params[STEP_PARAM].getValue())) {
-      if(world.nextGeneration()) {
-        if(counter>=0) {
-          INFO("Dead in %d",counter);
-          counter=-1;
-        }
-      } else {
-        counter++;
-      }
+      world.nextGeneration();
       for(int chn=0;chn<channels;chn++)
         on[chn]=isOn(curRow[chn],curCol[chn]);
     }
@@ -704,7 +681,7 @@ struct C42 : Module {
     if(rightExpander.module) {
       if(rightExpander.module->model==modelC42E) {
 
-        C42ExpanderMessage *messageToExpander=(C42ExpanderMessage *)(rightExpander.module->leftExpander.producerMessage);
+        auto messageToExpander=(C42ExpanderMessage *)(rightExpander.module->leftExpander.producerMessage);
         messageToExpander->channels=channels;
         for(int k=0;k<channels;k++) {
           populateExpanderChannel(messageToExpander,params[LEVEL_PARAM].getValue(),k);
@@ -758,7 +735,7 @@ struct RuleSelectItem : MenuItem {
 };
 
 struct C42Widget : ModuleWidget {
-  C42Widget(C42 *module) {
+  explicit C42Widget(C42 *module) {
     setModule(module);
     setPanel(createPanel(asset::plugin(pluginInstance,"res/C42.svg")));
 
@@ -776,7 +753,7 @@ struct C42Widget : ModuleWidget {
     addParam(createParam<MLEDM>(mm2px(Vec(x,y)),module,C42::STEP_PARAM));
     addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,C42::STEP_INPUT));
     addParam(createParam<MLED>(mm2px(Vec(x+18,y)),module,C42::ON_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5,y)),module,C42::ON_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5f,y)),module,C42::ON_INPUT));
 
     addInput(createInput<SmallPort>(mm2px(Vec(133.5,TY(103))),module,C42::RST_INPUT));
     addParam(createParam<MLEDM>(mm2px(Vec(143,TY(103))),module,C42::RST_PARAM));
@@ -785,7 +762,7 @@ struct C42Widget : ModuleWidget {
     addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,C42::DENS_PARAM));
     addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,C42::DENS_INPUT));
     addParam(createParam<MLEDM>(mm2px(Vec(x+18,y)),module,C42::RND_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5,y)),module,C42::RND_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5f,y)),module,C42::RND_INPUT));
 
     y+=13;
     auto param=createParam<MKnob<C42>>(mm2px(Vec(x,y)),module,C42::CV_X_PARAM);
@@ -793,7 +770,7 @@ struct C42Widget : ModuleWidget {
     addParam(param);
     addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,C42::CV_X_INPUT));
     addParam(createParam<MLED>(mm2px(Vec(x+18,y)),module,C42::CV_ON_X_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5,y)),module,C42::CV_ON_X_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5f,y)),module,C42::CV_ON_X_INPUT));
     y+=11;
 
     param=createParam<MKnob<C42>>(mm2px(Vec(x,y)),module,C42::CV_Y_PARAM);
@@ -801,7 +778,7 @@ struct C42Widget : ModuleWidget {
     addParam(param);
     addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,C42::CV_Y_INPUT));
     addParam(createParam<MLED>(mm2px(Vec(x+18,y)),module,C42::CV_ON_Y_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5,y)),module,C42::CV_ON_Y_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+25.5f,y)),module,C42::CV_ON_Y_INPUT));
 
     y=TY(53);
     addParam(createParam<TrimbotWhite>(mm2px(Vec(133.5,y)),module,C42::LEVEL_PARAM));
@@ -861,23 +838,21 @@ struct C42Widget : ModuleWidget {
     addChild(createLight<SmallSimpleLight<MLIGHT16>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
     x+=2;k++;
     addChild(createLight<SmallSimpleLight<MLIGHT1>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
   }
 
   void appendContextMenu(Menu *menu) override {
     C42 *module=dynamic_cast<C42 *>(this->module);
     assert(module);
     menu->addChild(new MenuSeparator);
-    std::vector<int> sizes={8,16,32};
+    std::vector<int> sizes={8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32};
     auto sizeSelectItem=new SizeSelectItem<C42>(module,sizes);
     sizeSelectItem->text="size";
     sizeSelectItem->rightText=string::f("%d",module->getSize())+"  "+RIGHT_ARROW;
     menu->addChild(sizeSelectItem);
     struct ClearItem : ui::MenuItem {
       C42 *module;
-      int nr;
 
-      ClearItem(C42 *m) : module(m) {
+      explicit ClearItem(C42 *m) : module(m) {
       }
 
       void onAction(const ActionEvent &e) override {

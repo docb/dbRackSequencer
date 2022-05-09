@@ -21,6 +21,12 @@ struct P4 : Module {
     {3,2,1,4},{3,2,4,1},{3,1,2,4},{3,1,4,2},{3,4,2,1},{3,4,1,2},
     {4,2,3,1},{4,2,1,3},{4,3,2,1},{4,3,1,2},{4,1,2,3},{4,1,3,2},
   };
+
+  // 1234 2341 3412 4123 4321 3214 2143 1432
+  // 1243 2431 4312 3124 3421 4213 2134 1342
+  // 1324 3241 2413 4132 4231 2314 3142 1423
+  // 4! = 4*2*3
+
   std::vector<std::string> labels={"1,2,3,4","1,2,4,3","1,3,2,4","1,3,4,2","1,4,2,3","1,4,3,2",
                                    "2,1,3,4","2,1,4,3","2,3,1,4","2,3,4,1","2,4,1,3","2,4,3,1",
                                    "3,2,1,4","3,2,4,1","3,1,2,4","3,1,4,2","3,4,2,1","3,4,1,2",
@@ -101,16 +107,16 @@ struct P4Widget : ModuleWidget {
     addInput(createInput<SmallPort>(mm2px(Vec(xpos,MHEIGHT-103.f)),module,P4::RST_INPUT));
     addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(78+6))),module,P4::OFS_PARAM));
     addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(71+6))),module,P4::OFS_INPUT));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(57+6))),module,P4::PERM_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(50+6))),module,P4::PERM_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(55+6))),module,P4::PERM_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(48+6))),module,P4::PERM_INPUT));
 
-    auto selectParam=createParam<SelectParam>(mm2px(Vec(1.9,MHEIGHT-45-6)),module,P4::XY_PARAM);
+    auto selectParam=createParam<SelectParam>(mm2px(Vec(1.9,MHEIGHT-43-6)),module,P4::XY_PARAM);
     selectParam->box.size=mm2px(Vec(6.4,7));
     selectParam->init({"X","Y"});
     addParam(selectParam);
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(36))),module,P4::XY_INPUT));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(24))),module,P4::DIV_PARAM));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(xpos,TY(12))),module,P4::CV_OUTPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(34))),module,P4::XY_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(22))),module,P4::DIV_PARAM));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(xpos,TY(10))),module,P4::CV_OUTPUT));
 	}
   void appendContextMenu(Menu *menu) override {
     P4 *module=dynamic_cast<P4 *>(this->module);

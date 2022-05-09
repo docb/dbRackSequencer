@@ -78,10 +78,10 @@ struct C42EWidget : ModuleWidget {
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/C42E.svg")));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+    addChild(createWidget<ScrewSilver>(Vec(0,0)));
+    addChild(createWidget<ScrewSilver>(Vec(box.size.x-15,0)));
+    addChild(createWidget<ScrewSilver>(Vec(0,365)));
+    addChild(createWidget<ScrewSilver>(Vec(box.size.x-15,365)));
 
     float y=TY(108);
     float x=11;

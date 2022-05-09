@@ -287,7 +287,7 @@ struct MatrixDisplay : OpaqueWidget {
     NVGcolor textColor=nvgRGB(0xff,0xff,0xff);
     nvgTextAlign(args.vg,NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
     nvgFillColor(args.vg,textColor);
-    nvgText(args.vg,col*cellXSize+margin+1,row*cellYSize+margin,buf,NULL);
+    nvgText(args.vg,col*cellXSize+margin+1,row*cellYSize+margin-1,buf,NULL);
   }
 
   void drawSelection(const DrawArgs &args) {

@@ -6,7 +6,7 @@
 #define DBCAEMODULES_SEMESSAGE_HPP
 #define NUM_INPUTS 12
 struct SEMessage {
-  float ins[NUM_INPUTS][16];
-  int channels;
+  float ins[NUM_INPUTS][16]={};
+  int channels=0;
 };
 #endif //DBCAEMODULES_SEMESSAGE_HPP
