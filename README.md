@@ -60,7 +60,8 @@ The second (from right) connected P4 has an offset of 4, so it will go through t
 The third P4 is set to Y and offset 4, so it goes through the second column.
 The forth P4 is set to Y and offset 12, so it goes through the forth column.
 
-https://user-images.githubusercontent.com/1134412/167461717-dcd016cd-858e-4bdb-9e3b-25aaaae53013.mp4
+https://user-images.githubusercontent.com/1134412/167461678-ca6a8c83-2a86-48d4-830f-3fba07001cec.mp4
+
 
 This example shows how to make a complex 16-step sequence with three P4 modules.
 Only the right most P4 is connected to the TD4. The left most is clocked x4 and controls the 
@@ -79,8 +80,7 @@ However, e.g. an S&H or Towers+SwitchN1 can be used to make the rest.
 NB: This size should be 16 for TD 4.
 Here an example of the first 10 sequences.
 
-https://user-images.githubusercontent.com/1134412/167461678-ca6a8c83-2a86-48d4-830f-3fba07001cec.mp4
-
+https://user-images.githubusercontent.com/1134412/167461717-dcd016cd-858e-4bdb-9e3b-25aaaae53013.mp4
 
 
 #### PXY
