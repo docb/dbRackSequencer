@@ -162,3 +162,17 @@ or any other module which processes multiple polyphonic inputs.
   
 - NB: These rules all operate on a torus.
 - The reset button or a trigger on the reset input rewinds the grid to the last edit operation.
+
+#### Examples
+##### Classic Sequencing
+
+Here is a demo with classic sequencing.
+The melody and bass are made with one playhead driven by a P16 by using the Col-Top and Col-Bottom output.
+On the second C42 one P16 and three P4 are used to make a three voice drum sequence. It is a  bit more interesting  when
+the pattern is changed of the P16 driving the melody and bass. (due to the limited size of the video the sound quality is not so good).
+
+
+https://user-images.githubusercontent.com/1134412/167498725-c5f50865-482a-4753-905a-3c2e5e11c66f.mp4
+
+
+
