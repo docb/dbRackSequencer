@@ -39,25 +39,59 @@ On the bottom there are some additional polyphonic inputs and outputs.
 ![](images/TD4Doc.png?raw=true)
 
 
-Here are some modules which are suited for a clocked addressing of the TD4 but not limited to. 
+Here are some modules which are suited for a clocked addressing of the TD4 but not limited to.
 
 #### P4
+![](images/P4.png?raw=true)
+- A single P4 makes 4 Step Sequences inside an address space of 4-32 Steps (Size Knob). 
+- TD4 has a size of 16.
+- The Ofs parameter controls the starting step inside the address space.
+- The Perm parameter sets one of the 24 possible 4-Step permutations.
+- If Y is set in the dir parameter the output is: `(step%4)*4+step/4` which causes moving up or down
+  in TD4
+- It can be used to simulate the 4-Step sequencers of the Z8000, but it can do a lot more sequences.
 
 
+##### Some patching to illustrate
+NB: The videos have sound which could be turned on.
 
-https://user-images.githubusercontent.com/1134412/167461678-ca6a8c83-2a86-48d4-830f-3fba07001cec.mp4
-
-
+This example illustrates the use of four P4. 
+The second (from right) connected P4 has an offset of 4, so it will go through the second row.
+The third P4 is set to Y and offset 4, so it goes through the second column.
+The forth P4 is set to Y and offset 12, so it goes through the forth column.
 
 https://user-images.githubusercontent.com/1134412/167461717-dcd016cd-858e-4bdb-9e3b-25aaaae53013.mp4
 
-
+This example shows how to make a complex 16-step sequence with three P4 modules.
+Only the right most P4 is connected to the TD4. The left most is clocked x4 and controls the 
+permutation selection and the middle P4 (also clocked x4) controls the offset - by set to direction Y it always moves
+the address by 4 steps.
 
 https://user-images.githubusercontent.com/1134412/167403636-a7df029f-7f20-447d-914b-bb02f3699082.mp4
 
 
 #### P16
+![](images/P16.png?raw=true)
 
+The P16 module provides 100 predefined 16-Step Sequences (ok, some kind of tiny collection compared to
+the possible 20922789888000 permutations). But at least the direction (back or forth) and an offset can be selected per sequence.
+However, e.g. an S&H or Towers+SwitchN1 can be used to make the rest.
+NB: This size should be 16 for TD 4.
+Here an example of the first 10 sequences.
+
+https://user-images.githubusercontent.com/1134412/167461678-ca6a8c83-2a86-48d4-830f-3fba07001cec.mp4
+
+
+
+#### PXY
+
+![](images/PXY.png?raw=true)
+
+PXY is a 2D walker controlled by X+,Y+,X-,Y- Trigger inputs.
+The start point can be controlled and the maximum length in each direction where wrapping around will occur.
+This size should be 16 for TD 4.
+
+Here an example:
 
 https://user-images.githubusercontent.com/1134412/167461807-b4f6fbb2-5726-4762-abbb-8dfcab86d55c.mp4
 
