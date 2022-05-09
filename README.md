@@ -40,7 +40,8 @@ On the bottom there are some additional polyphonic inputs and outputs.
 
 ### P4
 
-video: https://player.vimeo.com/video/707706716
+<video src='https://player.vimeo.com/video/707706716' width=180></video>
+
 
 ### C42
 An universal sequencer.
