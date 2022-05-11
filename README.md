@@ -197,6 +197,12 @@ On the second C42 one P16 and three P4 are used to make a 3-voice 32-step drum s
 https://user-images.githubusercontent.com/1134412/167498725-c5f50865-482a-4753-905a-3c2e5e11c66f.mp4
 
 ##### Chaos
+In this example a period-16 oscillator in conways life is used. Four playheads are placed randomly via RndH.
+The M+A (main diagonal + anti diagonal) output of the C24E expander is used to make the CV. The trigger output triggers
+an ADSR/Filter cutoff.
+
+https://user-images.githubusercontent.com/1134412/167783412-6dd213e9-b0b4-4d48-86a2-25c285fb9923.mp4
+
 
 
 ### TheMatrix
