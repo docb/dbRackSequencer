@@ -1,6 +1,6 @@
 # dbRackSequencer
 
-A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
+A collection of sequencers. Most modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
 ## Voltage addressable Sequencers
@@ -10,6 +10,16 @@ The current steps are selected via voltage inputs,
 similar to using the step CV input from Bogaudio's ADDR sequencer.
 However, the plugin provides some modules which do the job of addressing based on a clock.
 But every other module or combinations which outputs step functions (e.g. S&H) can be used. 
+
+### AG
+![](images/AG.png?raw=true)
+
+#### ACC
+![](images/ACC.png?raw=true)
+
+### Chords
+![](images/Chords.png?raw=true)
+
 
 ### TD4
 
@@ -42,6 +52,7 @@ On the bottom there are some additional polyphonic inputs and outputs.
 Here are some modules which are suited for a clocked addressing of the TD4 but not limited to.
 
 #### P4
+
 ![](images/P4.png?raw=true)
 - A single P4 makes 4 Step Sequences inside an address space of 4-32 Steps (Size Knob). 
 - TD4 has a size of 16.
@@ -60,6 +71,8 @@ The second (from right) connected P4 has an offset of 4, so it will go through t
 The third P4 is set to Y and offset 4, so it goes through the second column.
 The forth P4 is set to Y and offset 12, so it goes through the forth column.
 
+The use of AG is also shown to mute some steps via the Gate inputs.
+
 https://user-images.githubusercontent.com/1134412/167461678-ca6a8c83-2a86-48d4-830f-3fba07001cec.mp4
 
 
@@ -76,7 +89,7 @@ https://user-images.githubusercontent.com/1134412/167403636-a7df029f-7f20-447d-9
 
 The P16 module provides 100 predefined 16-Step Sequences (ok, some kind of tiny collection compared to
 the possible 20922789888000 permutations). But at least the direction (back or forth) and an offset can be selected per sequence.
-However, e.g. an S&H or Towers+SwitchN1 can be used to make the rest.
+However, e.g. an S&H or Towers+SwitchN1 or like in the example above can be used to make the rest.
 NB: This size should be 16 for TD 4.
 Here an example of the first 10 sequences.
 
@@ -99,7 +112,10 @@ https://user-images.githubusercontent.com/1134412/167461807-b4f6fbb2-5726-4762-a
 
 
 ### C42
-An universal sequencer.
+An universal sequencer. Vaguely inspired by the o88o module from the XOR plugin.
+
+CAUTION: This module will trick you into spending a lot of time. 
+Consider taking a walk in nature instead.
 
 ![](images/C42.png?raw=true)
 
@@ -121,7 +137,7 @@ An universal sequencer.
   - if the play head is changed to a cell which is on
   - if the cell where the play head is placed is turned on 
 - The gate output has 10V on the polyphonic channel of the play head while the play head is on a cell which is on, 0V otherwise.
-- The clock output represents the signal on the Gen (generate) input if the date output is high.
+- The clock output represents the signal on the Gen (generate) input if the gate output is high.
 
 #### Creating melodies
 - There are nine polyphonic CV outputs which work as follows:
@@ -166,13 +182,44 @@ or any other module which processes multiple polyphonic inputs.
 #### Examples
 ##### Classic Sequencing
 
-Here is a demo with classic sequencing.
-The melody and bass are made with one playhead driven by a P16 by using the Col-Top and Col-Bottom output.
-On the second C42 one P16 and three P4 are used to make a three voice drum sequence. It is a  bit more interesting  when
-the pattern is changed of the P16 driving the melody and bass. (due to the limited size of the video the sound quality is not so good).
+Here is a demo showing  classic sequencing.
+The melody and bass are made with one play head driven by a P16 by using the Col-Top and Col-Bottom output.
+The middle line where the play head is moved and which is not counted in Col-Top or Col-Bottom 
+is used for adding some gates triggering an ADSR/filter cutoff.
+The level parameter is set to 1/7 (+a bit more) and the mode of Quant is "equi-likely" 
+so that one more counted cell will move up by one position of the scale and an octave 
+is exactly 7 counted cells.
 
+On the second C42 one P16 and three P4 are used to make a 3-voice 32-step drum sequence.
+
+(Due to the limited size of the video the sound quality is not so good).
 
 https://user-images.githubusercontent.com/1134412/167498725-c5f50865-482a-4753-905a-3c2e5e11c66f.mp4
 
+##### Chaos
 
 
+### TheMatrix
+![](images/TheMatrix.png?raw=true)
+
+## Some other sequencers
+
+The following sequencers are re implementations with additional/different features
+of some sequencers of the XOR plugin.
+
+### Uno
+
+### Klee
+![](images/Klee.png?raw=true)
+### M851
+![](images/M851.png?raw=true)
+### CYC
+![](images/CYC.png?raw=true)
+## Utilities
+
+### Sum
+![](images/Sum.png?raw=true)
+### CV
+
+### PwmClock
+![](images/PwmClock.png?raw=true)

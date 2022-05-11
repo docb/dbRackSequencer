@@ -427,8 +427,8 @@ struct C42 : Module {
   int lastRow[16]={};
   int lastCol[16]={};
 
-  int curRow[16];
-  int curCol[16];
+  int curRow[16]={};
+  int curCol[16]={};
   int dirty=0;
   int channels=0;
   LifeWorld world;
@@ -593,7 +593,7 @@ struct C42 : Module {
       channelsX=inputs[CV_X_INPUT].getChannels();
       for(int chn=0;chn<16;chn++) {
         int index=int(inputs[CV_X_INPUT].getVoltage(chn)/10.f*float(world.size));
-        index+=params[CV_X_PARAM].getValue();
+        index+=int(params[CV_X_PARAM].getValue());
         while(index<0)
           index+=world.size;
         index%=world.size;
@@ -628,11 +628,15 @@ struct C42 : Module {
       world.reset();
     }
     bool rstGate=rstPulse.process(args.sampleTime*32);
-
+    bool lastOn[16]={};
     if(!rstGate&&(stepTrigger.process(inputs[STEP_INPUT].getVoltage())&&params[ON_PARAM].getValue()>0.f)|manualStepTrigger.process(params[STEP_PARAM].getValue())) {
+      for(int chn=0;chn<channels;chn++) {
+        lastOn[chn]=isOn(curRow[chn],curCol[chn]);
+      }
       world.nextGeneration();
-      for(int chn=0;chn<channels;chn++)
-        on[chn]=isOn(curRow[chn],curCol[chn]);
+      for(int chn=0;chn<channels;chn++) {
+        on[chn]=isOn(curRow[chn],curCol[chn])&& !lastOn[chn];
+      }
     }
 
     for(int chn=0;chn<channels;chn++) {
