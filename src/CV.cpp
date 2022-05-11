@@ -3,7 +3,7 @@
 
 struct CV : Module {
   enum ParamId {
-    CV_PARAM,PARAMS_LEN
+    CV_PARAM,LEVEL_PARAM,PARAMS_LEN
   };
   enum InputId {
     CV_INPUT,INPUTS_LEN
@@ -15,39 +15,39 @@ struct CV : Module {
     LIGHTS_LEN
   };
 
-  unsigned int sizeIndex=0;
-  std::vector<float> sizes={1.f/12.f,0.1,0.5,0.625,1,10.f/8.f};
+  //unsigned int sizeIndex=0;
+  std::vector<float> sizes={1.f/12.f,0.1,10.f/32.f,0.5,0.625,1,10.f/8.f};
   int currentValue=12;
 
   CV() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     configParam(CV_PARAM,0,24,12,"CV");
+    configParam(LEVEL_PARAM,0.01,2.5,1.f/12.f,"CV");
   }
 
   float getVoltage(int value) {
-    return (value-12)*sizes[sizeIndex];
+    return (value-12)*params[LEVEL_PARAM].getValue();
   }
 
   void process(const ProcessArgs &args) override {
     float in=inputs[CV_INPUT].getVoltage();
     int param=params[CV_PARAM].getValue();//0-24
-    currentValue=float(param)+in;
+    currentValue=float(param)+float(in);
     outputs[CV_PARAM].setVoltage(getVoltage(currentValue));
   }
 
-  json_t *dataToJson() override {
-    json_t *root=json_object();
-    json_object_set_new(root,"sizeIndex",json_integer(sizeIndex));
-    return root;
+  void setLevelIndex(int index) {
+    getParamQuantity(LEVEL_PARAM)->setValue(sizes[index]);
   }
-
-  void dataFromJson(json_t *root) override {
-    json_t *jCurrentSize=json_object_get(root,"sizeIndex");
-    if(jCurrentSize) {
-      sizeIndex=json_integer_value(jCurrentSize);
-    }
+  unsigned getLevelIndex() {
+    float value = params[LEVEL_PARAM].getValue();
+    auto itr=std::find(sizes.begin(),sizes.end(),value);
+    if(itr==sizes.end()) return -1;
+    return itr-sizes.begin();
   }
-
+  float getLevel() {
+    return params[LEVEL_PARAM].getValue();
+  }
 };
 
 struct CVSelectButton : OpaqueWidget {
@@ -198,9 +198,9 @@ struct StepSizeSelectItem : MenuItem {
     Menu *menu=new Menu;
     for(unsigned int k=0;k<labels.size();k++) {
       menu->addChild(createCheckMenuItem(labels[k],"",[=]() {
-        return module->sizeIndex==k;
+        return module->getLevelIndex()==k;
       },[=]() {
-        module->sizeIndex=k;
+        module->setLevelIndex(k);
       }));
     }
     return menu;
@@ -212,26 +212,25 @@ struct CVWidget : ModuleWidget {
     setModule(module);
     setPanel(createPanel(asset::plugin(pluginInstance,"res/CV.svg")));
 
-    addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH,0)));
-    addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,0)));
-    addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
-    addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
-    auto selectParam=createParam<CVSelectParam>(mm2px(Vec(1.7,MHEIGHT-118.f)),module,CV::CV_PARAM);
+
+    auto selectParam=createParam<CVSelectParam>(mm2px(Vec(1.7,MHEIGHT-123.f)),module,CV::CV_PARAM);
     selectParam->box.size=Vec(20,250);
     selectParam->init(module,{"-12","-11","-10","-9","-8","-7","-6","-5","-4","-3","-2","-1","0","1","2","3","4","5","6","7","8","9","10","11","12"});
     addParam(selectParam);
-    addInput(createInput<SmallPort>(mm2px(Vec(1.9f,MHEIGHT-31.f)),module,CV::CV_INPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(1.9f,MHEIGHT-19.f)),module,CV::CV_OUTPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(1.9f,TY(30))),module,CV::CV_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(1.9f,TY(18))),module,CV::LEVEL_PARAM));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(1.9f,TY(6))),module,CV::CV_OUTPUT));
+
   }
 
   void appendContextMenu(Menu *menu) override {
     CV *module=dynamic_cast<CV *>(this->module);
     assert(module);
     menu->addChild(new MenuSeparator);
-    std::vector <std::string> labels={"Semi","0.1","0.5","Pat 16","1","Pat 8"};
+    std::vector <std::string> labels={"Semi","0.1","Pat 32","0.5","Pat 16","1","Pat 8"};
     auto stepSelectItem=new StepSizeSelectItem(module,labels);
     stepSelectItem->text="Step Size";
-    stepSelectItem->rightText=labels[module->sizeIndex]+"  "+RIGHT_ARROW;
+    stepSelectItem->rightText=string::f("%0.4f V",module->getLevel())+"  "+RIGHT_ARROW;
     menu->addChild(stepSelectItem);
   }
 

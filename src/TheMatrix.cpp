@@ -447,17 +447,17 @@ struct MatrixDisplay : OpaqueWidget {
   void onSelectKey(const SelectKeyEvent &e) override {
     if(e.action==GLFW_PRESS||e.action==GLFW_REPEAT) {
       if(e.key==GLFW_KEY_LEFT) {
-        goLeft(!((e.mods&RACK_MOD_MASK)==GLFW_MOD_SHIFT));
+        goLeft((e.mods&RACK_MOD_MASK)!=GLFW_MOD_SHIFT);
         e.consume(this);
       }
       if(e.key==GLFW_KEY_RIGHT) {
-        goRight(!((e.mods&RACK_MOD_MASK)==GLFW_MOD_SHIFT));
+        goRight((e.mods&RACK_MOD_MASK)!=GLFW_MOD_SHIFT);
         e.consume(this);
       }
       if(e.key==GLFW_KEY_DOWN) {
         if(posY<MAX_SIZE-1) {
           posY++;
-          if(!((e.mods&RACK_MOD_MASK)==GLFW_MOD_SHIFT)) {
+          if((e.mods&RACK_MOD_MASK)!=GLFW_MOD_SHIFT) {
             selY=posY;
             selX=posX;
           }
@@ -468,7 +468,7 @@ struct MatrixDisplay : OpaqueWidget {
         if(posY>0) {
           posY--;
         }
-        if(!((e.mods&RACK_MOD_MASK)==GLFW_MOD_SHIFT)) {
+        if((e.mods&RACK_MOD_MASK)!=GLFW_MOD_SHIFT) {
           selY=posY;
           selX=posX;
         }

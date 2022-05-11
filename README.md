@@ -14,15 +14,56 @@ But every other module or combinations which outputs step functions (e.g. S&H) c
 ### AG
 ![](images/AG.png?raw=true)
 
+- The AG module provides 100 voltage addressable polyphonic gates. 
+- The number of channels can be set in the menu. 
+- The address input recognizes 0.1V per step.
+- If the Edit button is pressed the module behaves like the address input is not connected i.e. the steps 
+can be manually selected, otherwise a connected address input will disable manual stepping.
+- A click on the copy button will make a copy of the gate values.
+- After selecting a new step it can be pasted there.
+
+Some use cases of the module:
+- Meta sequencing. Turn on and off other modules.
+- Drum sequencing
+- Arpeggiator
+- ....
+
+
 #### ACC
 ![](images/ACC.png?raw=true)
+
+- ACC is a simple accumulator. 
+- On every trigger event on the Clk input it updates its state by adding the value of the Step parameter
+- On a trigger on the reset input the state is set to the value of the set param or set input if connected.
+- The output always reflects the current the state.
+
+If the step param is set to 0.1V ACC can be used to drive AG.
 
 ### Chords
 ![](images/Chords.png?raw=true)
 
+- The Chord module provides 100 voltage addressable polyphonic semi note values in the range from C0 to C8.
+- The number of channels can be set in the menu.
+- The address input recognizes 0.1V per step.
+- If the Edit button is pressed the module behaves like the address input is not connected i.e. the steps
+  can be manually selected, otherwise a connected address input will disable manual stepping.
+- A click on the copy button will make a copy of the note values.
+- After selecting a new step it can be pasted there.
+- Pressing the N+ button transposes one semi up.
+- Pressing the N- button transposes one semi down.
+- Pressing the O+ button transposes one octave up.
+- Pressing the O- button transposes one octave down.
+
+- The chord module outputs behaves like the corresponding ones in the MIDI CV module.
+- In the menu the number of polyphonic channels and the polyphony modes Rotate,Reset and Reuse for the channel assignment can be configured.
+- The Reorder action in the menu causes the chord to be ordered in the polyphonic channels from the lowest note to the highest.
+- The Auto-Reorder option causes the Reorder action on every change and the polyphony odes are ignored. 
+- The Auto-Channel option causes the outputs only have as many channels as key buttons are pressed.
+In this case the Polyphonic Channels setting is ignored.
+
+The ACC module can be used to drive a chord sequence.
 
 ### TD4
-
 
 This module provides 16 Tracks of a 4x4 Grid Sequencer. It is intended to be a building block 
 for simulating hardware sequencers like Rene or Z8000. It is inspired by the Z8K and the Renato module
@@ -112,7 +153,7 @@ https://user-images.githubusercontent.com/1134412/167461807-b4f6fbb2-5726-4762-a
 
 
 ### C42
-An universal sequencer. Vaguely inspired by the o88o module from the XOR plugin.
+A universal sequencer. Vaguely inspired by the o88o module from the XOR plugin.
 
 CAUTION: This module will trick you into spending a lot of time. 
 Consider taking a walk in nature instead.
@@ -178,6 +219,7 @@ or any other module which processes multiple polyphonic inputs.
   
 - NB: These rules all operate on a torus.
 - The reset button or a trigger on the reset input rewinds the grid to the last edit operation.
+- The Rnd button generates a random grid using the Dens (density) parameter. 
 
 #### Examples
 ##### Classic Sequencing
@@ -204,9 +246,76 @@ an ADSR/Filter cutoff.
 https://user-images.githubusercontent.com/1134412/167783412-6dd213e9-b0b4-4d48-86a2-25c285fb9923.mp4
 
 
-
 ### TheMatrix
 ![](images/TheMatrix.png?raw=true)
+
+Similar to C42 TheMatrix provides a grid of size 32x32 where up to 16 play heads can be placed
+via the CvX/Cvy params and inputs. But on each cell there can be edited an ascii char in the
+range from 32 (space) to 126 (~).
+The polyphonic CV output is built in the following way if a play head is on a cell which 
+is no space:
+First an integer number is looked up from the following table:
+
+| char | value | char | value | char | value |
+|------|-------|------|-------|------|-------|
+| ! | -47 | A | -15 | a | 17 |
+| " | -46 | B | -14 | b | 18 |
+| # | -45 | C | -13 | c | 19 |
+| $ | -44 | D | -12 | d | 20 |
+| % | -43 | E | -11 | e | 21 |
+| & | -42 | F | -10 | f | 22 |
+| ' | -41 | G | -9 | g | 23 |
+| ( | -40 | H | -8 | h | 24 |
+| ) | -39 | I | -7 | i | 25 |
+| * | -38 | J | -6 | j | 26 |
+| + | -37 | K | -5 | k | 27 |
+| , | -36 | L | -4 | l | 28 |
+| - | -35 | M | -3 | m | 29 |
+| . | -34 | N | -2 | n | 30 |
+| / | -33 | O | -1 | o | 31 |
+| 0 | -32 | P | 0 | p | 32 |
+| 1 | -31 | Q | 1 | q | 33 |
+| 2 | -30 | R | 2 | r | 34 |
+| 3 | -29 | S | 3 | s | 35 |
+| 4 | -28 | T | 4 | t | 36 |
+| 5 | -27 | U | 5 | u | 37 |
+| 6 | -26 | V | 6 | v | 38 |
+| 7 | -25 | W | 7 | w | 39 |
+| 8 | -24 | X | 8 | x | 40 |
+| 9 | -23 | Y | 9 | y | 41 |
+| : | -22 | Z | 10 | z | 42 |
+| ; | -21 | [ | 11 | { | 43 |
+| &lt; | -20 | \ | 12 | &#x7c; | 44 |
+| = | -19 | ] | 13 | } | 45 |
+| &gt; | -18 | ^ | 14 | ~ | 46 |
+| ? | -17 | _ | 15 ||  |
+| @ | -16 | ` | 16 ||  |
+
+Then this number is multiplied by the level parameter value and passed to the output.
+
+So if the level parameter is set to 1/12 then we have a semi note range from
+C#-2 to B-3 and the letter A denotes A-2. 
+
+A space will cause that the gate output is set to 0V, every other character causes the gate
+output set to 10V.
+
+This seems to be a bit complicated, but there are some editing features which make life easy:
+
+- connect a midi keyboard and the  V/Oct of the MIDI CV Module to the Rec CV input 
+  and the Retrigger output to the Rec trg input. On pressing a note on the keyboard
+  the corresponding ascii char will be inserted so that the cell will output the same note
+  if the level is set to 1/12.
+- If the cursor is on a cell then the Keys PageUp and PageDown will increase/decrease the current character
+  according to the ascii table.
+
+The editor supports also selecting a rectangular region with cut/copy/paste operations.
+Text can also be pasted from the system clipboard.
+
+The editor is also connected to the undo/redo system of VCVRack.
+
+The Rnd Button or a trigger on the Rnd input will fill the grid with random characters in the
+range set by the Range parameters min and max. The dens parameter or input controls how many spaces
+are generated.
 
 ## Some other sequencers
 
@@ -214,18 +323,114 @@ The following sequencers are re implementations with additional/different featur
 of some sequencers of the XOR plugin.
 
 ### Uno
+![](images/Uno.png?raw=true)
+
+Uno is a reimplementation of the qu4ttro sequencer of the XOR plugin.
+With the default values this is a normal 8-step sequencer. However, this sequencer answers
+the question of what happens if a probability can be set for skipping a step.
+
+Differences/Additions to the original:
+- It does not provide 4 Tracks but a chainable expander to have an arbitrary count of tracks.
+- Polyphonic inputs for the probability and CV Values are provided
+- The CV Range can be adjusted in the menu
+- Quantize to semis cna be turned on in the menu.
+- The probability for skipping a step is in the range of 0-100% and independent of the Glide and Rst.
+- If the Rst is on and the step is not skipped then it resets the sequence to the first step in forward and pendulum mode
+  and to the last step in backward mode.
+- The gate output represents the clock input if the gate is on and the Glide on the step is turned off.
+- If glide is On and the step is not skipped then the gate stays high
+- A polyphonic step gate output is provided
+- The seed input can be used to make reproducible sequences.
+If connected and not zero on a reset it will result in the same sequence for the same value provided.
+
 
 ### Klee
 ![](images/Klee.png?raw=true)
+
+You know, it may be better to take a walk in nature ...
+
+This module is a reimplementation of the Klee module of the XOR plugin with a bunch of additional features.
+It simulates a Klee like sequencer - please read carefully the PDF first you will find if you type
+'klee sequencer pdf' in your search engine to understand what this is all about.
+
+The additional features:
+- Every CV Knob has a single input which takes over the value.
+- The CV Knob range can be changed in the menu.
+- The CV Values can be quantized to semi steps in the menu.
+- Polyphonic inputs
+  - A CV input which controls all CV Knobs
+  - A Bus input which controls the Gate bus
+  - A Pattern input which controls the start pattern used when load is triggered
+- Polyphonic outputs:
+  - A static CV output which holds all knob values
+  - A trigger output where a trigger is fired on a channel if the corresponding step is turned on.
+  - A Gate output which is high if the corresponding step is active.
+  - A Clock output which represents the input clock if the gate is high.
+- Feedback Tabs (to make this module complex in a further dimension):
+  - Beside the lights there are small buttons for turning on a feedback step.
+  - This turns the shift register into a linear feedback shift register LFSR (see e.g. wikipedia).
+  - A polyphonic feedback tab input can be used to set the tabs. 
+  - The feedback is only active if the On button on right side of the input is on.
+
+NB: this module needs a bunch of tutorials or may be better taking a walk ....
+
 ### M851
 ![](images/M851.png?raw=true)
+
+This module is a reimplementation of the M581 of the XOR plugin. 
+
+- With the default values this is a normal 8-step sequencer. 
+- There are additional CV inputs which take over the step CV value.
+- The Knob range can be changed in the menu.
+- The Gate output always represents the clock input  (there is no gate length parameter
+as in the originals).
+- There are five play modes: forward, backward, pendulum,random walk and random.
+
+Things change dramatically if the repetition values are set to a higher value than one.
+The step then will stay for the number of repetitions. This will make the sequence longer
+(however the sequence length can be held constant via the rst input).
+Now the gate mode parameter comes into play:
+- '-----' means no gate at all (works also for one repetition)
+- '*----' means only a single gate at the beginning
+- '*****' for every repetition there will be a gate
+- '\*-\*-*' for repetition 1,3,5,7 there will be a gate
+- '\*--\*-' for repetition 1,4,7 there will be a gate
+- '\*---\*' for repetition 1,5 there will be a gate
+- '?????' gates are fired randomly
+- '▪▪▪▪▪' the gate will stay high for gliding to the next step
+
+If the glide button is on, there will be a portamento.
+If the step is turned off it will be skipped.
+
 ### CYC
 ![](images/CYC.png?raw=true)
+CYC is reimplementation of the Spiral sequencer of the XOR plugin.
+
+- CYC is a 6 track cyclic step sequencer on a common 32 knob/input value space.
+- For each track the play mode (see M851), the offset (0-31), length (1-32) and stride (1-8) can be configured.
+- For each track the steps can be muted/unmuted by clicking on the step light
+
 ## Utilities
 
 ### Sum
 ![](images/Sum.png?raw=true)
+
+This module does the same as Sum Mk 3 from the ML Modules plugin, 
+but it has 12 polyphonic inputs and a chainable expander which reduces the amount of cables if
+different sums are built from the same inputs.
+
 ### CV
+![](images/CV.png?raw=true)
+
+CV is another discrete CV value source. The number on the selected button is multiplied by the level
+value and passed to the output. The original idea for this module was born after watching
+the video about the octave sequencer from Jakub Ciupinski. With the CV module it looks like this:
+![](images/CVSeq.png?raw=true)
+
+It can be used without quantizer as the level can be set to 1/12.
 
 ### PwmClock
 ![](images/PwmClock.png?raw=true)
+
+Yet another clock generator module. The purpose of this module is to have many clock generators with
+different ratios and adjustable pwm.

@@ -20,6 +20,7 @@ struct UnoStrip {
   bool forward=true;
   RND rnd;
   int setStep=-1;
+  bool masterReset = false;
   void resetCurrentStep(int direction) {
     switch(direction) {
       case 0:  // forward
@@ -89,7 +90,7 @@ struct UnoStrip {
   void process(float sampleTime) {
     int direction=module->params[M::DIR_PARAM].getValue();;
     bool advance=false;
-    if(rstTrigger.process(module->inputs[M::RST_INPUT].getVoltage())) {
+    if(rstTrigger.process(module->inputs[M::RST_INPUT].getVoltage()) | masterReset) {
       rstPulse.trigger(0.001f);
       float seedParam=0;
       if(module->inputs[M::SEED_INPUT].isConnected()) {

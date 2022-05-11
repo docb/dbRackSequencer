@@ -22,6 +22,7 @@ struct Uno : Module {
   int max=2;
   dsp::SchmittTrigger setStepTrigger[NUM_STEPS];
   dsp::ClockDivider paramDivider;
+  dsp::SchmittTrigger masterReset;
   bool quantize=false;
   int dirty=0;
   RND rnd;
@@ -107,12 +108,17 @@ struct Uno : Module {
         break;
       }
     }
+    bool reset=false;
+    if(masterReset.process(inputs[MASTER_RST_INPUT].getVoltage())) {
+      reset=true;
+    }
+    unoStrip.masterReset = reset;
     unoStrip.process(args.sampleTime);
 
     if(rightExpander.module) {
       if(rightExpander.module->model==modelUnoE) {
         UnoExpanderMessage *messageToExpander=(UnoExpanderMessage *)(rightExpander.module->leftExpander.producerMessage);
-        populateExpanderMessage(messageToExpander,false /**TODO**/);
+        populateExpanderMessage(messageToExpander,reset);
         rightExpander.module->leftExpander.messageFlipRequested=true;
       }
     }

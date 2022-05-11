@@ -56,6 +56,7 @@ struct UnoE : Module {
       if(leftExpander.module->model==modelUno||leftExpander.module->model==modelUnoE) {
         currentMessage=(UnoExpanderMessage *)(leftExpander.consumerMessage);
         unoStrip.setStep=currentMessage->setStep;
+        unoStrip.masterReset=currentMessage->reset;
         unoStrip.process(args.sampleTime);
 
         if (rightExpander.module) {
