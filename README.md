@@ -323,7 +323,7 @@ are generated.
 
 ## Some other sequencers
 
-The following sequencers are re implementations with additional/different features
+The following sequencers are reimplementations with additional/different features
 of some sequencers of the XOR plugin.
 
 ### Uno
@@ -381,7 +381,7 @@ NB: this module needs a bunch of tutorials or may be better taking a walk ....
 ### M851
 ![](images/M851.png?raw=true)
 
-This module is a reimplementation of the M581 of the XOR plugin. 
+This module is a reimplementation of the M581 of the XOR plugin.
 
 - With the default values this is a normal 8-step sequencer. 
 - There are additional CV inputs which take over the step CV value.
@@ -409,7 +409,8 @@ If the step is turned off it will be skipped.
 
 ### CYC
 ![](images/CYC.png?raw=true)
-CYC is reimplementation of the Spiral sequencer of the XOR plugin.
+
+CYC is a reimplementation of the Spiral sequencer of the XOR plugin.
 
 - CYC is a 6 track cyclic step sequencer on a common 32 knob/input value space.
 - The Knob range can be changed in the menu.
@@ -445,4 +446,4 @@ It can be used without a quantizer as the level can be set to 1/12.
 ![](images/PwmClock.png?raw=true)
 
 Yet another clock generator module. The purpose of this module is to have many clock generators with
-different ratios and adjustable pwm.
+different ratios and adjustable pwm. You may need it when working with the sequencers described above.
