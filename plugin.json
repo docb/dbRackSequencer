@@ -7,10 +7,10 @@
   "author": "docB",
   "authorEmail": "",
   "authorUrl": "https://docb.io",
-  "pluginUrl": "",
-  "manualUrl": "",
-  "sourceUrl": "",
-  "donateUrl": "",
+  "pluginUrl": "https://github.com/docb/dbRackSequencer",
+  "manualUrl": "https://github.com/docb/dbRackSequencer",
+  "sourceUrl": "https://github.com/docb/dbRackSequencer",
+  "donateUrl": "https://www.paypal.com/paypalme/docb222",
   "changelogUrl": "",
   "modules": [
     {
@@ -33,9 +33,9 @@
     {
       "slug": "AG",
       "name": "AG",
-      "description": "Addressable Gate Patterns",
+      "description": "Voltage addressable Gate Patterns",
       "tags": [
-        "Polyphonic"
+        "Polyphonic", "Sequencer"
       ]
     },
     {
@@ -77,7 +77,7 @@
     {
       "slug": "PwmClock",
       "name": "PwmClock",
-      "description": "Clock generator with nine configurable clocks",
+      "description": "Clock generator with nine configurable clocks with adjustable pwm",
       "tags": [
         "Clock generator"
       ]
@@ -149,7 +149,7 @@
     {
       "slug": "TheMatrix",
       "name": "TheMatrix",
-      "description": "A 32x32 Grid Sequencer with up to 16 play heads",
+      "description": "A 32x32 Grid ASCII Sequencer with up to 16 play heads",
       "tags": ["Sequencer","Polyphonic"]
     }
   ]

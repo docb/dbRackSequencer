@@ -14,7 +14,7 @@ But every other module or combinations which outputs step functions (e.g. S&H) c
 ### AG
 ![](images/AG.png?raw=true)
 
-- The AG module provides 100 voltage addressable polyphonic gates. 
+- The AG module provides 100 voltage addressable polyphonic gates or gate patterns. 
 - The number of channels can be set in the menu. 
 - The address input recognizes 0.1V per step.
 - If the Edit button is pressed the module behaves like the address input is not connected i.e. the steps 
@@ -57,7 +57,7 @@ If the step param is set to 0.1V ACC can be used to drive AG.
 - The chord module outputs behaves like the corresponding ones in the MIDI CV module.
 - In the menu the number of polyphonic channels and the polyphony modes Rotate,Reset and Reuse for the channel assignment can be configured.
 - The Reorder action in the menu causes the chord to be ordered in the polyphonic channels from the lowest note to the highest.
-- The Auto-Reorder option causes the Reorder action on every change and the polyphony odes are ignored. 
+- The Auto-Reorder option causes the Reorder action on every change and the polyphony modes are ignored. 
 - The Auto-Channel option causes the outputs only have as many channels as key buttons are pressed.
 In this case the Polyphonic Channels setting is ignored.
 
@@ -96,16 +96,18 @@ Here are some modules which are suited for a clocked addressing of the TD4 but n
 
 ![](images/P4.png?raw=true)
 - A single P4 makes 4 Step Sequences inside an address space of 4-32 Steps (Size Knob). 
-- TD4 has a size of 16.
+In the case of driving TD4 the size would be 16.
 - The Ofs parameter controls the starting step inside the address space.
 - The Perm parameter sets one of the 24 possible 4-Step permutations.
 - If Y is set in the dir parameter the output is: `(step%4)*4+step/4` which causes moving up or down
-  in TD4
+  in TD4 and other grid sequencers (see below)
 - It can be used to simulate the 4-Step sequencers of the Z8000, but it can do a lot more sequences.
 
 
 ##### Some patching to illustrate
 NB: The videos have sound which could be turned on.
+
+###### Simulating a Z8000 Sequencer
 
 This example illustrates the use of four P4. 
 The second (from right) connected P4 has an offset of 4, so it will go through the second row.
@@ -116,6 +118,7 @@ The use of AG is also shown to mute some steps via the Gate inputs.
 
 https://user-images.githubusercontent.com/1134412/167461678-ca6a8c83-2a86-48d4-830f-3fba07001cec.mp4
 
+###### A complex 16-step sequence
 
 This example shows how to make a complex 16-step sequence with three P4 modules.
 Only the right most P4 is connected to the TD4. The left most is clocked x4 and controls the 
@@ -126,6 +129,7 @@ https://user-images.githubusercontent.com/1134412/167403636-a7df029f-7f20-447d-9
 
 
 #### P16
+
 ![](images/P16.png?raw=true)
 
 The P16 module provides 100 predefined 16-Step Sequences (ok, some kind of tiny collection compared to
@@ -202,7 +206,7 @@ There is additionally an expander C42E which provides additional outputs:
   - M-A (MD-AD)
   - A-M (AD-MD)
   
-A general alternative is to combine the outputs via the Sum module and its SE Expander
+A general alternative is to combine the outputs via the Sum module (see below) and its SE Expander
 or any other module which processes multiple polyphonic inputs.
 
 #### Generate Chaos
@@ -250,7 +254,7 @@ https://user-images.githubusercontent.com/1134412/167783412-6dd213e9-b0b4-4d48-8
 ![](images/TheMatrix.png?raw=true)
 
 Similar to C42 TheMatrix provides a grid of size 32x32 where up to 16 play heads can be placed
-via the CvX/Cvy params and inputs. But on each cell there can be edited an ascii char in the
+via the CvX/CvY params and inputs. But on each cell there can be edited an ascii char in the
 range from 32 (space) to 126 (~).
 The polyphonic CV output is built in the following way if a play head is on a cell which 
 is no space:
@@ -294,7 +298,7 @@ First an integer number is looked up from the following table:
 Then this number is multiplied by the level parameter value and passed to the output.
 
 So if the level parameter is set to 1/12 then we have a semi note range from
-C#-2 to B-3 and the letter A denotes A-2. 
+C#-2 to B-3 and the letter 'A' denotes A-2. 
 
 A space will cause that the gate output is set to 0V, every other character causes the gate
 output set to 10V.
@@ -302,7 +306,7 @@ output set to 10V.
 This seems to be a bit complicated, but there are some editing features which make life easy:
 
 - connect a midi keyboard and the  V/Oct of the MIDI CV Module to the Rec CV input 
-  and the Retrigger output to the Rec trg input. On pressing a note on the keyboard
+  and the Retrigger output to the Rec Trg input. On pressing a note on the keyboard
   the corresponding ascii char will be inserted so that the cell will output the same note
   if the level is set to 1/12.
 - If the cursor is on a cell then the Keys PageUp and PageDown will increase/decrease the current character
@@ -333,7 +337,7 @@ Differences/Additions to the original:
 - It does not provide 4 Tracks but a chainable expander to have an arbitrary count of tracks.
 - Polyphonic inputs for the probability and CV Values are provided
 - The CV Range can be adjusted in the menu
-- Quantize to semis cna be turned on in the menu.
+- Quantize to semis can be turned on in the menu.
 - The probability for skipping a step is in the range of 0-100% and independent of the Glide and Rst.
 - If the Rst is on and the step is not skipped then it resets the sequence to the first step in forward and pendulum mode
   and to the last step in backward mode.
@@ -367,7 +371,7 @@ The additional features:
   - A Gate output which is high if the corresponding step is active.
   - A Clock output which represents the input clock if the gate is high.
 - Feedback Tabs (to make this module complex in a further dimension):
-  - Beside the lights there are small buttons for turning on a feedback step.
+  - Beside the lights there are small buttons for turning on a feedback tab for the step.
   - This turns the shift register into a linear feedback shift register LFSR (see e.g. wikipedia).
   - A polyphonic feedback tab input can be used to set the tabs. 
   - The feedback is only active if the On button on right side of the input is on.
@@ -382,6 +386,7 @@ This module is a reimplementation of the M581 of the XOR plugin.
 - With the default values this is a normal 8-step sequencer. 
 - There are additional CV inputs which take over the step CV value.
 - The Knob range can be changed in the menu.
+- The CV Values can be quantized to semi steps in the menu.
 - The Gate output always represents the clock input  (there is no gate length parameter
 as in the originals).
 - There are five play modes: forward, backward, pendulum,random walk and random.
@@ -391,7 +396,7 @@ The step then will stay for the number of repetitions. This will make the sequen
 (however the sequence length can be held constant via the rst input).
 Now the gate mode parameter comes into play:
 - '-----' means no gate at all (works also for one repetition)
-- '*----' means only a single gate at the beginning
+- '*----' means only a single gate at the beginning (the default)
 - '*****' for every repetition there will be a gate
 - '\*-\*-*' for repetition 1,3,5,7 there will be a gate
 - '\*--\*-' for repetition 1,4,7 there will be a gate
@@ -399,7 +404,7 @@ Now the gate mode parameter comes into play:
 - '?????' gates are fired randomly
 - '▪▪▪▪▪' the gate will stay high for gliding to the next step
 
-If the glide button is on, there will be a portamento.
+If the glide button is on, there will be a portamento with speed adjustable by the glider knob.
 If the step is turned off it will be skipped.
 
 ### CYC
@@ -407,8 +412,13 @@ If the step is turned off it will be skipped.
 CYC is reimplementation of the Spiral sequencer of the XOR plugin.
 
 - CYC is a 6 track cyclic step sequencer on a common 32 knob/input value space.
+- The Knob range can be changed in the menu.
+- The CV Values can be quantized to semi steps in the menu.
+- There are two polyphonic CV inputs for step 0-15 and 16-31
 - For each track the play mode (see M851), the offset (0-31), length (1-32) and stride (1-8) can be configured.
-- For each track the steps can be muted/unmuted by clicking on the step light
+- For each track the steps can be muted/unmuted by clicking on the step light.
+- With the polyphonic seed input a random seed (by setting channel 1-6) can be set to
+obtain the same sequence on every reset if the one of the random modes is used.
 
 ## Utilities
 
@@ -417,7 +427,7 @@ CYC is reimplementation of the Spiral sequencer of the XOR plugin.
 
 This module does the same as Sum Mk 3 from the ML Modules plugin, 
 but it has 12 polyphonic inputs and a chainable expander which reduces the amount of cables if
-different sums are built from the same inputs.
+different sums are built from the same inputs. 
 
 ### CV
 ![](images/CV.png?raw=true)
@@ -425,10 +435,12 @@ different sums are built from the same inputs.
 CV is another discrete CV value source. The number on the selected button is multiplied by the level
 value and passed to the output. The original idea for this module was born after watching
 the video about the octave sequencer from Jakub Ciupinski. With the CV module it looks like this:
+
 ![](images/CVSeq.png?raw=true)
 
-It can be used without quantizer as the level can be set to 1/12.
-
+It basically behaves like the OCT module of the Fundamental plugin.
+It can be used without a quantizer as the level can be set to 1/12.
+ 
 ### PwmClock
 ![](images/PwmClock.png?raw=true)
 

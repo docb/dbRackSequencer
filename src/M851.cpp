@@ -69,9 +69,9 @@ struct M851 : Module {
   SlewLimiter sl;
   float min=-2;
   float max=2;
-  bool quantize;
+  bool quantize=false;
   bool gate=false;
-  int dirty; // dirty hack
+  int dirty=0; // dirty hack
 
   bool gateOn() {
     switch((int)params[GATE_MODE_PARAM+stepCounter%8].getValue()) {
@@ -368,7 +368,7 @@ struct M851Widget : ModuleWidget {
   void appendContextMenu(Menu *menu) override {
     M851 *module=dynamic_cast<M851 *>(this->module);
     assert(module);
-    menu->addChild(new MenuEntry);
+    menu->addChild(new MenuSeparator);
 
     std::vector <MinMaxRange> ranges={{-3,3},
                                       {-2,2},

@@ -137,11 +137,6 @@ struct Track {
   }
 
   float getCV(int step) {
-    if(module->inputs[M::CV_INPUT+step].isConnected()) {
-      float v=module->inputs[M::CV_INPUT+step].getVoltage();
-      module->getParamQuantity(M::CV_PARAM+step)->setValue(v);
-      return v;
-    }
     return module->params[M::CV_PARAM+step].getValue();
   }
 
@@ -150,6 +145,14 @@ struct Track {
       bool advance=false;
       if(rstTrigger.process(module->inputs[M::RST_INPUT+nr].getVoltage())) {
         rstPulse.trigger(1e-3f);
+        float seedParam=0;
+        if(module->inputs[M::SEED_INPUT].isConnected()) {
+          seedParam=module->inputs[M::SEED_INPUT].getVoltage(nr);
+          seedParam = floorf(seedParam*10000)/10000;
+          seedParam/=10.f;
+        }
+        auto seedInput = (unsigned long long)(floor((double)seedParam*(double)ULONG_MAX));
+        rnd.reset(seedInput);
         reset();
         advance=true;
       }
@@ -215,7 +218,7 @@ struct CYC : Module {
     RUN_MODE_PARAM,OFFSET_PARAM=RUN_MODE_PARAM+NUM_TRACK,LENGTH_PARAM=OFFSET_PARAM+NUM_TRACK,STRIDE_PARAM=LENGTH_PARAM+NUM_TRACK,TRACK_ON_PARAM=STRIDE_PARAM+NUM_TRACK,ON_OFF_PARAM=TRACK_ON_PARAM+NUM_TRACK,CV_PARAM=ON_OFF_PARAM+NUM_TRACK*32,PARAMS_LEN=CV_PARAM+32
   };
   enum InputId {
-    CLK_INPUT,RST_INPUT=CLK_INPUT+NUM_TRACK,OFFSET_INPUT=RST_INPUT+NUM_TRACK,LENGTH_INPUT=OFFSET_INPUT+NUM_TRACK,STRIDE_INPUT=LENGTH_INPUT+NUM_TRACK,CV_INPUT=STRIDE_INPUT+NUM_TRACK,INPUTS_LEN=CV_INPUT+32
+    CLK_INPUT,RST_INPUT=CLK_INPUT+NUM_TRACK,OFFSET_INPUT=RST_INPUT+NUM_TRACK,LENGTH_INPUT=OFFSET_INPUT+NUM_TRACK,STRIDE_INPUT=LENGTH_INPUT+NUM_TRACK,CV_INPUT=STRIDE_INPUT+NUM_TRACK,CV_POLY_0_15_INPUT=CV_INPUT+32,CV_POLY_16_31_INPUT,SEED_INPUT,INPUTS_LEN
   };
   enum OutputId {
     CV_OUTPUT,GATE_OUTPUT=CV_OUTPUT+NUM_TRACK,OUTPUTS_LEN=GATE_OUTPUT+NUM_TRACK
@@ -230,11 +233,15 @@ struct CYC : Module {
                                 {this,4},
                                 {this,5}};
   RND rnd;
-
+  float min=-2;
+  float max=2;
+  bool quantize=false;
+  int dirty=0; // dirty hack
+  dsp::ClockDivider paramDivider;
   CYC() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     for(int k=0;k<32;k++) {
-      configParam(CV_PARAM+k,-2,2,0,"CV "+std::to_string(k+1));
+      configParam(CV_PARAM+k,min,2,max,"CV "+std::to_string(k+1));
 
       configInput(CV_INPUT+k,"CV "+std::to_string(k+1));
       for(int j=0;j<NUM_TRACK;j++) {
@@ -255,9 +262,28 @@ struct CYC : Module {
       configInput(STRIDE_INPUT+k,"Stride "+std::to_string(k+1));
       configSwitch(TRACK_ON_PARAM+k,0,1,k==0?1:0,"Track "+std::to_string(k+1),{"Off","On"});
     }
+    configInput(CV_POLY_0_15_INPUT,"Poly CV 0-15");
+    configInput(CV_POLY_16_31_INPUT,"Poly CV 0-15");
+    paramDivider.setDivision(32);
   }
 
   void process(const ProcessArgs &args) override {
+    if(paramDivider.process()) {
+      for(int step=0;step<32;step++) {
+        if(step<16&&inputs[CV_POLY_0_15_INPUT].isConnected()) {
+          float v=inputs[CV_POLY_0_15_INPUT].getVoltage(step);
+          getParamQuantity(CV_PARAM+step)->setValue(v);
+        }
+        if(step>=16&&inputs[CV_POLY_16_31_INPUT].isConnected()) {
+          float v=inputs[CV_POLY_16_31_INPUT].getVoltage(step-16);
+          getParamQuantity(CV_PARAM+step)->setValue(v);
+        }
+        if(inputs[CV_INPUT+step].isConnected()) {
+          float v=inputs[CV_INPUT+step].getVoltage();
+          getParamQuantity(CV_PARAM+step)->setValue(v);
+        }
+      }
+    }
     for(int k=0;k<NUM_TRACK;k++) {
       tracks[k].process(args);
     }
@@ -269,6 +295,18 @@ struct CYC : Module {
     }
   }
 
+  void reconfig() {
+    for(int nr=0;nr<32;nr++) {
+      float value=getParamQuantity(CV_PARAM+nr)->getValue();
+      if(value>max)
+        value=max;
+      if(value<min)
+        value=min;
+      configParam(CV_PARAM+nr,min,max,0,"CV "+std::to_string(nr+1));
+      getParamQuantity(CV_PARAM+nr)->setValue(value);
+      dirty=32;
+    }
+  }
 
 };
 template <typename TBase = app::ModuleLightWidget>
@@ -371,7 +409,9 @@ struct CYCWidget : ModuleWidget {
       float x=cosf(alpha);
       float y=-sinf(alpha);
       addInput(createInputCentered<SmallPort>(mm2px(Vec(x*47+cx,y*47+cy)),module,CYC::CV_INPUT+(31-k)));
-      addParam(createParamCentered<TrimbotWhite>(mm2px(Vec(x*40+cx,y*40+cy)),module,CYC::CV_PARAM+(31-k)));
+      auto cvKnob=createParamCentered<MKnob<CYC>>(mm2px(Vec(x*40+cx,y*40+cy)),module,CYC::CV_PARAM+(31-k));
+      cvKnob->module=module;
+      addParam(cvKnob);
       int j=0;
       addParam(createParamCentered<SmallGrayRoundButton>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,CYC::ON_OFF_PARAM+j*32+(31-k)));
       j++;
@@ -384,23 +424,6 @@ struct CYCWidget : ModuleWidget {
       addParam(createParamCentered<SmallGrayRoundButton>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,CYC::ON_OFF_PARAM+j*32+(31-k)));
       j++;
       addParam(createParamCentered<SmallGrayRoundButton>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,CYC::ON_OFF_PARAM+j*32+(31-k)));
-      j++;
-      /*
-      addParam(createParamCentered<SmallRoundButton>(mm2px(Vec(x*r+cx,y*r+cy)),module,CYC::ON_OFF_PARAM+(31-k)));
-      addParam(createLightParamCentered<MLightButton<RedLight>>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,CYC::ON_OFF_PARAM+j*32+(31-k),j*32+(31-k)));
-      j++;
-      addParam(createLightParamCentered<MLightButton<YellowLight>>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,CYC::ON_OFF_PARAM+j*32+(31-k),j*32+(31-k)));
-      j++;
-      addParam(createLightParamCentered<MLightButton<BlueLight>>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,CYC::ON_OFF_PARAM+j*32+(31-k),j*32+(31-k)));
-      j++;
-      addParam(createLightParamCentered<MLightButton<GreenLight>>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,CYC::ON_OFF_PARAM+j*32+(31-k),j*32+(31-k)));
-      j++;
-      addParam(createLightParamCentered<MLightButton<WhiteLight>>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,CYC::ON_OFF_PARAM+j*32+(31-k),j*32+(31-k)));
-      j++;
-      addParam(createLightParamCentered<MLightButton<PurpleLight>>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,CYC::ON_OFF_PARAM+j*32+(31-k),j*32+(31-k)));
-      j++;
-      addParam(createParamCentered<SmallRoundButton>(mm2px(Vec(x*r+cx,y*r+cy)),module,CYC::ON_OFF_PARAM+(31-k)));
-      */
       j=0;
       addChild(createLightCentered<DBLight9px<DBRedLight>>(mm2px(Vec(x*(r-(d*j))+cx,y*(r-(d*j))+cy)),module,j*32+(31-k)));
       j++;
@@ -439,12 +462,30 @@ struct CYCWidget : ModuleWidget {
       addOutput(createOutput<SmallPort>(mm2px(Vec(191.25,y+8)),module,CYC::GATE_OUTPUT+k));
       y+=18;
     }
+    addInput(createInput<SmallPort>(mm2px(Vec(4,TY(114))),module,CYC::CV_POLY_0_15_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(4,TY(8))),module,CYC::CV_POLY_16_31_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(100,TY(114))),module,CYC::SEED_INPUT));
   }
 
   void appendContextMenu(Menu *menu) override {
     CYC *module=dynamic_cast<CYC *>(this->module);
     assert(module);
-    menu->addChild(new MenuEntry);
+    menu->addChild(new MenuSeparator);
+    std::vector <MinMaxRange> ranges={{-3,3},
+                                      {-2,2},
+                                      {-1,1},
+                                      {0, 1},
+                                      {0, 2}};
+    auto rangeSelectItem=new RangeSelectItem<CYC>(module,ranges);
+    rangeSelectItem->text="Range";
+    rangeSelectItem->rightText=string::f("%d/%dV",(int)module->min,(int)module->max)+"  "+RIGHT_ARROW;
+    menu->addChild(rangeSelectItem);
+    menu->addChild(createCheckMenuItem("Quantize","",[=]() {
+      return module->quantize;
+    },[=]() {
+      module->quantize=!module->quantize;
+    }));
+
     menu->addChild(new CYCRandomize(module,RNDCV,"Randomize CV"));
     //menu->addChild(new RandomizeItem(module,RNDBUS,"Randomize Bus"));
     //menu->addChild(new RandomizeItem(module,RNDLOAD,"Randomize Load"));
