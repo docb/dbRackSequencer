@@ -9,7 +9,7 @@ struct LifeWorld {
   bool grid[MAX_SIZE][MAX_SIZE]={};
   bool gridSave[MAX_SIZE][MAX_SIZE]={};
   int size=32;
-
+  bool grid2[MAX_SIZE][MAX_SIZE]={};
   std::vector<int> survive={0,0,1,1,0,0,0,0,0};
   std::vector<int> birth={0,0,0,1,0,0,0,0,0};
 
@@ -186,7 +186,7 @@ struct LifeWorld {
   }
 
   void nextGeneration() {
-    bool grid2[size][size+1]={};
+
     for(int x=0;x<size;x++)
       for(int y=0;y<size;y++)
         grid2[x][y]=grid[x][y];
