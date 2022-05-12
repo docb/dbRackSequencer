@@ -423,10 +423,11 @@ CYC is a reimplementation of the Spiral sequencer of the XOR plugin.
 - The Knob range can be changed in the menu.
 - The CV Values can be quantized to semi steps in the menu.
 - There are two polyphonic CV inputs for step 0-15 and 16-31
-- For each track the play mode (see M851), the offset (0-31), length (1-32) and stride (1-8) can be configured.
+- For each track the play mode (forward, backward, pendulum,random walk and random), the offset (0-31), length (1-32) and stride (1-8) can be configured.
 - For each track the steps can be muted/unmuted by clicking on the step light.
-- With the polyphonic seed input a random seed (by setting channel 1-6) can be set to
-obtain the same sequence on every reset if the one of the random modes is used.
+- If one of the random modes is used with the polyphonic seed input a random seed 
+(by setting channel 1-6) can be set to obtain the same sequence (if the seed value is not zero)
+on every reset.
 
 ## Utilities
 

@@ -284,7 +284,7 @@ struct Klee : Module {
 
   void randomizeCV() {
     for(int k=0;k<16;k++) {
-      getParamQuantity(CV_PARAM+k)->setValue(rescale(rnd.nextDouble(),0.f,1.f,-1.f,1.f));
+      getParamQuantity(CV_PARAM+k)->setValue(rescale(rnd.nextDouble(),0.f,1.f,min,max));
     }
   }
   void randomizeLoad() {
@@ -480,11 +480,13 @@ struct KleeWidget : ModuleWidget {
     std::vector <MinMaxRange> ranges={{-3,3},
                                       {-2,2},
                                       {-1,1},
+                                      {-0.5,0.5},
+                                      {-0.2,0.2},
                                       {0,1},
                                       {0,2}};
     auto rangeSelectItem=new RangeSelectItem<Klee>(module,ranges);
     rangeSelectItem->text="Range";
-    rangeSelectItem->rightText=string::f("%d/%dV",(int)module->min,(int)module->max)+"  "+RIGHT_ARROW;
+    rangeSelectItem->rightText=string::f("%0.1f/%0.1fV",module->min,module->max)+"  "+RIGHT_ARROW;
     menu->addChild(rangeSelectItem);
     menu->addChild(createCheckMenuItem("Quantize", "",
                                        [=]() {return module->quantize;},

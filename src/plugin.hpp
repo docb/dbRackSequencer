@@ -556,7 +556,7 @@ struct RangeSelectItem : MenuItem {
   Menu *createChildMenu() override {
     Menu *menu=new Menu;
     for(unsigned int k=0;k<ranges.size();k++) {
-      menu->addChild(createCheckMenuItem(string::f("%d/%dV",(int)ranges[k].min,(int)ranges[k].max),"",[=]() {
+      menu->addChild(createCheckMenuItem(string::f("%0.1f/%0.1fV",ranges[k].min,ranges[k].max),"",[=]() {
         return module->min==ranges[k].min&&module->max==ranges[k].max;
       },[=]() {
         module->min=ranges[k].min;
