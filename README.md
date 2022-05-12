@@ -3,6 +3,43 @@
 A collection of sequencers. Most modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [dbRackSequencer](#dbracksequencer)
+  - [Voltage addressable Sequencers](#voltage-addressable-sequencers)
+    - [AG](#ag)
+      - [ACC](#acc)
+    - [Chords](#chords)
+    - [TD4](#td4)
+      - [P4](#p4)
+        - [Some patching to illustrate](#some-patching-to-illustrate)
+          - [Simulating a Z8000 Sequencer](#simulating-a-z8000-sequencer)
+          - [A complex 16-step sequence](#a-complex-16-step-sequence)
+      - [P16](#p16)
+      - [PXY](#pxy)
+    - [C42](#c42)
+      - [Gate/Trigger Sequencer](#gatetrigger-sequencer)
+      - [Creating melodies](#creating-melodies)
+      - [Generate Chaos](#generate-chaos)
+      - [Examples](#examples)
+        - [Classic Sequencing](#classic-sequencing)
+        - [Chaos](#chaos)
+    - [TheMatrix](#thematrix)
+  - [Some other sequencers](#some-other-sequencers)
+    - [Uno](#uno)
+    - [Klee](#klee)
+    - [M851](#m851)
+    - [CYC](#cyc)
+  - [Utilities](#utilities)
+    - [Sum](#sum)
+    - [CV](#cv)
+    - [PwmClock](#pwmclock)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+
 ## Voltage addressable Sequencers
 
 This type of sequencer does not have any clock inputs. 
