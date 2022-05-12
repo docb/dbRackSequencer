@@ -347,6 +347,13 @@ Differences/Additions to the original:
 - The seed input can be used to make reproducible sequences.
 If connected and not zero on a reset it will result in the same sequence for the same value provided.
 
+Here an example showing the effect of the Rst button:
+
+
+
+https://user-images.githubusercontent.com/1134412/168129909-76ae9c21-6e5a-4e34-a107-bf9f9eb173e2.mp4
+
+
 
 ### Klee
 ![](images/Klee.png?raw=true)
