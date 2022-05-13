@@ -29,8 +29,8 @@ struct Chords : Module {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     configSwitch(NOTE_UP_PARAM,0,1,0.f,"Note Up");
     configSwitch(OCT_UP_PARAM,0,1,0,"Octave Up");
-    configSwitch(NOTE_DOWN_PARAM,0,1,0.f,"Note Up");
-    configSwitch(OCT_DOWN_PARAM,0,1,0,"Octave Up");
+    configSwitch(NOTE_DOWN_PARAM,0,1,0.f,"Note Down");
+    configSwitch(OCT_DOWN_PARAM,0,1,0,"Octave Down");
     configOutput(GATE_OUTPUT,"Gate");
     configOutput(VOCT_OUTPUT,"V/Oct");
     configInput(CHORD_INPUT,"Chord");
