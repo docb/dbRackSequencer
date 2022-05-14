@@ -58,7 +58,6 @@ But every other module or combinations which outputs step functions (e.g. S&H) c
 can be manually selected, otherwise a connected address input will disable manual stepping.
 - A click on the copy button will make a copy of the gate values.
 - After selecting a new step it can be pasted there.
-- The number of polyphonioc channels can be set in the menu.
 - On randomize the density setting in the menu is taken to randomize the selected pattern (only). 
 
 Some use cases of the module:
