@@ -32,14 +32,14 @@ struct Klee : Module {
       bool A[8];
       bool B[8];
     };
-    bool P[16];
+    bool P[16]={};
   }shiftRegister;
 
-  bool bus_active[3];
+  bool bus_active[3]={};
 
   float min=-1;
   float max=1;
-  bool quantize;
+  bool quantize=false;
   int dirty=0;
   dsp::ClockDivider divider;
   Klee() {

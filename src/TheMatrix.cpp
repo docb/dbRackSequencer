@@ -135,13 +135,13 @@ struct TheMatrix : Module {
   };
 
   Matrix m;
-  int curRow[16];
-  int curCol[16];
+  int curRow[16]={};
+  int curCol[16]={};
   int channels=0;
   dsp::SchmittTrigger rndTrigger;
   dsp::SchmittTrigger extTrigger;
   dsp::SchmittTrigger manualRndTrigger;
-  float voct;
+  float voct=0.f;
   bool extNote=false;
   bool saveToHistory=false;
 

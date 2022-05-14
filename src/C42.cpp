@@ -310,7 +310,7 @@ struct C42Display : OpenGlWidget {
   int oldR=-1;
   Vec dragPosition;
   CellColors cellColors;
-  bool current;
+  bool current=false;
 
   NVGcolor getCellColor(int row,int col) {
     std::vector<int> selected=module->getSelected(row,col);

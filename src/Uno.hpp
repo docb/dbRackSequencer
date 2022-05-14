@@ -2,8 +2,8 @@
 #define DBCAEMODULES_UNO_HPP
 #define NUM_STEPS 8
 struct UnoExpanderMessage {
-  float cv[NUM_STEPS];
-  float prob[NUM_STEPS];
+  float cv[NUM_STEPS]={};
+  float prob[NUM_STEPS]={};
   float setStep=-1;
   bool glide[NUM_STEPS]={};
   bool rst[NUM_STEPS]={};
