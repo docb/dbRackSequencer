@@ -14,7 +14,11 @@ struct ACC : Module {
 	enum LightId {
 		LIGHTS_LEN
 	};
-
+  float state = 0;
+  dsp::SchmittTrigger clockTrigger;
+  dsp::SchmittTrigger rstTrigger;
+  dsp::PulseGenerator rstPulse;
+  dsp::ClockDivider divider;
 	ACC() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
     configParam(STEP_AMT_PARAM,-1,1,0,"Step Amount");
@@ -24,21 +28,21 @@ struct ACC : Module {
     configInput(STEP_AMT_INPUT,"Step Amount");
     configInput(SET_INPUT,"Set");
     configOutput(CV_OUTPUT,"CV");
+    divider.setDivision(32);
 	}
-  float state = 0;
-  dsp::SchmittTrigger clockTrigger;
-  dsp::SchmittTrigger rstTrigger;
-  dsp::PulseGenerator rstPulse;
+
 	void process(const ProcessArgs& args) override {
-    if(inputs[SET_INPUT].isConnected()) {
-      getParamQuantity(SET_PARAM)->setValue(inputs[SET_INPUT].getVoltage());
+    if(divider.process()) {
+      if(inputs[SET_INPUT].isConnected()) {
+        getParamQuantity(SET_PARAM)->setValue(inputs[SET_INPUT].getVoltage());
+      }
+      if(inputs[STEP_AMT_INPUT].isConnected()) {
+        getParamQuantity(STEP_AMT_PARAM)->setValue(clamp(inputs[STEP_AMT_INPUT].getVoltage(),-10.f,10.f)/10.f);
+      }
     }
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage())) {
       rstPulse.trigger(0.001f);
       state = params[SET_PARAM].getValue();
-    }
-    if(inputs[STEP_AMT_INPUT].isConnected()) {
-        getParamQuantity(STEP_AMT_PARAM)->setValue(clamp(inputs[STEP_AMT_INPUT].getVoltage(),-10.f,10.f)/10.f);
     }
     bool restGate=rstPulse.process(args.sampleTime);
     if(clockTrigger.process(inputs[CLOCK_INPUT].getVoltage()) & !restGate) {

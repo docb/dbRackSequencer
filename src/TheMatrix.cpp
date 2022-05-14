@@ -539,15 +539,18 @@ struct MatrixDisplay : OpaqueWidget {
 template<typename W>
 struct RandomizeButton : MLEDM {
   W *widget;
-
+  bool state=false;
   void onChange(const ChangeEvent &e) override {
     SvgSwitch::onChange(e);
-    TheMatrix *module=(TheMatrix*)widget->getModule();
+    auto module=(TheMatrix*)widget->getModule();
     if(module) {
-      if(module->params[TheMatrix::RND_PARAM].getValue()==0) {
+      if(module->params[TheMatrix::RND_PARAM].getValue()==0 && state) {
         widget->save();
         module->randomize();
         widget->pushHistory();
+        state=false;
+      } else {
+        state=true;
       }
     }
   }
