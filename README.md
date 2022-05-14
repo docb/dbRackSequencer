@@ -347,6 +347,7 @@ This seems to be a bit complicated, but there are some editing features which ma
   and the Retrigger output to the Rec Trg input. On pressing a note on the keyboard
   the corresponding ascii char will be inserted so that the cell will output the same note
   if the level is set to 1/12.
+- Similar with the Chords module: set polyponic channels to one and connect the V/O output to the CV in and the Rtr output to Trg.
 - If the cursor is on a cell then the Keys PageUp and PageDown will increase/decrease the current character
   according to the ascii table.
 
