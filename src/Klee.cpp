@@ -42,6 +42,8 @@ struct Klee : Module {
   bool quantize=false;
   int dirty=0;
   dsp::ClockDivider divider;
+  dsp::ClockDivider paramDivider;
+
   Klee() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     for(int k=0;k<16;k++) {
@@ -83,6 +85,7 @@ struct Klee : Module {
     configInput(TABS_ON_INPUT,"Tabs On");
     configButton(TABS_ON_PARAM,"Tabs On");
     divider.setDivision(32);
+    paramDivider.setDivision(32);
   }
 
   bool getCoin() {
@@ -247,17 +250,19 @@ struct Klee : Module {
       rotateSR();
     }
     if(advance || instant) {
-      for(int k=0;k<16;k++) {
-        if(inputs[CV_INPUT+k].isConnected()) {
-          getParamQuantity(CV_PARAM+k)->setValue(inputs[CV_INPUT+k].getVoltage());
-        } else if(inputs[POLY_CV_INPUT].isConnected()) {
-          getParamQuantity(CV_PARAM+k)->setValue(inputs[POLY_CV_INPUT].getVoltage(k));
-        }
-        if(inputs[TAB_INPUT].isConnected()) {
-          getParamQuantity(TAB_PARAMS+k)->setValue(inputs[TAB_INPUT].getVoltage(k)>1.f);
-        }
-        if(inputs[POLY_BUS_INPUT].isConnected()) {
-          getParamQuantity(BUS_PARAM+k)->setValue(std::floor(rescale(inputs[POLY_BUS_INPUT].getVoltage(k),0.f,10.f,0.f,2.99999f)));
+      if(instant && paramDivider.process()) {
+        for(int k=0;k<16;k++) {
+          if(inputs[CV_INPUT+k].isConnected()) {
+            getParamQuantity(CV_PARAM+k)->setValue(inputs[CV_INPUT+k].getVoltage());
+          } else if(inputs[POLY_CV_INPUT].isConnected()) {
+            getParamQuantity(CV_PARAM+k)->setValue(inputs[POLY_CV_INPUT].getVoltage(k));
+          }
+          if(inputs[TAB_INPUT].isConnected()) {
+            getParamQuantity(TAB_PARAMS+k)->setValue(inputs[TAB_INPUT].getVoltage(k)>1.f);
+          }
+          if(inputs[POLY_BUS_INPUT].isConnected()) {
+            getParamQuantity(BUS_PARAM+k)->setValue(std::floor(rescale(inputs[POLY_BUS_INPUT].getVoltage(k),0.f,10.f,0.f,2.99999f)));
+          }
         }
       }
       processBus();
