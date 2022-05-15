@@ -21,16 +21,3 @@ DISTRIBUTABLES += $(wildcard presets)
 
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
-include $(RACK_DIR)/arch.mk
-
-#ifdef ARCH_LIN
-#	LDFLAGS += -lGL
-#endif
-
-ifdef ARCH_MAC
-	LDFLAGS += -framework OpenGL
-endif
-
-ifdef ARCH_WIN
-	LDFLAGS +=  -lopengl32
-endif

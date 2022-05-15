@@ -302,13 +302,13 @@ using MLIGHT15 = TLight<GrayModuleLightWidget,128,128,255>;
 using MLIGHT16 = TLight<GrayModuleLightWidget,128,255,255>;
 
 template<typename M>
-struct C42Display : OpenGlWidget {
+struct C42Display : OpaqueWidget {
   M *module;
-  int numRows;
+  int numRows=MAX_SIZE;
   const int margin=2;
   int oldC=-1;
   int oldR=-1;
-  Vec dragPosition;
+  Vec dragPosition={};
   CellColors cellColors;
   bool current=false;
 
@@ -335,40 +335,43 @@ struct C42Display : OpenGlWidget {
 
     }
   }
-
-  void drawFramebuffer() override {
+  void drawLayer(const DrawArgs &args,int layer) override {
+    if(layer==1) {
+      _draw(args);
+    }
+    Widget::drawLayer(args,layer);
+  }
+  void _draw(const DrawArgs &args)  {
     if(module==nullptr)
       return;
     numRows=module->world.size;
 
-    Vec size=box.size.mult(getAbsoluteZoom());
+    Vec size=box.size;
     float cellSize=size.x/numRows-margin;
 
-    glViewport(0.0,0.0,size.x,size.y);
-    glClearColor(0.0,0.0,0.0,1.0);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0.0,size.x,0.0,size.y,-1.0,1.0);
-
-    float posY=size.y-cellSize-margin;
+    float posY=1;
     for(int r=0;r<numRows;r++) {
-      float posX=0;
+      float posX=1;
       for(int c=0;c<numRows;c++) {
-        glBegin(GL_QUADS);
         NVGcolor dg=getCellColor(r,c);
-        glColor3f(dg.r,dg.g,dg.b);
-
-        glVertex3f(posX,posY,0); // top left
-        glVertex3f(posX+cellSize,posY,0); // top right
-        glVertex3f(posX+cellSize,posY+cellSize,0); // bottom right
-        glVertex3f(posX,posY+cellSize,0); // bottom left
-        glEnd();
+        nvgBeginPath(args.vg);
+        //glVertex3f(posX,posY,0); // top left
+        //glVertex3f(posX+cellSize,posY,0); // top right
+        //glVertex3f(posX+cellSize,posY+cellSize,0); // bottom right
+        //glVertex3f(posX,posY+cellSize,0); // bottom left
+        nvgRect(args.vg,posX,posY,cellSize,cellSize);
+        nvgFillColor(args.vg,dg);
+        if(module->isCurrent(r,c)) {
+          nvgStrokeColor(args.vg,nvgRGB(255,255,255));
+        } else {
+          nvgStrokeColor(args.vg,nvgRGB(64,64,64));
+        }
+        nvgStrokeWidth(args.vg,2);
+        nvgStroke(args.vg);
+        nvgFill(args.vg);
         posX+=cellSize+margin;
       }
-
-      posY-=cellSize+margin;
+      posY+=cellSize+margin;
     }
   }
 
@@ -379,16 +382,26 @@ struct C42Display : OpenGlWidget {
       current=module->toggleCell(r,c);
       e.consume(this);
       dragPosition=e.pos;
+    } else if(e.action==GLFW_PRESS&&e.button==GLFW_MOUSE_BUTTON_RIGHT) {
+      int c=oldC=floor(e.pos.x/(box.size.x/float(numRows)));
+      int r=oldR=floor(e.pos.y/(box.size.y/float(numRows)));
+      module->setCurrent(r,c);
+      e.consume(this);
+      dragPosition=e.pos;
     }
   }
 
   void onDragMove(const event::DragMove &e) override {
+
     dragPosition=dragPosition.plus(e.mouseDelta.div(getAbsoluteZoom()));
     if(isMouseInDrawArea(dragPosition)) {
       int c=floor(dragPosition.x/(box.size.x/float(numRows)));
       int r=floor(dragPosition.y/(box.size.y/float(numRows)));
       if(c!=oldC||r!=oldR) {
-        module->setCell(r,c,current);
+        if(e.button==GLFW_MOUSE_BUTTON_RIGHT)
+          module->setCurrent(r,c);
+        else
+          module->setCell(r,c,current);
       }
       oldC=c;
       oldR=r;
@@ -408,7 +421,6 @@ struct C42Display : OpenGlWidget {
   }
 
 };
-
 
 struct C42 : Module {
   enum ParamId {
@@ -454,7 +466,7 @@ struct C42 : Module {
     configButton(STEP_PARAM,"Step");
 
     configParam(DENS_PARAM,0,1,0.5,"Random Density");
-    configParam(LEVEL_PARAM,0.01,1,0.1,"Out Level Factor");
+    configParam(LEVEL_PARAM,0.01,2,1/12.f,"Out Level Factor");
     configButton(RST_PARAM,"Reset");
     configButton(ON_PARAM,"Generation On");
     configButton(CV_ON_X_PARAM,"CV X Input On");
@@ -521,6 +533,16 @@ struct C42 : Module {
     return ret;
   }
 
+  bool isCurrent(int row,int col) {
+    return row==int(params[CV_Y_PARAM].getValue()) && col==int(params[CV_X_PARAM].getValue());
+  }
+
+  void setCurrent(int row,int col) {
+    getParamQuantity(CV_X_PARAM)->setValue(float(col));
+    getParamQuantity(CV_Y_PARAM)->setValue(float(row));
+  }
+
+
   bool isOn(int row,int col) {
     return world.getCell(row,col);
   }
@@ -586,7 +608,7 @@ struct C42 : Module {
       getParamQuantity(DENS_PARAM)->setValue(inputs[DENS_INPUT].getVoltage()/10.f);
     }
     if(inputs[LEVEL_INPUT].isConnected()) {
-      getParamQuantity(LEVEL_PARAM)->setValue(inputs[LEVEL_INPUT].getVoltage()/10.f);
+      getParamQuantity(LEVEL_PARAM)->setValue(inputs[LEVEL_INPUT].getVoltage()/5.f);
     }
     int channelsX=0;
     if(inputs[CV_X_INPUT].isConnected()&&params[CV_ON_X_PARAM].getValue()>0.f) {

@@ -192,7 +192,8 @@ struct TheMatrix : Module {
     if(inputs[CV_X_INPUT].isConnected()) {
       channelsX=inputs[CV_X_INPUT].getChannels();
       for(int chn=0;chn<16;chn++) {
-        int index=int(inputs[CV_X_INPUT].getVoltage(chn)/10.f*float(MAX_SIZE)+params[CV_X_PARAM].getValue());
+        int index=int(inputs[CV_X_INPUT].getVoltage(chn)/10.f*float(MAX_SIZE));
+        index+=params[CV_X_PARAM].getValue();
         while(index<0)
           index+=MAX_SIZE;
         index%=MAX_SIZE;
@@ -206,7 +207,8 @@ struct TheMatrix : Module {
     if(inputs[CV_Y_INPUT].isConnected()) {
       channelsY=inputs[CV_Y_INPUT].getChannels();
       for(int chn=0;chn<16;chn++) {
-        int index=int(inputs[CV_Y_INPUT].getVoltage(chn)/10.f*float(MAX_SIZE)+params[CV_Y_PARAM].getValue());
+        int index=int(inputs[CV_Y_INPUT].getVoltage(chn)/10.f*float(MAX_SIZE));
+        index+=params[CV_Y_PARAM].getValue();
         while(index<0)
           index+=MAX_SIZE;
         index%=MAX_SIZE;
