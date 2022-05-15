@@ -26,7 +26,7 @@ struct Klee : Module {
   dsp::PulseGenerator triggers[3];
   dsp::PulseGenerator stepTriggers[16];
   dsp::PulseGenerator loadPulse;
-
+  bool instant = false;
   union {
     struct {
       bool A[8];
@@ -246,7 +246,7 @@ struct Klee : Module {
       advance=true;
       rotateSR();
     }
-    if(advance) {
+    if(advance || instant) {
       for(int k=0;k<16;k++) {
         if(inputs[CV_INPUT+k].isConnected()) {
           getParamQuantity(CV_PARAM+k)->setValue(inputs[CV_INPUT+k].getVoltage());
@@ -491,6 +491,9 @@ struct KleeWidget : ModuleWidget {
     menu->addChild(createCheckMenuItem("Quantize", "",
                                        [=]() {return module->quantize;},
                                        [=]() { module->quantize=!module->quantize;}));
+    menu->addChild(createCheckMenuItem("Instant mode", "",
+                                       [=]() {return module->instant;},
+                                       [=]() { module->instant=!module->instant;}));
     menu->addChild(new RandomizeItem(module,RNDCV,"Randomize CV"));
     menu->addChild(new RandomizeItem(module,RNDBUS,"Randomize Bus"));
     menu->addChild(new RandomizeItem(module,RNDLOAD,"Randomize Load"));
