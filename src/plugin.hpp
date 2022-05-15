@@ -469,8 +469,9 @@ struct SpinParamWidget : ParamWidget {
       float diff=dragY-APP->scene->rack->getMousePos().y;
       engine::ParamQuantity *pq=getParamQuantity();
       float newValue=float(start)+diff/4.0f;
-      if(newValue>=pq->getMinValue()&&newValue<=pq->getMaxValue())
-        pq->setValue(newValue);
+      if(newValue>pq->getMaxValue()) pq->setValue(pq->getMaxValue());
+      else if(newValue<pq->getMinValue()) pq->setValue(pq->getMinValue());
+      else pq->setValue(newValue);
     }
   }
 
