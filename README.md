@@ -215,6 +215,7 @@ Consider taking a walk in nature instead.
 - The CvX/CvY input is added to the CvX/CvY param if the right On-Button is on.
 - The On Buttons can be controlled via a gate signal on the right side input.
 - The resulting position is always wrapped e.g. 10.1 V will place the head on the first column or row.
+- A right click on the grid causes the CvX, CvY params set to the mouse position. The position is now visible in the grid.
 
 
 #### Gate/Trigger Sequencer
