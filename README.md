@@ -441,6 +441,10 @@ not zero. It shows that e.g 2-5-9 and its octaves make a major scale 0,2,4,5,7,9
 
 
 
+https://user-images.githubusercontent.com/1134412/168665134-d6fbbb24-1278-4fd4-afe9-92c217cbfe2d.mp4
+
+
+
 
 
 
