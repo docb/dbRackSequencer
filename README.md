@@ -436,8 +436,10 @@ Here is an example how to use the Klee without a quantizer connected to the CV o
 still staying in a scale.
 With a script (can be run with `node klee.js` in the project root if node.js is installed)
 there are precomputed scales which would occur if only three values of 16 are
-not zero. It shows that e.g 2-5-9 and its octaves make a major scale 0,2,4,5,7,9,11:
-
+not zero or its octaves. It shows that e.g the semi notes 2-5-9 and its octaves make a major scale 0,2,4,5,7,9,11 whch will not be left
+regardless of the bit pattern.
+It requires more bits in the pattern to get a sequence which covers most of the scale.
+The video also shows the use of the polyphonic CV input. 
 
 
 
