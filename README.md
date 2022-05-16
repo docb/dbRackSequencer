@@ -72,8 +72,10 @@ Some use cases of the module:
 
 - ACC is a simple accumulator. 
 - On every trigger event on the Clk input it updates its state by adding the value of the Step parameter
-- On a trigger on the reset input the state is set to the value of the set param or set input if connected.
+- On a trigger on the reset input or pressing the rst button the state is set to the value of the set param or set input if connected.
 - The output always reflects the current the state.
+- If the internal state crosses zero a pulse will be sent through the trigger output.
+  The trigger output can be self patched to the rst input to make loops.
 
 If the step param is set to 0.1V ACC can be used to drive AG.
 
@@ -402,6 +404,8 @@ You know, it may be better to take a walk in nature ...
 This module is a reimplementation of the Klee module of the XOR plugin with a bunch of additional features.
 It simulates a Klee like sequencer - please read carefully the PDF first you will find if you type
 'klee sequencer pdf' in your search engine to understand what this is all about.
+There are also tutorials on youtube for the hardware klee (search for 'klee sequencer')  
+and you also will find a three years old great tutorial from Omri Cohen about the XOR Klee.
 
 The additional features:
 - Every CV Knob has a single input which takes over the value.
@@ -421,8 +425,24 @@ The additional features:
   - This turns the shift register into a linear feedback shift register LFSR (see e.g. wikipedia).
   - A polyphonic feedback tab input can be used to set the tabs. 
   - The feedback is only active if the On button on right side of the input is on.
+- By default, the CV outputs will only be updated if a clock signal arrives. This can be changed
+  in the menu by check the "Instant" item. Then the CV is always calculated, but it will cost
+  about 0.7% more CPU.
+
 
 NB: this module needs a bunch of tutorials or may be better taking a walk ....
+
+Here is an example how to use the Klee without a quantizer connected to the CV outputs but
+still staying in a scale.
+With a script (can be run with `node klee.js` in the project root if node.js is installed)
+there are precomputed scales which would occur if only three values of 16 are
+not zero. It shows that e.g 2-5-9 and its octaves make a major scale 0,2,4,5,7,9,11:
+
+
+
+
+
+
 
 ### M851
 ![](images/M851.png?raw=true)

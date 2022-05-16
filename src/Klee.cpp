@@ -118,12 +118,7 @@ struct Klee : Module {
     return ret;
   }
   void rotateSR() {
-    if(inputs[RANDOM_ON_INPUT].isConnected()) {
-      getParamQuantity(RANDOM_SWITCH_PARAM)->setValue(inputs[RANDOM_ON_INPUT].getVoltage()>5.f?1.f:0.f);
-    }
-    if(inputs[TABS_ON_INPUT].isConnected()) {
-      getParamQuantity(TABS_ON_PARAM)->setValue(inputs[TABS_ON_INPUT].getVoltage()>5.f?1.f:0.f);
-    }
+
     if(params[LENGTH_SWITCH_PARAM].getValue()>0)  // mode 1 x 16
     {
       int fl=shiftRegister.P[15];
@@ -234,7 +229,27 @@ struct Klee : Module {
   }
 
   void process(const ProcessArgs &args) override {
-
+    if(paramDivider.process()) {
+      for(int k=0;k<16;k++) {
+        if(inputs[CV_INPUT+k].isConnected()) {
+          getParamQuantity(CV_PARAM+k)->setValue(inputs[CV_INPUT+k].getVoltage());
+        } else if(inputs[POLY_CV_INPUT].isConnected()) {
+          getParamQuantity(CV_PARAM+k)->setValue(inputs[POLY_CV_INPUT].getVoltage(k));
+        }
+        if(inputs[TAB_INPUT].isConnected()) {
+          getParamQuantity(TAB_PARAMS+k)->setValue(inputs[TAB_INPUT].getVoltage(k)>1.f);
+        }
+        if(inputs[POLY_BUS_INPUT].isConnected()) {
+          getParamQuantity(BUS_PARAM+k)->setValue(std::floor(rescale(inputs[POLY_BUS_INPUT].getVoltage(k),0.f,10.f,0.f,2.99999f)));
+        }
+        if(inputs[RANDOM_ON_INPUT].isConnected()) {
+          getParamQuantity(RANDOM_SWITCH_PARAM)->setValue(inputs[RANDOM_ON_INPUT].getVoltage()>5.f?1.f:0.f);
+        }
+        if(inputs[TABS_ON_INPUT].isConnected()) {
+          getParamQuantity(TABS_ON_PARAM)->setValue(inputs[TABS_ON_INPUT].getVoltage()>5.f?1.f:0.f);
+        }
+      }
+    }
     bool advance=false;
     if(manualLoadTrigger.process(params[LOAD_PARAM].getValue()) |
        loadTrigger.process(inputs[LOAD_INPUT].getVoltage())|
@@ -249,22 +264,8 @@ struct Klee : Module {
       advance=true;
       rotateSR();
     }
+
     if(advance || instant) {
-      if(instant && paramDivider.process()) {
-        for(int k=0;k<16;k++) {
-          if(inputs[CV_INPUT+k].isConnected()) {
-            getParamQuantity(CV_PARAM+k)->setValue(inputs[CV_INPUT+k].getVoltage());
-          } else if(inputs[POLY_CV_INPUT].isConnected()) {
-            getParamQuantity(CV_PARAM+k)->setValue(inputs[POLY_CV_INPUT].getVoltage(k));
-          }
-          if(inputs[TAB_INPUT].isConnected()) {
-            getParamQuantity(TAB_PARAMS+k)->setValue(inputs[TAB_INPUT].getVoltage(k)>1.f);
-          }
-          if(inputs[POLY_BUS_INPUT].isConnected()) {
-            getParamQuantity(BUS_PARAM+k)->setValue(std::floor(rescale(inputs[POLY_BUS_INPUT].getVoltage(k),0.f,10.f,0.f,2.99999f)));
-          }
-        }
-      }
       processBus();
       populateOutputs();
     }
