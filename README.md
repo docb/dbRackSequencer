@@ -494,6 +494,28 @@ CYC is a reimplementation of the Spiral sequencer of the XOR plugin.
 (by setting channel 1-6) can be set to obtain the same sequence (if the seed value is not zero)
 on every reset.
 
+### N3
+![](images/n3.png?raw=true)
+
+N3 is a reimplementation of the Nag-Nag-Nag sequencer from the XOR plugin with the following
+differences:
+- It has 8 Tracks
+- Each track has additionally a clock output which represents the incoming clock and a gate output
+  which is high from the start of the trigger until the next clock.
+- There are polyphonic outputs for gate, trigger and clock
+- The Rotate, Skew and Degree parameters are floating point numbers.
+
+Here an example how to use N3 as 16-step trigger sequencer by setting the degrees to 22.5 .
+
+
+Here an example of increasing the degree parameter via the degrees input while modulating all Rotate and
+Skew parameters with a RndC.
+
+
+
+Note that in the Exact mode (exact hits) the Skew,Rotate and Degree parameters should somehow
+fit together to get overall some hits, e.g. could be integers.
+
 ## Utilities
 
 ### Sum

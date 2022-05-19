@@ -35,20 +35,25 @@
       "name": "AG",
       "description": "Voltage addressable Gate Patterns",
       "tags": [
-        "Polyphonic", "Sequencer"
+        "Polyphonic",
+        "Sequencer"
       ]
     },
     {
       "slug": "ACC",
       "name": "ACC",
       "description": "Accumulator",
-      "tags": ["Utility"]
+      "tags": [
+        "Utility"
+      ]
     },
     {
       "slug": "CV",
       "name": "CV",
       "description": "CV Source for Sequencing",
-      "tags": ["Utility"]
+      "tags": [
+        "Utility"
+      ]
     },
     {
       "slug": "Klee",
@@ -86,49 +91,66 @@
       "slug": "TD4",
       "name": "TD4",
       "description": "A building block for 4x4 sequencers",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "P16",
       "name": "P16",
       "description": "One hundred permutations of 16 steps",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "P4",
       "name": "P4",
       "description": "Permutations of 4 steps",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "PXY",
       "name": "PXY",
       "description": "2D Cartesian Sequencer",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "C42",
       "name": "C42",
       "description": "An universal Sequencer with up to 16 play heads and cellular automation",
-      "tags": ["Sequencer","Polyphonic"]
+      "tags": [
+        "Sequencer",
+        "Polyphonic"
+      ]
     },
     {
       "slug": "C42E",
       "name": "C42E",
       "description": "C42 Expander",
-      "tags": ["Expander"]
+      "tags": [
+        "Expander"
+      ]
     },
     {
       "slug": "Sum",
       "name": "Sum",
       "description": "Expandable Polyphonic Adder, Mixer ",
-      "tags": ["Utility"]
+      "tags": [
+        "Utility"
+      ]
     },
     {
       "slug": "SE",
       "name": "SE",
       "description": "Expander for Sum",
-      "tags": ["Expander"]
+      "tags": [
+        "Expander"
+      ]
     },
     {
       "slug": "Uno",
@@ -150,7 +172,18 @@
       "slug": "TheMatrix",
       "name": "TheMatrix",
       "description": "A 32x32 Grid ASCII Sequencer with up to 16 play heads",
-      "tags": ["Sequencer","Polyphonic"]
+      "tags": [
+        "Sequencer",
+        "Polyphonic"
+      ]
+    },
+    {
+      "slug": "N3",
+      "name": "N3",
+      "description": "A trigger sequencer",
+      "tags": [
+        "Sequencer"
+      ]
     }
   ]
 }

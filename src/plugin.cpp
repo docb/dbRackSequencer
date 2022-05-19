@@ -23,6 +23,7 @@ extern Model* modelSE;
 extern Model* modelUno;
 extern Model* modelUnoE;
 extern Model* modelTheMatrix;
+extern Model* modelN3;
 
 void init(Plugin *p) {
   pluginInstance=p;
@@ -47,6 +48,7 @@ void init(Plugin *p) {
 	p->addModel(modelUno);
 	p->addModel(modelUnoE);
 	p->addModel(modelTheMatrix);
+	p->addModel(modelN3);
 }
 
 void SmallButtonWithLabel::draw(const Widget::DrawArgs &args) {
