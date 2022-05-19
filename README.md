@@ -509,8 +509,16 @@ differences:
 Here an example how to use N3 as 16-step trigger sequencer by setting the degrees to 22.5 .
 
 
+https://user-images.githubusercontent.com/1134412/169410926-7ad989b9-d5fe-4d3f-9039-793251da9c1b.mp4
+
+
+
 Here an example of increasing the degree parameter via the degrees input while modulating all Rotate and
 Skew parameters with a RndC.
+
+
+
+https://user-images.githubusercontent.com/1134412/169410966-ff140fd2-2877-47cc-abd2-93af830ad472.mp4
 
 
 
