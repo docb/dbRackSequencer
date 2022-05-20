@@ -86,7 +86,7 @@ struct PwmClock : Module {
     RUN_INPUT,RST_INPUT,BPM_INPUT,PWM_INPUT,INPUTS_LEN=PWM_INPUT+NUM_CLOCKS
   };
   enum OutputId {
-    RUN_OUTPUT,RST_OUTPUT,CLK_OUTPUT,OUTPUTS_LEN=CLK_OUTPUT+NUM_CLOCKS
+    RUN_OUTPUT,RST_OUTPUT,CLK_OUTPUT,BPM_OUTPUT=CLK_OUTPUT+NUM_CLOCKS,OUTPUTS_LEN
   };
   enum LightId {
     LIGHTS_LEN
@@ -102,9 +102,9 @@ struct PwmClock : Module {
   dsp::SchmittTrigger resetInputTrigger;
   dsp::SchmittTrigger pulseTrigger;
   dsp::PulseGenerator rstPulse;
+  dsp::ClockDivider bpmParamDivider;
   float sampleRate=0;
   float bpm=0.f;
-  bool update=false;
   bool init=true;
 
   PwmClock() {
@@ -123,7 +123,10 @@ struct PwmClock : Module {
     configInput(RUN_INPUT,"Run");
     configInput(RST_INPUT,"Reset");
     configOutput(RUN_OUTPUT,"Run");
+    configOutput(BPM_OUTPUT,"BPM (V/Oct)");
+    configInput(BPM_INPUT,"BPM (V/Oct)");
     configOutput(RST_OUTPUT,"Reset");
+    bpmParamDivider.setDivision(64);
   }
 
   float getBpm() {
@@ -140,7 +143,6 @@ struct PwmClock : Module {
       bpm=new_bpm;
       sampleRate=sr;
       for(int k=0;k<NUM_CLOCKS;k++)
-      //  timer[k].calc(sampleRate,bpm);
         changeRatio(k);
     }
   }
@@ -154,13 +156,8 @@ struct PwmClock : Module {
 
   void changeRatio(int k) {
     int idx=int(params[RATIO_PARAM+k].getValue());
-    //float tick=ticks[idx];
-    //timer[k].reset(tick);
     double length=(ticks[idx]*60.f)/bpm;
     clocks[k].setNewLength(length);
-    //INFO("%d %d %f",k,idx,tick);
-    //sampleRate=0;
-    //timer[k].calc(sampleRate,bpm);
   }
   float getPwm(int k) {
     if(inputs[PWM_INPUT+k].isConnected()) {
@@ -176,14 +173,20 @@ struct PwmClock : Module {
 
 
   void process(const ProcessArgs &args) override {
-    if(update || init) {
+    if(bpmParamDivider.process()) {
+      if(inputs[BPM_INPUT].isConnected()) {
+        float freq=powf(2,clamp(inputs[BPM_INPUT].getVoltage(),-1.f,2.f));
+        getParamQuantity(BPM_PARAM)->setValue(freq*60.f);
+      }
+      updateBpm(args.sampleRate);
+      outputs[BPM_OUTPUT].setVoltage(log2f(params[BPM_PARAM].getValue()/60.f));
+    }
+    if(init) {
       updateBpm(args.sampleRate);
       init=false;
-      update=false;
     }
     if(resetTrigger.process(params[RST_PARAM].getValue())|resetInputTrigger.process(inputs[RST_INPUT].getVoltage())) {
       sendReset();
-      //sampleRate=0;
       for(int k=0;k<NUM_CLOCKS;k++) {
         changeRatio(k);
       }
@@ -192,7 +195,6 @@ struct PwmClock : Module {
       getParamQuantity(RUN_PARAM)->setValue(float(inputs[RUN_INPUT].getVoltage()>0.f));
     if(onTrigger.process(params[RUN_PARAM].getValue())) {
       sendReset();
-      //sampleRate=0;
       for(int k=0;k<NUM_CLOCKS;k++) {
         clocks[k].reset();
         changeRatio(k);
@@ -295,18 +297,19 @@ struct PwmClockWidget : ModuleWidget {
     addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,0)));
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
-    auto bpmParam = createParam<UpdateOnReleaseKnob>(mm2px(Vec(5,MHEIGHT-109-8.985)),module,PwmClock::BPM_PARAM);
-    if(module) bpmParam->update = &module->update;
+    auto bpmParam = createParam<TrimbotWhite9>(mm2px(Vec(12,MHEIGHT-108.2-8.985)),module,PwmClock::BPM_PARAM);
+    //if(module) bpmParam->update = &module->update;
     addParam(bpmParam);
     auto bpmDisplay = new BpmDisplay(module);
     bpmDisplay->box.pos=mm2px(Vec(5,MHEIGHT-105));
     bpmDisplay->box.size=mm2px(Vec(23.2,4));
     addChild(bpmDisplay);
-    addInput(createInput<SmallPort>(mm2px(Vec(17,TY(110.5))),module,PwmClock::BPM_INPUT));
-    addInput(createInput<SmallPort>(mm2px(Vec(33,TY(112))),module,PwmClock::RUN_INPUT));
-    addInput(createInput<SmallPort>(mm2px(Vec(33,TY(100))),module,PwmClock::RST_INPUT));
-    addParam(createParam<MLED>(mm2px(Vec(42,TY(112))),module,PwmClock::RUN_PARAM));
-    addParam(createParam<MLEDM>(mm2px(Vec(42,TY(100))),module,PwmClock::RST_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(3,TY(110))),module,PwmClock::BPM_INPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(24,TY(110))),module,PwmClock::BPM_OUTPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(35,TY(112))),module,PwmClock::RUN_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(35,TY(100))),module,PwmClock::RST_INPUT));
+    addParam(createParam<MLED>(mm2px(Vec(43,TY(112))),module,PwmClock::RUN_PARAM));
+    addParam(createParam<MLEDM>(mm2px(Vec(43,TY(100))),module,PwmClock::RST_PARAM));
     addOutput(createOutput<SmallPort>(mm2px(Vec(51,TY(100))),module,PwmClock::RUN_OUTPUT));
     addOutput(createOutput<SmallPort>(mm2px(Vec(51,TY(100))),module,PwmClock::RST_OUTPUT));
     float y=TY(80);
