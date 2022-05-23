@@ -1,9 +1,116 @@
+#include <utility>
+
 #include "plugin.hpp"
 #include "rnd.h"
 #include "C42ExpanderMessage.hpp"
 
 #define MAX_SIZE 32
 extern Model *modelC42E;
+
+struct RLEException : public std::exception {
+  std::string errString;
+
+  explicit RLEException(std::string _err) : std::exception(),errString(std::move(_err)) {
+  }
+
+  const char *what() const noexcept override {
+    return errString.c_str();
+  }
+};
+
+struct MPoint {
+  MPoint(int64_t _x,int64_t _y) : x(_x),y(_y) {}
+  int64_t x,y;
+};
+
+struct RLEParser {
+  std::tuple<int64_t,int64_t> get_width_height(const std::string &line) {
+    auto x=std::find(line.begin(),line.end(),'x');
+    if(x==line.end())
+      throw RLEException("Invalid Format: no header found");
+    auto x_equals=std::find(x,line.end(),'=');
+    if(x_equals==line.end())
+      throw RLEException("Invalid Format: header improperly formed");
+    auto y=std::find(x_equals,line.end(),'y');
+    if(y==line.end())
+      throw RLEException("Invalid Format: header improperly formed");
+    int64_t width=std::stoull(std::string(x_equals+1,y));
+    auto y_equals=std::find(y,line.end(),'=');
+    if(y_equals==line.end())
+      throw RLEException("Invalid Format: header improperly formed");
+    int64_t height=std::stoull(std::string(y_equals+1,line.end()));
+    return std::make_tuple(width,height);
+  }
+
+  template<typename T>
+  T get_nearest_iterator(T it1,T it2,T it3,T it4) {
+    if(it1<it2&&it1<it3&&it1<it4)
+      return it1;
+    else if(it2<it1&&it2<it3&&it2<it4)
+      return it2;
+    else if(it3<it1&&it3<it2&&it3<it4)
+      return it3;
+    else
+      return it4;
+  }
+
+  void add_points_from_line(std::vector<MPoint> &points,int64_t &current_x,int64_t &current_y,std::string line) {
+    while(!line.empty()) {
+      auto dead=std::find(line.begin(),line.end(),'b');
+      auto alive=std::find(line.begin(),line.end(),'o');
+      auto end=std::find(line.begin(),line.end(),'$');
+      auto stop=std::find(line.begin(),line.end(),'!');
+      auto nearest=get_nearest_iterator(dead,alive,end,stop);
+      int64_t num_of_cells;
+      if(nearest==line.begin())
+        num_of_cells=1;
+      else
+        num_of_cells=std::stoll(std::string(line.begin(),nearest));
+      if(nearest==dead) {
+        current_x+=num_of_cells;
+      } else if(nearest==alive) {
+        for(int64_t i=current_x;i<current_x+num_of_cells;i++) {
+          points.emplace_back(i,current_y);
+        }
+        current_x+=num_of_cells;
+      } else if(nearest==end) {
+        current_x=0;
+        current_y+=num_of_cells;
+      } else {
+        return;
+      }
+      line=std::string(nearest+1,line.end());
+    }
+  }
+
+
+  std::vector<MPoint> get_rle_encoded_points(const std::string &encoded) {
+    std::vector<MPoint> points;
+    int64_t width,height;
+    bool found_width_height=false;
+    std::stringstream ss(encoded);
+    std::string line;
+    int64_t current_y=0;
+    int64_t current_x=0;
+    while(std::getline(ss,line)) {
+      if(line[0]=='#')
+        continue;
+      if(!found_width_height) {
+        std::tie(width,height)=get_width_height(line);
+        found_width_height=true;
+      } else {
+        add_points_from_line(points,current_x,current_y,line);
+      }
+    }
+    if(!found_width_height)
+      throw RLEException("File Format Invalid");
+    if(points.empty())
+      throw RLEException("No Points found!");
+    if(width>=MAX_SIZE || height==MAX_SIZE)
+      throw RLEException("Pattern to big!");
+    return points;
+  }
+};
 
 struct LifeWorld {
   bool grid[MAX_SIZE][MAX_SIZE]={};
@@ -13,7 +120,20 @@ struct LifeWorld {
   std::vector<int> survive={0,0,1,1,0,0,0,0,0};
   std::vector<int> birth={0,0,0,1,0,0,0,0,0};
 
-  std::vector <std::string> ruleLabels={"B3/S23","B34/S34","B234/S","B2/S","B1/S1","B36/S125","B345/S5"};
+  std::vector<std::string> ruleLabels={"B3/S23","B34/S34","B234/S","B2/S","B1/S1","B36/S125","B345/S5","B2/S2","B2/S1"};
+  RLEParser rleParser;
+
+  void pasteCells(const std::string& rle,int curRow,int curCol) {
+    try {
+      std::vector<MPoint>points=rleParser.get_rle_encoded_points(rle);
+      for(auto p : points) {
+        if(p.x+curCol<=MAX_SIZE && p.y+curRow<=MAX_SIZE)
+        setCell(p.y+curRow,p.x+curCol,true);
+      }
+    } catch(RLEException &e) {
+      INFO("%s",e.what());
+    }
+  }
 
   void setRule(unsigned r) {
     rule=r;
@@ -41,6 +161,14 @@ struct LifeWorld {
       case 6:
         survive={0,0,0,0,0,1,0,0,0};
         birth={0,0,0,1,1,1,0,0,0};
+        break;
+      case 7:
+        survive={0,0,1,0,0,0,0,0,0};
+        birth={0,0,1,0,0,0,0,0,0};
+        break;
+      case 8:
+        survive={0,1,0,0,0,0,0,0,0};
+        birth={0,0,1,0,0,0,0,0,0};
         break;
       default:
         survive={0,0,1,1,0,0,0,0,0};
@@ -171,6 +299,8 @@ struct LifeWorld {
       }
   }
 
+
+
   void reset() {
     for(int x=0;x<size;x++)
       for(int y=0;y<size;y++) {
@@ -280,26 +410,24 @@ struct CellColors {
   NVGcolor onColor=nvgRGB(0xa2,0xd6,0xc6);
   NVGcolor selectOnColor=nvgRGB(0xff,0xff,0xff);
   NVGcolor selectOffColor=nvgRGB(0x44,0x44,0xaa);
-  NVGcolor chnColors[16]={nvgRGB(255,0,0),nvgRGB(0,255,0),nvgRGB(55,55,255),nvgRGB(255,255,0),nvgRGB(255,0,255),nvgRGB(0,255,255),
-                          nvgRGB(128,0,0),nvgRGB(196,85,55),nvgRGB(128,128,80),nvgRGB(255,128,0),nvgRGB(255,0,128),
-                          nvgRGB(0,128,255),nvgRGB(128,66,128),nvgRGB(128,255,0),nvgRGB(128,128,255),nvgRGB(128,255,255)};
+  NVGcolor chnColors[16]={nvgRGB(255,0,0),nvgRGB(0,255,0),nvgRGB(55,55,255),nvgRGB(255,255,0),nvgRGB(255,0,255),nvgRGB(0,255,255),nvgRGB(128,0,0),nvgRGB(196,85,55),nvgRGB(128,128,80),nvgRGB(255,128,0),nvgRGB(255,0,128),nvgRGB(0,128,255),nvgRGB(128,66,128),nvgRGB(128,255,0),nvgRGB(128,128,255),nvgRGB(128,255,255)};
 };
-using MLIGHT1 = TLight<GrayModuleLightWidget,255,0,0>;
-using MLIGHT2 = TLight<GrayModuleLightWidget,0,255,0>;
-using MLIGHT3 = TLight<GrayModuleLightWidget,55,55,255>;
-using MLIGHT4 = TLight<GrayModuleLightWidget,255,255,0>;
-using MLIGHT5 = TLight<GrayModuleLightWidget,255,0,255>;
-using MLIGHT6 = TLight<GrayModuleLightWidget,0,255,255>;
-using MLIGHT7 = TLight<GrayModuleLightWidget,128,0,0>;
-using MLIGHT8 = TLight<GrayModuleLightWidget,196,85,55>;
-using MLIGHT9 = TLight<GrayModuleLightWidget,128,128,80>;
-using MLIGHT10 = TLight<GrayModuleLightWidget,255,128,0>;
-using MLIGHT11 = TLight<GrayModuleLightWidget,255,0,128>;
-using MLIGHT12 = TLight<GrayModuleLightWidget,0,128,255>;
-using MLIGHT13 = TLight<GrayModuleLightWidget,128,66,128>;
-using MLIGHT14 = TLight<GrayModuleLightWidget,128,255,0>;
-using MLIGHT15 = TLight<GrayModuleLightWidget,128,128,255>;
-using MLIGHT16 = TLight<GrayModuleLightWidget,128,255,255>;
+using MLIGHT1=TLight<GrayModuleLightWidget,255,0,0>;
+using MLIGHT2=TLight<GrayModuleLightWidget,0,255,0>;
+using MLIGHT3=TLight<GrayModuleLightWidget,55,55,255>;
+using MLIGHT4=TLight<GrayModuleLightWidget,255,255,0>;
+using MLIGHT5=TLight<GrayModuleLightWidget,255,0,255>;
+using MLIGHT6=TLight<GrayModuleLightWidget,0,255,255>;
+using MLIGHT7=TLight<GrayModuleLightWidget,128,0,0>;
+using MLIGHT8=TLight<GrayModuleLightWidget,196,85,55>;
+using MLIGHT9=TLight<GrayModuleLightWidget,128,128,80>;
+using MLIGHT10=TLight<GrayModuleLightWidget,255,128,0>;
+using MLIGHT11=TLight<GrayModuleLightWidget,255,0,128>;
+using MLIGHT12=TLight<GrayModuleLightWidget,0,128,255>;
+using MLIGHT13=TLight<GrayModuleLightWidget,128,66,128>;
+using MLIGHT14=TLight<GrayModuleLightWidget,128,255,0>;
+using MLIGHT15=TLight<GrayModuleLightWidget,128,128,255>;
+using MLIGHT16=TLight<GrayModuleLightWidget,128,255,255>;
 
 template<typename M>
 struct C42Display : OpaqueWidget {
@@ -335,13 +463,15 @@ struct C42Display : OpaqueWidget {
 
     }
   }
+
   void drawLayer(const DrawArgs &args,int layer) override {
     if(layer==1) {
       _draw(args);
     }
     Widget::drawLayer(args,layer);
   }
-  void _draw(const DrawArgs &args)  {
+
+  void _draw(const DrawArgs &args) {
     if(module==nullptr)
       return;
     numRows=module->world.size;
@@ -355,10 +485,6 @@ struct C42Display : OpaqueWidget {
       for(int c=0;c<numRows;c++) {
         NVGcolor dg=getCellColor(r,c);
         nvgBeginPath(args.vg);
-        //glVertex3f(posX,posY,0); // top left
-        //glVertex3f(posX+cellSize,posY,0); // top right
-        //glVertex3f(posX+cellSize,posY+cellSize,0); // bottom right
-        //glVertex3f(posX,posY+cellSize,0); // bottom left
         nvgRect(args.vg,posX,posY,cellSize,cellSize);
         nvgFillColor(args.vg,dg);
         if(module->isCurrent(r,c)) {
@@ -373,6 +499,16 @@ struct C42Display : OpaqueWidget {
       }
       posY+=cellSize+margin;
     }
+    nvgBeginPath(args.vg);
+    float mid=(cellSize+margin)*(numRows/2);
+    float end=(cellSize+margin)*(numRows);
+    nvgMoveTo(args.vg,0,mid);
+    nvgLineTo(args.vg,end,mid);
+    nvgMoveTo(args.vg,mid,0);
+    nvgLineTo(args.vg,mid,end);
+    nvgStrokeColor(args.vg,nvgRGB(80,80,80));
+    nvgStrokeWidth(args.vg,2);
+    nvgStroke(args.vg);
   }
 
   virtual void onButton(const event::Button &e) override {
@@ -501,7 +637,8 @@ struct C42 : Module {
   }
 
   void onAdd(const AddEvent &e) override {
-     if(!sizeSetFromJson) setSize(16);
+    if(!sizeSetFromJson)
+      setSize(16);
   }
 
   void dataFromJson(json_t *root) override {
@@ -534,7 +671,7 @@ struct C42 : Module {
   }
 
   bool isCurrent(int row,int col) {
-    return row==int(params[CV_Y_PARAM].getValue()) && col==int(params[CV_X_PARAM].getValue());
+    return row==int(params[CV_Y_PARAM].getValue())&&col==int(params[CV_X_PARAM].getValue());
   }
 
   void setCurrent(int row,int col) {
@@ -549,6 +686,10 @@ struct C42 : Module {
 
   void setCell(int row,int col,bool on=true) {
     world.setCell(row,col,on);
+  }
+
+  void pasteRLE(const std::string &rle) {
+    world.pasteCells(rle,params[CV_Y_PARAM].getValue(),params[CV_X_PARAM].getValue());
   }
 
   bool toggleCell(int row,int col) {
@@ -585,6 +726,7 @@ struct C42 : Module {
   }
 
   void process(const ProcessArgs &args) override {
+
     if(divider.process()) {
       _process(args);
     }
@@ -620,7 +762,6 @@ struct C42 : Module {
           index+=world.size;
         index%=world.size;
         curCol[chn]=index;
-        //getParamQuantity(CV_X_PARAM)->setValue(index);
       }
     } else {
       curCol[0]=(int(params[CV_X_PARAM].getValue())%world.size);
@@ -651,13 +792,13 @@ struct C42 : Module {
     }
     bool rstGate=rstPulse.process(args.sampleTime*32);
     bool lastOn[16]={};
-    if(!rstGate&&(stepTrigger.process(inputs[STEP_INPUT].getVoltage())&&params[ON_PARAM].getValue()>0.f)|manualStepTrigger.process(params[STEP_PARAM].getValue())) {
+    if(((stepTrigger.process(inputs[STEP_INPUT].getVoltage())&&params[ON_PARAM].getValue()>0.f)|manualStepTrigger.process(params[STEP_PARAM].getValue()))&&!rstGate) {
       for(int chn=0;chn<channels;chn++) {
         lastOn[chn]=isOn(curRow[chn],curCol[chn]);
       }
       world.nextGeneration();
       for(int chn=0;chn<channels;chn++) {
-        on[chn]=isOn(curRow[chn],curCol[chn])&& !lastOn[chn];
+        on[chn]=isOn(curRow[chn],curCol[chn])&&!lastOn[chn];
       }
     }
 
@@ -742,9 +883,9 @@ struct C42 : Module {
 
 struct RuleSelectItem : MenuItem {
   C42 *module;
-  std::vector <std::string> labels;
+  std::vector<std::string> labels;
 
-  RuleSelectItem(C42 *_module,std::vector <std::string> _labels) : module(_module),labels(std::move(_labels)) {
+  RuleSelectItem(C42 *_module,std::vector<std::string> _labels) : module(_module),labels(std::move(_labels)) {
   }
 
   Menu *createChildMenu() override {
@@ -832,37 +973,53 @@ struct C42Widget : ModuleWidget {
     y=MHEIGHT-6-1;
     int k=0;
     addChild(createLight<SmallSimpleLight<MLIGHT1>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT2>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT3>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT4>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT5>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT6>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT7>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT8>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT9>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT10>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT11>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT12>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT13>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT14>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT15>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT16>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
-    x+=2;k++;
+    x+=2;
+    k++;
     addChild(createLight<SmallSimpleLight<MLIGHT1>>(mm2px(Vec(x,y)),module,C42::GATE_LIGHT+k));
   }
 
@@ -890,6 +1047,23 @@ struct C42Widget : ModuleWidget {
     auto clearMenu=new ClearItem(module);
     clearMenu->text="Clear";
     menu->addChild(clearMenu);
+    struct PasteItem : ui::MenuItem {
+      C42 *module;
+
+      explicit PasteItem(C42 *m) : module(m) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        if(!module)
+          return;
+        const char *pasteText=glfwGetClipboardString(APP->window->win);
+        module->pasteRLE(pasteText);
+      }
+    };
+    auto pasteMenu=new PasteItem(module);
+    pasteMenu->text="Paste RLE from Clipboard";
+    menu->addChild(pasteMenu);
+
     auto ruleSelectItem=new RuleSelectItem(module,module->world.ruleLabels);
     ruleSelectItem->text="Rule";
     ruleSelectItem->rightText=module->world.ruleLabels[module->world.getRule()]+"  "+ +RIGHT_ARROW;

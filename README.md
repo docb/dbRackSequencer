@@ -204,11 +204,11 @@ Consider taking a walk in nature instead.
 
 ![](images/C42.png?raw=true)
 
-- C42 provides a grid with sizes 8x8 upto 32x32 (config in the menu).
+- C42 provides a grid with sizes 8x8 upto 32x32.
 - Each cell of the grid is either on or off.
 - On the grid there can be placed up to 16 play heads.
 - The play heads are placed via (polyphonic) CV addresses.
-- The column of the play head is addressed via 10V/size * colum_number via
+- The column of the play head is addressed via 10V/size * column_number via
   CvX param
 - The row of the play head is addressed via 10V/size * row_number via
   CvY param
@@ -217,6 +217,23 @@ Consider taking a walk in nature instead.
 - The resulting position is always wrapped e.g. 10.1 V will place the head on the first column or row.
 - A right click on the grid causes the CvX, CvY params set to the mouse position. The position is now visible in the grid.
 
+Menus:
+- Size: Set the size of the grid
+- Clear: clears the grid
+- Rule: Sets the cellular automation rule (see below)
+- Paste RLE from clipboard:
+  The RLE format looks like this:
+
+   ```
+   x = 18, y = 18, rule = B3/S23
+   4b2o6b2o$3bo2bo4bo2bo$3bobo6bobo$b2o2bo6bo2b2o$o4b8o4bo$ob3ob6ob3obo$b
+   o2b2o2b2o2b2o2bo$4b2o5b3o$4b3o2b2ob2o$4b3obobob2o$4b2o2b2ob3o$bo2b2obo
+   2bob2o2bo$ob3ob6ob3obo$o4b8o4bo$b2o2bo6bo2b2o$3bobo6bobo$3bo2bo4bo2bo$
+   4b2o6b2o!
+   ```
+   Something like that can be copied and pasted at the position of the CvX,CvY param. The x and y must be less than the current size.
+   The most common application used in the context of 2D cellular automation is Golly. In this app a selection on the grid
+   can be copied and then the RLE is in the clipboard. (the rule int RLE is ignored and must be set in the menu)
 
 #### Gate/Trigger Sequencer
 - C42 outputs a trigger on the polyphonic channel of the play head 
@@ -261,6 +278,8 @@ or any other module which processes multiple polyphonic inputs.
   - B1/S1 (Gnarl)
   - B36/S125 (2x2)
   - B345/S5 (Long life)
+  - B2/S1
+  - B2/S2
   
 - NB: These rules all operate on a torus.
 - The reset button or a trigger on the reset input rewinds the grid to the last edit operation.
@@ -551,3 +570,12 @@ It can be used without a quantizer as the level can be set to 1/12.
 
 Yet another clock generator module. The purpose of this module is to have many clock generators with
 different ratios and adjustable pwm. You may need it when working with the sequencers described above.
+
+The BPM input X (range -1 to 2) expects the frequency in HZ via 2^X 
+i.e 
+- -1V = 0.5 HZ = 30 BPM
+- 0V = 1 HZ = 60 BPM
+- 1V = 2 HZ = 120 BPM
+- 2V = 4 HZ = 240 BPM
+
+The BPM output delivers vice versa.
