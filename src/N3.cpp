@@ -1,7 +1,7 @@
 #include "plugin.hpp"
 
 #define NUM_SEQ 8
-#define MAX_VERTICES 16
+#define MAX_VERTICES 32
 
 struct Seq {
   dsp::PulseGenerator pulseGenerator;
@@ -108,7 +108,7 @@ struct N3 : Module {
     for(int k=0;k<NUM_SEQ;k++) {
       configParam(ROT_PARAM+k,0,359,0,"Rotation");
       configParam(SKEW_PARAM+k,0,359,0,"Skew Factor");
-      configParam(VERTICES_PARAM+k,1,MAX_VERTICES-1,2,"Vertices");
+      configParam(VERTICES_PARAM+k,1,MAX_VERTICES,2,"Vertices");
       getParamQuantity(VERTICES_PARAM+k)->snapEnabled=true;
       configButton(ON_PARAM+k,"On");
       configInput(ROT_INPUT+k,"Rotation");
