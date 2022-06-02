@@ -78,6 +78,12 @@ struct SelectParam : ParamWidget {
     ParamWidget::draw(args);
   }
 };
+
+struct SelectButtonH : SelectButton {
+  SelectButtonH(int nr,std::string label) : SelectButton(nr,label) {}
+  void onDragEnter(const event::DragEnter& e) override;
+};
+
 struct SelectParamH : ParamWidget {
 
   void init(std::vector<std::string> labels) {
@@ -85,7 +91,7 @@ struct SelectParamH : ParamWidget {
     float width = box.size.x - 2 * margin;
     unsigned int len = labels.size();
     for (unsigned int i = 0; i < len; i++) {
-      auto selectButton = new SelectButton(i,labels[i]);
+      auto selectButton = new SelectButtonH(i,labels[i]);
       selectButton->fontSize=8;
       selectButton->box.pos = Vec(width/len*i+margin,0);
       selectButton->box.size = Vec(width/len,box.size.y);

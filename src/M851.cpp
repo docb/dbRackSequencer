@@ -27,7 +27,7 @@ struct M851 : Module {
     CV_PARAM,REP_PARAM=CV_PARAM+8,GATE_MODE_PARAM=REP_PARAM+8,GLIDE_STEP_PARAM=GATE_MODE_PARAM+8,ON_OFF_PARAM=GLIDE_STEP_PARAM+8,STEP_COUNT_PARAM=ON_OFF_PARAM+8,GATE_LENGTH_PARAM,GLIDE_PARAM,RUN_MODE_PARAM,PARAMS_LEN=RUN_MODE_PARAM+5
   };
   enum InputId {
-    CLK_INPUT,RST_INPUT,CV_INPUT,INPUTS_LEN=CV_INPUT+8
+    CLK_INPUT,RST_INPUT,CV_INPUT,SEED_INPUT=CV_INPUT+8,INPUTS_LEN
   };
   enum OutputId {
     CV_OUTPUT,GATE_OUTPUT,OUTPUTS_LEN
@@ -51,6 +51,7 @@ struct M851 : Module {
     getParamQuantity(STEP_COUNT_PARAM)->snapEnabled=true;
     configParam(GLIDE_PARAM,0.005,2,0.1,"Portamento");
     configInput(CLK_INPUT,"Clock");
+    configInput(SEED_INPUT,"Random Seed");
     configInput(RST_INPUT,"RST");
     configOutput(GATE_OUTPUT,"Gate");
     configOutput(CV_OUTPUT,"CV");
@@ -62,6 +63,7 @@ struct M851 : Module {
   //dsp::PulseGenerator gatePulse;
   dsp::PulseGenerator rstPulse;
   RND rnd;
+  RND rnd2;
   int stepCounter=0;
   int subStepCounter=0;
   bool reverseDirection=false;
@@ -182,6 +184,14 @@ struct M851 : Module {
   void process(const ProcessArgs &args) override {
     bool advance=false;
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage())) {
+      if(inputs[SEED_INPUT].isConnected()) {
+        float seedParam=0;
+        seedParam=inputs[SEED_INPUT].getVoltage();
+        seedParam = floorf(seedParam*10000)/10000;
+        seedParam/=10.f;
+        auto seedInput = (unsigned long long)(floor((double)seedParam*(double)ULONG_MAX));
+        rnd.reset(seedInput);
+      }
       lastCV=getCV(stepCounter%8);
       rstPulse.trigger(0.001f);
       stepCounter=0;
@@ -237,19 +247,19 @@ struct M851 : Module {
 
   void randomizeCV() {
     for(int k=0;k<8;k++) {
-      getParamQuantity(CV_PARAM+k)->setValue(min+rnd.nextDouble()*(max-min));
+      getParamQuantity(CV_PARAM+k)->setValue(min+rnd2.nextDouble()*(max-min));
     }
   }
 
   void randomizeGateMode() {
     for(int k=0;k<8;k++) {
-      getParamQuantity(GATE_MODE_PARAM+k)->setValue(rescale(rnd.nextDouble(),0.f,1.f,0.f,7.9999f));
+      getParamQuantity(GATE_MODE_PARAM+k)->setValue(rescale(rnd2.nextDouble(),0.f,1.f,0.f,7.9999f));
     }
   }
 
   void randomizeRepititions() {
     for(int k=0;k<8;k++) {
-      getParamQuantity(REP_PARAM+k)->setValue(rescale(rnd.nextDouble(),0.f,1.f,0.f,7.9999f));
+      getParamQuantity(REP_PARAM+k)->setValue(rescale(rnd2.nextDouble(),0.f,1.f,0.f,7.9999f));
     }
   }
 
@@ -361,6 +371,7 @@ struct M851Widget : ModuleWidget {
 
     addInput(createInput<SmallPort>(mm2px(Vec(13,MHEIGHT-y-6.237)),module,M851::RST_INPUT));
     addInput(createInput<SmallPort>(mm2px(Vec(4.5,MHEIGHT-y-6.237)),module,M851::CLK_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(40.5,MHEIGHT-y-6.237)),module,M851::SEED_INPUT));
     addOutput(createOutput<SmallPort>(mm2px(Vec(67,MHEIGHT-y-6.237)),module,M851::GATE_OUTPUT));
     addOutput(createOutput<SmallPort>(mm2px(Vec(75.5,MHEIGHT-y-6.237)),module,M851::CV_OUTPUT));
   }
