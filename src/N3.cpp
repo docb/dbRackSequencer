@@ -101,7 +101,7 @@ struct N3 : Module {
   dsp::PulseGenerator rstPulse;
   dsp::ClockDivider paramDivider;
   float state=0;
-  float lastState;
+  float lastState=0;
 
   N3() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
@@ -133,6 +133,7 @@ struct N3 : Module {
     bool advance=false;
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage())|rstManualTrigger.process(params[RST_PARAM].getValue())) {
       state=0;
+      lastState=-0.001;
       rstPulse.trigger(0.001f);
       advance=true;
     }
