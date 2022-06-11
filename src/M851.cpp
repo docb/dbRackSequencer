@@ -27,7 +27,7 @@ struct M851 : Module {
     CV_PARAM,REP_PARAM=CV_PARAM+8,GATE_MODE_PARAM=REP_PARAM+8,GLIDE_STEP_PARAM=GATE_MODE_PARAM+8,ON_OFF_PARAM=GLIDE_STEP_PARAM+8,STEP_COUNT_PARAM=ON_OFF_PARAM+8,GATE_LENGTH_PARAM,GLIDE_PARAM,RUN_MODE_PARAM,PARAMS_LEN=RUN_MODE_PARAM+5
   };
   enum InputId {
-    CLK_INPUT,RST_INPUT,CV_INPUT,SEED_INPUT=CV_INPUT+8,INPUTS_LEN
+    CLK_INPUT,RST_INPUT,CV_INPUT,SEED_INPUT=CV_INPUT+8,POLY_CV_INPUT,INPUTS_LEN
   };
   enum OutputId {
     CV_OUTPUT,GATE_OUTPUT,OUTPUTS_LEN
@@ -52,6 +52,7 @@ struct M851 : Module {
     configParam(GLIDE_PARAM,0.005,2,0.1,"Portamento");
     configInput(CLK_INPUT,"Clock");
     configInput(SEED_INPUT,"Random Seed");
+    configInput(POLY_CV_INPUT,"Poly CV");
     configInput(RST_INPUT,"RST");
     configOutput(GATE_OUTPUT,"Gate");
     configOutput(CV_OUTPUT,"CV");
@@ -172,6 +173,9 @@ struct M851 : Module {
   }
 
   float getCV(int step) {
+    if(inputs[POLY_CV_INPUT].isConnected()) {
+      getParamQuantity(CV_PARAM+step)->setValue(inputs[POLY_CV_INPUT].getVoltage(step));
+    }
     if(inputs[CV_INPUT+step].isConnected())
       getParamQuantity(CV_PARAM+step)->setValue(inputs[CV_INPUT+step].getVoltage());
     float cv=params[CV_PARAM+step].getValue();
@@ -359,6 +363,7 @@ struct M851Widget : ModuleWidget {
         x+=8.5;
       }
     }
+    addInput(createInput<SmallPort>(mm2px(Vec(40.5,MHEIGHT-111.5-6.237)),module,M851::POLY_CV_INPUT));
     float y=7;
     addParam(createParam<TrimbotWhite>(mm2px(Vec(26.250,MHEIGHT-y-6.237)),module,M851::STEP_COUNT_PARAM));
     addParam(createParam<TrimbotWhite>(mm2px(Vec(54.500,MHEIGHT-y-6.237)),module,M851::GLIDE_PARAM));
