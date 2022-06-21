@@ -117,6 +117,12 @@ struct TD4 : Module {
       dirty=16;
     }
   }
+  void fromJson(json_t *root) override {
+    min=-10.f;
+    max=10.f;
+    reconfig();
+    Module::fromJson(root);
+  }
   json_t* dataToJson() override {
     json_t *root=json_object();
     json_object_set_new(root,"min",json_real(min));

@@ -136,6 +136,12 @@ struct Uno : Module {
       dirty=8;// hack
     }
   }
+  void fromJson(json_t *root) override {
+    min=-3.f;
+    max=3.f;
+    reconfig();
+    Module::fromJson(root);
+  }
 
   json_t *dataToJson() override {
     json_t *root=json_object();

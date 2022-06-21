@@ -241,7 +241,7 @@ struct CYC : Module {
   CYC() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     for(int k=0;k<32;k++) {
-      configParam(CV_PARAM+k,min,2,max,"CV "+std::to_string(k+1));
+      configParam(CV_PARAM+k,min,2,min,"CV "+std::to_string(k+1));
 
       configInput(CV_INPUT+k,"CV "+std::to_string(k+1));
       for(int j=0;j<NUM_TRACK;j++) {
@@ -308,6 +308,36 @@ struct CYC : Module {
     }
   }
 
+  void fromJson(json_t *root) override {
+    min=-3.f;
+    max=3.f;
+    reconfig();
+    Module::fromJson(root);
+  }
+  json_t *dataToJson() override {
+    json_t *root=json_object();
+    json_object_set_new(root,"min",json_real(min));
+    json_object_set_new(root,"max",json_real(max));
+    json_object_set_new(root,"quantize",json_integer(quantize));
+    return root;
+  }
+
+  void dataFromJson(json_t *root) override {
+    json_t *jMin=json_object_get(root,"min");
+    if(jMin) {
+      min=json_real_value(jMin);
+    }
+
+    json_t *jMax=json_object_get(root,"max");
+    if(jMax) {
+      max=json_real_value(jMax);
+    }
+    json_t *jQuantize=json_object_get(root,"quantize");
+    if(jQuantize) {
+      quantize=json_integer_value(jQuantize);
+    }
+    reconfig();
+  }
 };
 template <typename TBase = app::ModuleLightWidget>
 struct TTransparentLightWidget : TBase {

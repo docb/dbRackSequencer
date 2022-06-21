@@ -266,7 +266,12 @@ struct M851 : Module {
       getParamQuantity(REP_PARAM+k)->setValue(rescale(rnd2.nextDouble(),0.f,1.f,0.f,7.9999f));
     }
   }
-
+  void fromJson(json_t *root) override {
+    min=-3.f;
+    max=3.f;
+    reconfig();
+    Module::fromJson(root);
+  }
   json_t *dataToJson() override {
     json_t *root=json_object();
     json_object_set_new(root,"min",json_real(min));
