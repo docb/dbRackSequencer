@@ -24,6 +24,15 @@ extern Model* modelUno;
 extern Model* modelUnoE;
 extern Model* modelTheMatrix;
 extern Model* modelN3;
+extern Model* modelCCA;
+extern Model* modelCCA2;
+extern Model* modelP16A;
+extern Model* modelMouseSeq;
+extern Model* modelTME;
+extern Model* modelCSR;
+extern Model* modelP16B;
+extern Model* modelSEQMod;
+extern Model* modelPreset;
 
 void init(Plugin *p) {
   pluginInstance=p;
@@ -49,6 +58,15 @@ void init(Plugin *p) {
 	p->addModel(modelUnoE);
 	p->addModel(modelTheMatrix);
 	p->addModel(modelN3);
+  p->addModel(modelCCA);
+  p->addModel(modelCCA2);
+  p->addModel(modelP16A);
+  p->addModel(modelMouseSeq);
+  p->addModel(modelTME);
+  p->addModel(modelCSR);
+  p->addModel(modelP16B);
+  p->addModel(modelSEQMod);
+  p->addModel(modelPreset);
 }
 
 void SmallButtonWithLabel::draw(const Widget::DrawArgs &args) {

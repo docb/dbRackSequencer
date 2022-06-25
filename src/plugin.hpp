@@ -68,6 +68,16 @@ struct SelectParam : ParamWidget {
     }
   }
 
+  void initWithEmptyLabels(unsigned int len) {
+    const float margin = 0;
+    float height = box.size.y - 2 * margin;
+    for (unsigned int i = 0; i < len; i++) {
+      auto selectButton = new SelectButton(i,"");
+      selectButton->box.pos = Vec(0,(height/len)*i+margin);
+      selectButton->box.size = Vec(box.size.x,height/len);
+      addChild(selectButton);
+    }
+  }
   void draw(const DrawArgs& args) override {
     // Background
     nvgBeginPath(args.vg);
@@ -85,7 +95,19 @@ struct SelectButtonH : SelectButton {
 };
 
 struct SelectParamH : ParamWidget {
+  void init(std::vector<std::string> labels,float margin=0.f) {
 
+    float width = box.size.x - 2 * margin;
+    unsigned int len = labels.size();
+    for (unsigned int i = 0; i < len; i++) {
+      auto selectButton = new SelectButtonH(i,labels[i]);
+      selectButton->fontSize=8;
+      selectButton->box.pos = Vec(width/len*i+margin,0);
+      selectButton->box.size = Vec(width/len-2*margin,box.size.y);
+      addChild(selectButton);
+    }
+  }
+  /*
   void init(std::vector<std::string> labels) {
     const float margin = 0;
     float width = box.size.x - 2 * margin;
@@ -98,6 +120,7 @@ struct SelectParamH : ParamWidget {
       addChild(selectButton);
     }
   }
+   */
 
   void draw(const DrawArgs& args) override {
     // Background
@@ -636,6 +659,107 @@ struct SizeSelectItem : MenuItem {
   }
 };
 
+template<typename T,size_t S>
+struct ShiftRegister {
+  T shiftReg[S];
 
+  ShiftRegister() {
+    reset();
+  }
+
+  void reset(T value=0) {
+    for(unsigned k=0;k<S;k++) {
+      shiftReg[k]=value;
+    }
+  }
+
+  void step(T value) {
+    for(int k=S-1;k>0;k--) {
+      shiftReg[k]=shiftReg[k-1];
+    }
+    shiftReg[0]=value;
+  }
+
+  T get(unsigned pos) {
+    if(pos<S)
+      return shiftReg[pos];
+    return false;
+  }
+
+  void set(unsigned pos,T v) {
+    if(pos<S)
+      shiftReg[pos]=v;
+  }
+};
+
+struct SchmittTrigger2
+{
+  // UNKNOWN is used to represent a stable state when the previous state is not yet set
+  enum { UNKNOWN, LOW, HIGH } state = UNKNOWN;
+  float low = 0.0;
+  float high = 1.0;
+  void setThresholds(float low, float high)
+  {
+    this->low = low;
+    this->high = high;
+  }
+
+  int process(float in)
+  {
+    switch(state)
+    {
+      case LOW:
+        if(in >= high)
+        {
+          state = HIGH;
+          return 1;
+        }
+        break;
+      case HIGH:
+        if(in <= low)
+        {
+          state = LOW;
+          return -1;
+        }
+        break;
+      default:
+        if(in >= high)
+        {
+          state = HIGH;
+        } else if(in <= low)
+        {
+          state = LOW;
+        }
+        break;
+    }
+    return 0;
+  }
+
+  void reset()
+  {
+    state = UNKNOWN;
+  }
+};
+template <typename TBase = app::ModuleLightWidget>
+struct TTransparentLightWidget : TBase {
+  TTransparentLightWidget() {
+    this->bgColor = nvgRGBA(0x33, 0x33, 0x33, 0x0);
+    this->borderColor = nvgRGBA(0, 0, 0, 0);
+  }
+};
+using TransparentLightWidget=TTransparentLightWidget<>;
+
+template<typename TBase = TransparentLightWidget,int R=0, int G=0, int B=0>
+struct TDBLight : TBase {
+  TDBLight() {
+    this->addBaseColor(nvgRGB(R,G,B));
+  }
+};
+using DBRedLight=TDBLight<TransparentLightWidget,0xff, 0x0, 0x0>;
+using DBYellowLight=TDBLight<TransparentLightWidget,0xff, 0xff, 0x0>;
+using DBGreenLight=TDBLight<TransparentLightWidget,0x0, 0xff, 0x0>;
+using DBOrangeLight=TDBLight<TransparentLightWidget,0xff, 0x88, 0x22>;
+using DBTurkLight=TDBLight<TransparentLightWidget,0x0, 0xff, 0xff>;
+using DBPurpleLight=TDBLight<TransparentLightWidget,0xd5, 0x2b, 0xed>;
 #define MHEIGHT 128.5f
 #define TY(x) MHEIGHT-(x)-6.237
