@@ -117,6 +117,17 @@ struct Matrix {
       }
     }
   }
+  void randomize(float dens,int from,int to,int x0,int x1,int y0,int y1) {
+    for(int x=x0;x<=x1;x++) {
+      for(int y=y0;y<=y1;y++) {
+        if(rnd.nextCoin(1.0-dens)) {
+          grid[x][y]=rnd.nextRange(from,to);
+        } else {
+          grid[x][y]=32;
+        }
+      }
+    }
+  }
 
 };
 
@@ -138,6 +149,8 @@ struct TheMatrix : Module {
   int curRow[16]={};
   int curCol[16]={};
   int channels=0;
+  int colorMode=0;
+  int x0=0;int x1=0;int y0=0;int y1=0;
   dsp::SchmittTrigger rndTrigger;
   dsp::SchmittTrigger extTrigger;
   dsp::SchmittTrigger manualRndTrigger;
@@ -236,12 +249,17 @@ struct TheMatrix : Module {
   }
 
   void randomize() {
-    m.randomize(params[DENS_PARAM].getValue(),params[FROM_PARAM].getValue(),params[TO_PARAM].getValue());
+    if(x0==x1&&y0==y1) {
+      m.randomize(params[DENS_PARAM].getValue(),params[FROM_PARAM].getValue(),params[TO_PARAM].getValue());
+    } else {
+      m.randomize(params[DENS_PARAM].getValue(),params[FROM_PARAM].getValue(),params[TO_PARAM].getValue(),y0,y1,x0,x1);
+    }
   }
 
   json_t *dataToJson() override {
     json_t *data=json_object();
     json_object_set_new(data,"matrix",json_string(m.toString().c_str()));
+    json_object_set_new(data,"colorMode",json_integer(colorMode));
     return data;
   }
 
@@ -249,6 +267,10 @@ struct TheMatrix : Module {
     json_t *jMatrix=json_object_get(rootJ,"matrix");
     if(jMatrix) {
       m.fromString(std::string(json_string_value(jMatrix)));
+    }
+    json_t *jColorMode=json_object_get(rootJ,"colorMode");
+    if(jColorMode) {
+      colorMode=json_integer_value(jColorMode);
     }
   }
 
@@ -264,7 +286,10 @@ struct MatrixDisplay : OpaqueWidget {
   int selX=0;
   int selY=0;
   int margin=2;
-  NVGcolor chnColors[16]={nvgRGB(200,0,0),nvgRGB(0,160,0),nvgRGB(55,55,200),nvgRGB(200,200,0),nvgRGB(200,0,200),nvgRGB(0,200,200),nvgRGB(128,0,0),nvgRGB(196,85,55),nvgRGB(128,128,80),nvgRGB(255,128,0),nvgRGB(255,0,128),nvgRGB(0,128,255),nvgRGB(128,66,128),nvgRGB(128,255,0),nvgRGB(128,128,255),nvgRGB(128,200,200)};
+  int colorMode=0;
+  NVGcolor backColors[3]={nvgRGB(0x20,0x20,0x4c),nvgRGB(0x0,0x0,0xc),nvgRGB(0xdd,0xdd,0xdd)};
+  NVGcolor textColors[3]={nvgRGB(0xff,0xff,0xff),nvgRGB(0x0,0xff,0xc),nvgRGB(0x22,0x22,0x22)};
+  NVGcolor chnColors[16]={nvgRGB(200,0,0),nvgRGB(0,160,0),nvgRGB(55,55,200),nvgRGB(200,200,0),nvgRGB(200,0,200),nvgRGB(0,200,200),nvgRGB(128,0,0),nvgRGB(196,85,55),nvgRGB(128,128,80),nvgRGB(255,128,0),nvgRGB(255,0,128),nvgRGB(0,128,255),nvgRGB(128,66,128),nvgRGB(100,200,0),nvgRGB(128,128,255),nvgRGB(128,200,200)};
   json_t *oldModuleJson;
 
   MatrixDisplay(TheMatrix *module,Vec pos) : theMatrix(module) {
@@ -286,7 +311,7 @@ struct MatrixDisplay : OpaqueWidget {
     buf[1]=0;
     nvgFontSize(args.vg,12);
     nvgFontFaceId(args.vg,font->handle);
-    NVGcolor textColor=nvgRGB(0xff,0xff,0xff);
+    NVGcolor textColor=textColors[colorMode];
     nvgTextAlign(args.vg,NVG_ALIGN_LEFT|NVG_ALIGN_TOP);
     nvgFillColor(args.vg,textColor);
     nvgText(args.vg,col*cellXSize+margin+1,row*cellYSize+margin-1,buf,NULL);
@@ -298,6 +323,10 @@ struct MatrixDisplay : OpaqueWidget {
       int x1=std::max(posX,selX);
       int y0=std::min(posY,selY);
       int y1=std::max(posY,selY);
+      theMatrix->x0=x0;
+      theMatrix->x1=x1;
+      theMatrix->y0=y0;
+      theMatrix->y1=y1;
       int h=y1-y0+1;
       int w=x1-x0+1;
       nvgBeginPath(args.vg);
@@ -305,6 +334,11 @@ struct MatrixDisplay : OpaqueWidget {
       nvgStrokeColor(args.vg,bg);
       nvgRect(args.vg,x0*cellXSize+1,y0*cellYSize+margin,cellXSize*w,cellYSize*h);
       nvgStroke(args.vg);
+    } else {
+      theMatrix->x0=0;
+      theMatrix->x1=0;
+      theMatrix->y0=0;
+      theMatrix->y1=0;
     }
   }
 
@@ -318,9 +352,10 @@ struct MatrixDisplay : OpaqueWidget {
       pushHistory();
       goRight();
     }
+    colorMode=theMatrix->colorMode;
     std::shared_ptr <Font> font=APP->window->loadFont(fontPath);
     nvgBeginPath(args.vg);
-    NVGcolor backColor=nvgRGB(0x20,0x20,0x4c);
+    NVGcolor backColor=backColors[colorMode];
     nvgFillColor(args.vg,backColor);
     nvgRect(args.vg,0,0,box.size.x,box.size.y);
     nvgFill(args.vg);
@@ -628,6 +663,12 @@ struct TheMatrixWidget : ModuleWidget {
     auto clearMenu=new ClearItem(this);
     clearMenu->text="Clear";
     menu->addChild(clearMenu);
+    std::vector<std::string> colorModeLabels={"Blue","Matrix","Grey"};
+    auto colorSelect=new LabelIntSelectItem(&module->colorMode,colorModeLabels);
+    colorSelect->text="Color Mode";
+    colorSelect->rightText=colorModeLabels[module->colorMode]+"  "+RIGHT_ARROW;
+    menu->addChild(colorSelect);
+
   }
 };
 
