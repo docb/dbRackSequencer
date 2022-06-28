@@ -4,16 +4,16 @@
 #define LENGTH 32
 
 struct CCAMatrix {
-  float grid[CCASIZE][LENGTH]={};
+  double grid[CCASIZE][LENGTH]={};
 
-  void cfunc(float *init,const std::function<float( float )> &f) {
-    float state[CCASIZE]={};
+  void cfunc(double *init,const std::function<double(double)> &f) {
+    double state[CCASIZE]={};
     for(int j=0;j<CCASIZE;j++) {
       state[j]=init[j];
     }
     for(int k=0;k<LENGTH;k++) {
       for(int j=0;j<CCASIZE;j++) {
-        float avg;
+        double avg;
         switch(j) {
           case 0:
             avg=(state[0]+state[1]+state[CCASIZE-1])/3.0;
@@ -33,7 +33,7 @@ struct CCAMatrix {
   }
 
   float getValue(int row,int col) {
-    return grid[row][col];
+    return float(grid[row][col]);
   }
 
 };
@@ -54,23 +54,24 @@ struct CCA : Module {
   CCAMatrix ccaMatrix;
   int curRow[16]={};
   int curCol[16]={};
-  float init[CCASIZE]={};
+  double init[CCASIZE]={};
   float cfParam=0.f;
   int channels=0;
+  int colorMode=0;
   int funcParam=0;
   dsp::ClockDivider divider;
-  std::function<float(float)> funcs[5]={
-    [&](float a) { return a*(1+cfParam);},
-    [&](float a) { return a+cfParam;},
-    [&](float a) {
+  std::function<double(double)> funcs[5]={
+    [&](double a) { return a*(1+cfParam);},
+    [&](double a) { return a+cfParam;},
+    [&](double a) {
       if(a<cfParam) return a/cfParam;
       else return a/(1-cfParam);
     },
-    [&](float a) {
+    [&](double a) {
       if(a<cfParam) return a/cfParam;
       else return (1-a)/(1-cfParam);
     },
-    [&](float a) {
+    [&](double a) {
       return a;
     }
   };
@@ -162,7 +163,6 @@ struct CCA : Module {
         changed=true;
       }
       if(changed) {
-        //ccaMatrix.cfunc(&init[0],[&](float a) { return a*(1+cfParam);});
         ccaMatrix.cfunc(&init[0],funcs[funcParam]);
       }
     }
@@ -219,13 +219,17 @@ struct CCA : Module {
     outputs[CV_OUTPUT].setChannels(channels);
     outputs[GATE_OUTPUT].setChannels(channels);
   }
-};
 
-struct CellColors {
-  NVGcolor selectOnColor=nvgRGB(0xff,0xff,0xff);
-  NVGcolor selectOffColor=nvgRGB(0x44,0x44,0xaa);
-  NVGcolor chnColors[16]={nvgRGB(255,0,0),nvgRGB(0,255,0),nvgRGB(55,55,255),nvgRGB(255,255,0),nvgRGB(255,0,255),nvgRGB(0,255,255),nvgRGB(128,0,0),nvgRGB(196,85,55),nvgRGB(128,128,80),nvgRGB(255,128,0),nvgRGB(255,0,128),nvgRGB(0,128,255),nvgRGB(128,66,128),nvgRGB(128,255,0),nvgRGB(128,128,255),nvgRGB(128,255,255)};
-  NVGcolor pallette[11]={nvgRGB(0x0,0x00,0x66),nvgRGB(0x0,0x22,0x99),nvgRGB(0x33,0x44,0xAA),nvgRGB(0x00,0x77,0xBB),nvgRGB(0x22,0x77,0xBB),nvgRGB(0x44,0x77,0xBB),nvgRGB(0x55,0x66,0xBB),nvgRGB(0x66,0x44,0xFF),nvgRGB(0x77,0x44,0xFF),nvgRGB(0x88,0x44,0x88),nvgRGB(0x99,0x44,0x55)};
+  void dataFromJson(json_t *root) override {
+    json_t *jColorMode=json_object_get(root,"colorMode");
+    if(jColorMode) colorMode=json_integer_value(jColorMode);
+  }
+
+  json_t *dataToJson() override {
+    json_t *root=json_object();
+    json_object_set_new(root,"colorMode",json_integer(colorMode));
+    return root;
+  }
 
 };
 
@@ -239,31 +243,28 @@ struct CCADisplay : OpaqueWidget {
   const int cellYSize=11;
   Vec dragPosition={};
   CellColors cellColors;
-  int colorMode=0;
-  std::vector<std::string> colorModeLabels={"Grey","Palette 1"};
+  std::vector<std::string> colorModeLabels={"Grey","Palette 1","Palette 2","Palette 3"};
 
   CCADisplay(CCA *_module,Vec pos) : module(_module) {
     box.size=Vec(CCASIZE*cellXSize+margin*2,CCASIZE*cellYSize+margin*2);
     box.pos=pos;
   }
-  NVGcolor getPaletteColor(float v) {
-    int index=floor(v*10.f);
-    if(index==10)
-      return cellColors.pallette[index];
-    return nvgLerpRGBA(cellColors.pallette[index],cellColors.pallette[index+1],(v-(index/10.f))*10.f);
+  NVGcolor getPaletteColor(int nr,float v) {
+    int size=cellColors.palettes[nr].size()-1;
+    int index=floor(v*double(size));
+    if(index==size)
+      return cellColors.palettes[nr][index];
+    return nvgLerpRGBA(cellColors.palettes[nr][index],cellColors.palettes[nr][index+1],(v-(index/float(size)))*float(size));
   }
 
   NVGcolor getCellColor(int row,int col) {
     std::vector<int> selected=module->getSelected(row,col);
     float v=module->getCellValue(row,col);
     NVGcolor cellColor;
-    switch(colorMode) {
-      case 1:
-        cellColor=getPaletteColor(v);
-        break;
-      default:
-        cellColor=nvgRGB(int(v*255.f),int(v*255.f),int(v*255.f));
-    }
+    if(module->colorMode==0)
+      cellColor=nvgRGB(int(v*255.f),int(v*255.f),int(v*255.f));
+    else
+      cellColor=getPaletteColor(module->colorMode-1,v);
     switch(selected.size()) {
       case 0:
         return cellColor;
@@ -442,12 +443,12 @@ struct CCAWidget : ModuleWidget {
   }
 
   void appendContextMenu(Menu *menu) override {
-    //CCA *module=dynamic_cast<CCA *>(this->module);
-    //assert(module);
+    CCA *module=dynamic_cast<CCA *>(this->module);
+    assert(module);
     menu->addChild(new MenuSeparator);
-    auto colorSelect=new LabelIntSelectItem(&display->colorMode,display->colorModeLabels);
+    auto colorSelect=new LabelIntSelectItem(&module->colorMode,display->colorModeLabels);
     colorSelect->text="Color Mode";
-    colorSelect->rightText=display->colorModeLabels[display->colorMode]+"  "+RIGHT_ARROW;
+    colorSelect->rightText=display->colorModeLabels[module->colorMode]+"  "+RIGHT_ARROW;
     menu->addChild(colorSelect);
   }
 

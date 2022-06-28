@@ -97,6 +97,8 @@ struct TME : Module {
   Triadex triadex;
   uint8_t cvIndex;
   bool usePWMClock=false;
+  int counter=-1;
+  bool clock=false;
 
   uint8_t lastIndex=255;
   std::vector <std::string> labels={"OFF","ON","C1/2","C1","C2","C4","C8","C3","C6","B1","B2","B3","B4","B5","B6","B7","B8","B9","B10","B11","B12","B13","B14","B15","B16","B17","B18","B19","B20","B21","B22","B23","B24","B25","B26","B27","B28","B29","B30","B31"};
@@ -137,7 +139,7 @@ struct TME : Module {
     configOutput(NOTE_OUTPUT,"Note");
     configOutput(TRG_OUTPUT,"Trig");
     divider.setDivision(32);
-    paramDivider.setDivision(32);
+    paramDivider.setDivision(8);
     schmittTrigger2.setThresholds(0.1,1);
   }
 
@@ -197,16 +199,20 @@ struct TME : Module {
     if(usePWMClock) {
       int b=schmittTrigger2.process(inputs[CLK_INPUT].getVoltage());
       if((b==1 && !rstGate)||b==-1) {
-        triadex.step();
-        cvIndex=triadex.currentCVIndex();
+        counter = 12;
       }
     } else {
       if((clockTrigger.process(inputs[CLK_INPUT].getVoltage())&&!rstGate)|manualClockTrigger.process(params[STEP_PARAM].getValue())) {
+        counter = 12;
+      }
+    }
+    if(counter>=0) {
+      if(counter==0) {
         triadex.step();
         cvIndex=triadex.currentCVIndex();
       }
+      counter--;
     }
-
     if(cvIndex!=lastIndex) {
       trigPulse.trigger(0.001f);
     }
@@ -219,6 +225,21 @@ struct TME : Module {
         lights[i].setBrightness(triadex.calculateBit(39-i));
     }
   }
+
+  json_t *dataToJson() override {
+    json_t *data=json_object();
+    json_object_set_new(data,"usePWMClock",json_integer(usePWMClock));
+    return data;
+  }
+
+  void dataFromJson(json_t *data) override {
+    json_t *jUsePWMClock=json_object_get(data,"usePWMClock");
+    if(jUsePWMClock) {
+      usePWMClock=json_integer_value(jUsePWMClock);
+    }
+
+  }
+
 };
 
 struct TMEWidget : ModuleWidget {

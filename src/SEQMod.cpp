@@ -133,10 +133,11 @@ struct SEQMod : Module {
     if(clockTrigger.process(inputs[CLK_INPUT].getVoltage())&&!resetGate) {
       counter=10;
     }
-    if(counter==0) {
-      sr.step(nextIn());
-    }
+
     if(counter>=0) {
+      if(counter==0) {
+        sr.step(nextIn());
+      }
       counter--;
     }
     outputs[CV_OUTPUT].setVoltage(sr.get(params[OUT_POS_PARAM].getValue()));

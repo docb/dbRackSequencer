@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-
+#include "rnd.h"
 
 struct P16B : Module {
 	enum ParamId {
@@ -25,16 +25,16 @@ struct P16B : Module {
   bool state[16]={};
   float out=0;
   float lastOut=-1;
-
+  RND rnd;
   P16B() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-    configSwitch(A_PARAM,0,17,17,"A",labels);
+    configSwitch(A_PARAM,0,17,2,"A",labels);
     getParamQuantity(A_PARAM)->snapEnabled=true;
-    configSwitch(B_PARAM,0,17,17,"B",labels);
+    configSwitch(B_PARAM,0,17,3,"B",labels);
     getParamQuantity(B_PARAM)->snapEnabled=true;
-    configSwitch(C_PARAM,0,17,17,"C",labels);
+    configSwitch(C_PARAM,0,17,5,"C",labels);
     getParamQuantity(C_PARAM)->snapEnabled=true;
-    configSwitch(D_PARAM,0,17,17,"D",labels);
+    configSwitch(D_PARAM,0,17,9,"D",labels);
     configButton(NOT_A_PARAM,"Not A");
     configButton(NOT_B_PARAM,"Not B");
     configButton(NOT_C_PARAM,"Not C");
@@ -59,6 +59,17 @@ struct P16B : Module {
     divider.setDivision(32);
     paramDivider.setDivision(32);
 	}
+
+  void onRandomize(const RandomizeEvent &e) override {
+    getParamQuantity(A_PARAM)->setValue(rnd.nextRange(0,17));
+    getParamQuantity(B_PARAM)->setValue(rnd.nextRange(0,17));
+    getParamQuantity(C_PARAM)->setValue(rnd.nextRange(0,17));
+    getParamQuantity(D_PARAM)->setValue(rnd.nextRange(0,17));
+    getParamQuantity(NOT_A_PARAM)->setValue(rnd.nextCoin()?1.f:0.f);
+    getParamQuantity(NOT_B_PARAM)->setValue(rnd.nextCoin()?1.f:0.f);
+    getParamQuantity(NOT_C_PARAM)->setValue(rnd.nextCoin()?1.f:0.f);
+    getParamQuantity(NOT_D_PARAM)->setValue(rnd.nextCoin()?1.f:0.f);
+  }
 
   void updateState() {
     for(unsigned k=0;k<16;k++) {

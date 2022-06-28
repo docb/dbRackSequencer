@@ -13,6 +13,12 @@ struct Dir {
     childs.push_back(dir1);
     childs.push_back(dir2);
   }
+
+  std::string trimName(const std::string& name) {
+    if(name.length()<12) return name;
+    return name.substr(0,9) + "..";
+  }
+
   Dir(std::string _path,std::string _name,Dir *p=nullptr) : path(_path),name(_name),parent(p) {
     INFO("Dir construct %s %s", path.c_str(),name.c_str());
     std::vector <std::string> entries=system::getEntries(path);
@@ -24,7 +30,7 @@ struct Dir {
       name=std::regex_replace(name,r,"");
       if(system::isDirectory(entry)) {
         INFO("scanning %s %s", entry.c_str(),name.c_str());
-        childs.push_back(new Dir(entry,name,this));
+        childs.push_back(new Dir(entry,trimName(name),this));
         INFO("scanned %s %s", entry.c_str(),name.c_str());
       } else if(system::getExtension(entry) == ".vcvm") {
         FILE* file = std::fopen(entry.c_str(), "r");
@@ -282,11 +288,11 @@ struct DirWidget : OpaqueWidget {
     if(max<8) max=8;
     box.size=Vec(max*6,(names.size()+1)*11);
     float y=0;
-    addChild(new DirButton(module,-1,"..",Vec(0,y),Vec(max*6,11)));
+    addChild(new DirButton(module,-1,"..",Vec(0,y),Vec(max*5.5f,11)));
     int k=0;
     for(std::string name:names) {
       y+=11;
-      addChild(new DirButton(module,k,name,Vec(0,y),Vec(max*6,11)));
+      addChild(new DirButton(module,k,name,Vec(0,y),Vec(max*5.5f,11)));
       k++;
     }
   }

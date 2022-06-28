@@ -8,8 +8,8 @@ struct CCA2Matrix {
   double grid2[CCASIZE][CCASIZE]={};
   double gridSave[CCASIZE][CCASIZE]={};
   float cfParam=0.3f;
-  std::vector <std::string> typeLabels={"Wighted","Normal","NWSE only"};
-  std::vector<std::string> funcLabels={"a+x","a*(1+x)","a/x","^","test","test2","id"};
+  std::vector<std::string> typeLabels={"Wighted","Normal","NWSE only"};
+  std::vector<std::string> funcLabels={"a*(1+x)","a+x","a/x","^","ll1","ll2","id"};
   int avgType=0;
   RND rnd;
   std::function<double(double)> funcs[7]={[&](double a) {
@@ -43,7 +43,7 @@ struct CCA2Matrix {
   void randomize(float dens) {
     for(int k=0;k<CCASIZE;k++) {
       for(int j=0;j<CCASIZE;j++) {
-        grid[k][j]=rnd.nextWeibull(10-dens);
+        grid[k][j]=rnd.nextWeibull(11-dens);
         gridSave[k][j]=grid[k][j];
       }
     }
@@ -78,11 +78,11 @@ struct CCA2Matrix {
     uint8_t right=col==CCASIZE-1?0:col+1;
     switch(type) {
       case 1:
-        return (grid2[row][left]+grid2[top][col]+grid2[row][right]+grid2[bottom][col]+grid2[top][left]+grid2[top][right]+grid2[bottom][right]+grid2[bottom][left])/8.f;
+        return float((grid2[row][left]+grid2[top][col]+grid2[row][right]+grid2[bottom][col]+grid2[top][left]+grid2[top][right]+grid2[bottom][right]+grid2[bottom][left])/8.0);
       case 2:
-        return (grid2[row][left]+grid2[top][col]+grid2[row][right]+grid2[bottom][col])/4.f;
+        return float((grid2[row][left]+grid2[top][col]+grid2[row][right]+grid2[bottom][col])/4.0);
       default:
-        return (grid2[row][left]+grid2[top][col]+grid2[row][right]+grid2[bottom][col]+0.75*(grid2[top][left]+grid2[top][right]+grid2[bottom][right]+grid2[bottom][left]))/7.f;
+        return float((grid2[row][left]+grid2[top][col]+grid2[row][right]+grid2[bottom][col]+0.75*(grid2[top][left]+grid2[top][right]+grid2[bottom][right]+grid2[bottom][left]))/7.0);
     }
   }
 
@@ -93,14 +93,16 @@ struct CCA2Matrix {
     for(int k=0;k<CCASIZE;k++) {
       for(int j=0;j<CCASIZE;j++) {
         float r=funcs[nr](getAvg(k,j,avgType));
-        grid[k][j]=r-(int)r;
+        grid[k][j]=r-int(r);
       }
     }
   }
+
   void fromJson(json_t *jWorld) {
     json_t *jGrid=json_object_get(jWorld,"grid");
     json_t *jGridSave=json_object_get(jWorld,"gridSave");
-    if(!jGrid) return;
+    if(!jGrid)
+      return;
     for(int k=0;k<CCASIZE;k++) {
       json_t *row=json_array_get(jGrid,k);
       json_t *rowSave=json_array_get(jGridSave,k);
@@ -111,7 +113,8 @@ struct CCA2Matrix {
         gridSave[k][j]=json_real_value(colSave);
       }
     }
-
+    json_t *jAvg=json_object_get(jWorld,"avgType");
+    if(jAvg) avgType=json_integer_value(jAvg);
   }
 
   json_t *toJson() {
@@ -130,6 +133,7 @@ struct CCA2Matrix {
     }
     json_object_set_new(jWorld,"gridSave",dataGridSave);
     json_object_set_new(jWorld,"grid",dataGrid);
+    json_object_set_new(jWorld,"avgType",json_integer(avgType));
     return jWorld;
   }
 
@@ -152,6 +156,7 @@ struct CCA2 : Module {
   int curRow[16]={};
   int curCol[16]={};
   int channels=0;
+  int colorMode=0;
   dsp::ClockDivider divider;
   dsp::SchmittTrigger stepTrigger;
   dsp::SchmittTrigger manualStepTrigger;
@@ -167,6 +172,7 @@ struct CCA2 : Module {
     configButton(RST_PARAM,"Reset");
     configButton(STEP_PARAM,"Next Step");
     configButton(ON_PARAM,"Generation On");
+    configButton(RND_PARAM,"Trigger Random");
     configParam(CV_X_PARAM,0,CCASIZE-1,0,"X");
     getParamQuantity(CV_X_PARAM)->snapEnabled=true;
     configParam(CV_Y_PARAM,0,CCASIZE-1,0,"Y");
@@ -176,6 +182,7 @@ struct CCA2 : Module {
     configParam(CF_PARAM,0,1,0,"Function Param");
     configSwitch(F_PARAM,0,ccaMatrix.funcLabels.size()-1,0,"Function",ccaMatrix.funcLabels);
     configInput(CV_X_INPUT,"CV X");
+    configInput(RND_INPUT,"Random Trigger");
     configInput(CV_Y_INPUT,"CV_Y");
     configInput(OFS_INPUT,"Out voltage offset");
     configInput(SCALE_INPUT,"Out scale factor");
@@ -299,21 +306,19 @@ struct CCA2 : Module {
     if(jWorld) {
       ccaMatrix.fromJson(jWorld);
     }
+    json_t *jColorMode=json_object_get(root,"colorMode");
+    if(jColorMode) colorMode=json_integer_value(jColorMode);
   }
 
   json_t *dataToJson() override {
     json_t *root=json_object();
     json_object_set_new(root,"world",ccaMatrix.toJson());
+    json_object_set_new(root,"colorMode",json_integer(colorMode));
     return root;
   }
 };
 
-struct CellColors2 {
-  NVGcolor selectOnColor=nvgRGB(0xff,0xff,0xff);
-  NVGcolor selectOffColor=nvgRGB(0x44,0x44,0xaa);
-  NVGcolor chnColors[16]={nvgRGB(255,0,0),nvgRGB(0,255,0),nvgRGB(55,55,255),nvgRGB(255,255,0),nvgRGB(255,0,255),nvgRGB(0,255,255),nvgRGB(128,0,0),nvgRGB(196,85,55),nvgRGB(128,128,80),nvgRGB(255,128,0),nvgRGB(255,0,128),nvgRGB(0,128,255),nvgRGB(128,66,128),nvgRGB(128,255,0),nvgRGB(128,128,255),nvgRGB(128,255,255)};
-  NVGcolor pallette[11]={nvgRGB(0x0,0x00,0x66),nvgRGB(0x0,0x22,0x99),nvgRGB(0x33,0x44,0xAA),nvgRGB(0x00,0x77,0xBB),nvgRGB(0x22,0x77,0xBB),nvgRGB(0x44,0x77,0xBB),nvgRGB(0x55,0x66,0xBB),nvgRGB(0x66,0x44,0xFF),nvgRGB(0x77,0x44,0xFF),nvgRGB(0x88,0x44,0x88),nvgRGB(0x99,0x44,0x55)};
-};
+
 
 struct CCA2Display : OpaqueWidget {
   CCA2 *module=nullptr;
@@ -322,36 +327,33 @@ struct CCA2Display : OpaqueWidget {
   int oldC=-1;
   int oldR=-1;
   float current;
-  int colorMode=0;
-  std::vector<std::string> colorModeLabels={"Grey","Palette 1"};
+  std::vector<std::string> colorModeLabels={"Grey","Palette 1","Palette 2","Palette 3"};
   const int cellXSize=11;
   const int cellYSize=11;
   Vec dragPosition={};
-  CellColors2 cellColors;
+  CellColors cellColors;
 
   CCA2Display(CCA2 *_module,Vec pos) : module(_module) {
     box.size=Vec(CCASIZE*cellXSize+margin*2,CCASIZE*cellYSize+margin*2);
     box.pos=pos;
   }
 
-  NVGcolor getPaletteColor(float v) {
-    int index=floor(v*10.f);
-    if(index==10)
-      return cellColors.pallette[index];
-    return nvgLerpRGBA(cellColors.pallette[index],cellColors.pallette[index+1],(v-(index/10.f))*10.f);
+  NVGcolor getPaletteColor(int nr,float v) {
+    int size=cellColors.palettes[nr].size()-1;
+    int index=floor(v*double(size));
+    if(index==size)
+      return cellColors.palettes[nr][index];
+    return nvgLerpRGBA(cellColors.palettes[nr][index],cellColors.palettes[nr][index+1],(v-(index/float(size)))*float(size));
   }
 
   NVGcolor getCellColor(int row,int col) {
     std::vector<int> selected=module->getSelected(row,col);
     float v=module->getCellValue(row,col);
     NVGcolor cellColor;
-    switch(colorMode) {
-      case 1:
-        cellColor=getPaletteColor(v);
-        break;
-      default:
-        cellColor=nvgRGB(int(v*255.f),int(v*255.f),int(v*255.f));
-    }
+    if(module->colorMode==0)
+      cellColor=nvgRGB(int(v*255.f),int(v*255.f),int(v*255.f));
+    else
+      cellColor=getPaletteColor(module->colorMode-1,v);
     switch(selected.size()) {
       case 0:
         return cellColor;
@@ -518,9 +520,9 @@ struct CCA2Widget : ModuleWidget {
     avgTypeSelect->text="Avg Type";
     avgTypeSelect->rightText=module->ccaMatrix.typeLabels[module->ccaMatrix.avgType]+"  "+RIGHT_ARROW;
     menu->addChild(avgTypeSelect);
-    auto colorSelect=new LabelIntSelectItem(&display->colorMode,display->colorModeLabels);
+    auto colorSelect=new LabelIntSelectItem(&module->colorMode,display->colorModeLabels);
     colorSelect->text="Color Mode";
-    colorSelect->rightText=display->colorModeLabels[display->colorMode]+"  "+RIGHT_ARROW;
+    colorSelect->rightText=display->colorModeLabels[module->colorMode]+"  "+RIGHT_ARROW;
     menu->addChild(colorSelect);
     struct ClearItem : ui::MenuItem {
       CCA2 *module;

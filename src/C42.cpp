@@ -405,7 +405,7 @@ private:
   unsigned rule=0;
 };
 
-struct CellColors {
+struct C42CellColors {
   NVGcolor offColor=nvgRGB(0x22,0x22,0x22);
   NVGcolor onColor=nvgRGB(0xa2,0xd6,0xc6);
   NVGcolor selectOnColor=nvgRGB(0xff,0xff,0xff);
@@ -437,7 +437,7 @@ struct C42Display : OpaqueWidget {
   int oldC=-1;
   int oldR=-1;
   Vec dragPosition={};
-  CellColors cellColors;
+  C42CellColors cellColors;
   bool current=false;
 
   NVGcolor getCellColor(int row,int col) {
