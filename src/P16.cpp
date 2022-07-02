@@ -136,6 +136,7 @@ struct P16 : Module {
     configInput(DIR_INPUT,"Direction");
     configInput(RST_INPUT,"Reset");
     configInput(OFS_INPUT,"Offset");
+    configInput(PAT_CV_INPUT,"Pattern Selection");
     configOutput(CV_OUTPUT,"CV");
 	}
 
@@ -151,6 +152,9 @@ struct P16 : Module {
       int c=clamp(inputs[OFS_INPUT].getVoltage(),0.f,9.99f)*1.6f;
       getParamQuantity(OFS_PARAM)->setValue(c);
       changed=old!=c;
+    }
+    if(inputs[DIR_INPUT].isConnected()) {
+      getParamQuantity(DIR_PARAM)->setValue(inputs[DIR_INPUT].getVoltage()>0?1:0);
     }
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage()) || changed) {
       stepCounter=0;
