@@ -15,7 +15,6 @@ struct Clock {
   void setNewLength(double newLength) {
     if(step>=0) step *= (newLength/period);
     period = newLength;
-    //INFO("%lf %lf",period,step);
   }
   bool process(float pwm,float sampleTime,float swing) {
     bool ret=false;
@@ -34,49 +33,6 @@ struct Clock {
   }
 };
 
-struct PwmTimer {
-
-  float timeFactor;
-  float period;
-  float periodS;
-  float counter;
-  bool odd_beat;
-  bool rst;
-  dsp::PulseGenerator pgen;
-
-  void reset(float mf) {
-    timeFactor=mf;
-    counter=period;
-    odd_beat=false;
-    pgen.reset();
-    //rst=true;
-  }
-
-  void calc(float sampleRate,float bpm) {
-    odd_beat=false;
-    counter=0.f;
-    period=(timeFactor*60.f*sampleRate)/bpm;
-    periodS=(timeFactor*60.f)/bpm;
-  }
-
-  bool process(float pwm,float sampleTime,float swing) {
-    float dur=period;
-    if(odd_beat)
-      dur+=dur*swing;
-
-    bool rv;
-    counter+=1.f;
-    if(counter>=dur) {
-      counter-=dur;
-      pgen.trigger(periodS*pwm);
-      odd_beat=!odd_beat;
-      rv=true;
-    } else {
-      rv=pgen.process(sampleTime);
-    }
-    return rv;
-  }
-};
 
 struct PwmClock : Module {
   enum ParamId {
@@ -94,7 +50,6 @@ struct PwmClock : Module {
   std::vector <std::string> labels={"16/1 (/64)","8/1 (/32)","4/1 (/16)","2/1 (/8)","1/1 (/4)","3/4 (/3)","1/2 (/2)","3/8 (/1.5)","1/3 (4/3)","1/4 (x1 Beat)","3/16 (x1.5)","1/6","1/8 x2","3/32 x2.5","1/12","1/16 (x4)","3/64","1/24 x6","1/32 (x8)","3/128","1/48 (x12)","1/64 (x16)"};
   float ticks[22]={16*4,8*4,4*4,2*4,4,0.75*4,0.5*4,0.375*4,4/3.f,0.25*4,0.1875*4,4.f/6.f,0.125*4,0.09375*4,1.f/3.f,0.0625*4,0.046875*4,1/6.f,0.03125*4,0.0234375*4,1/12.f,0.015625};
 
-  //PwmTimer timer[NUM_CLOCKS];
   Clock clocks[NUM_CLOCKS];
   dsp::SchmittTrigger resetTrigger;
   dsp::SchmittTrigger onTrigger;
@@ -188,6 +143,7 @@ struct PwmClock : Module {
     if(resetTrigger.process(params[RST_PARAM].getValue())|resetInputTrigger.process(inputs[RST_INPUT].getVoltage())) {
       sendReset();
       for(int k=0;k<NUM_CLOCKS;k++) {
+        clocks[k].reset();
         changeRatio(k);
       }
     }
