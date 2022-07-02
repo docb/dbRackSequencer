@@ -193,7 +193,12 @@ Here an example:
 
 https://user-images.githubusercontent.com/1134412/167461807-b4f6fbb2-5726-4762-abbb-8dfcab86d55c.mp4
 
+#### P16A
 
+#### P16B
+
+
+### TME
 
 
 ### C42
@@ -543,6 +548,15 @@ https://user-images.githubusercontent.com/1134412/169410966-ff140fd2-2877-47cc-a
 
 Note that in the Exact mode (exact hits) the Skew,Rotate and Degree parameters should somehow
 fit together to get overall some hits, e.g. could be integers.
+
+### SeqMod
+
+SeqMod has a 16 value shift register (SR)
+with 5 tabs which can be placed inside the SR via the Pos parameters.
+The first three tabs are for making a decision if the incoming signal is read and 
+put into the SR or the value at the read position (configured by the Read Pos parameter) is taken.
+
+
 
 ## Utilities
 

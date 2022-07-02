@@ -3,7 +3,7 @@
 
 struct P16B : Module {
 	enum ParamId {
-    A_PARAM,B_PARAM,C_PARAM,D_PARAM,SIZE_PARAM,UNUSED_PARAM,OFS_PARAM,NOT_A_PARAM,NOT_B_PARAM,NOT_C_PARAM,NOT_D_PARAM,PARAMS_LEN
+    A_PARAM,B_PARAM,C_PARAM,D_PARAM,SIZE_PARAM,UNUSED_PARAM,OFS_PARAM,NOT_A_PARAM,NOT_B_PARAM,NOT_C_PARAM,NOT_D_PARAM,GATE_INV_PARAM,PARAMS_LEN
 	};
 	enum InputId {
     CLK_INPUT,RST_INPUT,OFS_INPUT,A_INPUT,B_INPUT,C_INPUT,D_INPUT,INPUTS_LEN
@@ -39,6 +39,7 @@ struct P16B : Module {
     configButton(NOT_B_PARAM,"Not B");
     configButton(NOT_C_PARAM,"Not C");
     configButton(NOT_D_PARAM,"Not D");
+    configButton(GATE_INV_PARAM,"Gate inv");
     getParamQuantity(D_PARAM)->snapEnabled=true;
     configParam(SIZE_PARAM,4,32,16,"Size");
     configParam(OFS_PARAM,0,32,0,"Offset");
@@ -127,9 +128,10 @@ struct P16B : Module {
     outputs[CV_OUTPUT].setVoltage(out);
     outputs[TRG_OUTPUT].setVoltage(trigPulse.process(args.sampleTime));
     if(divider.process()) {
+      int gateInv=params[GATE_INV_PARAM].getValue()>0?1:0;
       for(int i=0;i<18;i++) {
         lights[i].setBrightness(getBit(i));
-        if(i>1) outputs[GATE_DIV_OUTPUT].setVoltage(getBit(i)?10.f:0.f,i-2);
+        if(i>1) outputs[GATE_DIV_OUTPUT].setVoltage(getBit(i)^gateInv?10.f:0.f,i-2);
       }
       for(int k=0;k<4;k++) {
         bool bit=getBit(params[A_PARAM+k].getValue());
@@ -172,7 +174,11 @@ struct P16BWidget : ModuleWidget {
     notParam=createParam<SmallButtonWithLabel>(mm2px(Vec(x-0.5,63)),module,P16B::NOT_B_PARAM);
     notParam->label="!B";
     addParam(notParam);
-    x+=16;
+    x+=8;
+    auto gateInvParam=createParam<SmallButtonWithLabel>(mm2px(Vec(x-0.5,63)),module,P16B::GATE_INV_PARAM);
+    gateInvParam->label="!G";
+    addParam(gateInvParam);
+    x+=8;
     selectParam=createParam<SelectParam>(mm2px(Vec(x,y)),module,P16B::C_PARAM);
     selectParam->box.size=mm2px(Vec(6,cellHeight*18));
     selectParam->initWithEmptyLabels(18);

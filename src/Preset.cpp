@@ -14,6 +14,16 @@ struct Dir {
     childs.push_back(dir2);
   }
 
+  std::string getPath() {
+    std::string ret=name;
+    Dir *p=parent;
+    while(p!=nullptr && !p->name.empty()) {
+      ret = p->name + "/"  + ret;
+      p=p->parent;
+    }
+    return "/" + ret;
+  }
+
   std::string trimName(const std::string& name) {
     if(name.length()<12) return name;
     return name.substr(0,9) + "..";
@@ -173,14 +183,10 @@ struct Preset : Module {
     } else {
       currentCV=-1;
     }
-    //if(trig.process(inputs[TRIG_INPUT].getVoltage())) {
-      //presetChanged=true;
-      //applyPreset(currentCV);
-    //}
 	}
 };
 struct PresetButton : OpaqueWidget {
-  Preset *module;
+  Preset *module=nullptr;
   int nr;
   std::string label;
   std::basic_string<char> fontPath;
@@ -228,7 +234,7 @@ struct PresetButton : OpaqueWidget {
   }
 };
 struct DirButton : OpaqueWidget {
-  Preset *module;
+  Preset *module=nullptr;
   int nr;
   std::string label;
   std::basic_string<char> fontPath;
@@ -277,7 +283,7 @@ static int getMaxLength(const std::vector<std::string>& list) {
 }
 
 struct DirWidget : OpaqueWidget {
-  Preset *module;
+  Preset *module=nullptr;
   DirWidget(Preset *p) : module(p) {
     box.pos=Vec(0,0);
   }
@@ -302,7 +308,7 @@ struct DirWidget : OpaqueWidget {
   }
 };
 struct PresetItemWidget : OpaqueWidget {
-  Preset *module;
+  Preset *module=nullptr;
   PresetItemWidget(Preset *p) : module(p) {
     box.pos=Vec(0,0);
   }
@@ -324,8 +330,34 @@ struct PresetItemWidget : OpaqueWidget {
     box.size=Vec(100,11);
   }
 };
+
+struct PathWidget : OpaqueWidget {
+  Preset *module=nullptr;
+  std::string fontPath;
+  PathWidget(Preset *p,Vec pos, Vec size) : OpaqueWidget(),module(p) {
+    box.pos=pos;
+    box.size=size;
+    fontPath=asset::plugin(pluginInstance,"res/FreeMonoBold.ttf");
+  }
+  void draw(const DrawArgs& args) override {
+    if(!module) return;
+    if(!module->currentDir) return;
+    std::string path=module->currentDir->getPath();
+    if(path.length()>36) {
+      path=".."+path.substr(0,34);
+    }
+    std::shared_ptr<Font> font =  APP->window->loadFont(fontPath);
+    nvgFontSize(args.vg, box.size.y-2);
+    nvgFontFaceId(args.vg, font->handle);
+    NVGcolor textColor = nvgRGB(0xff, 0xff, 0xaa);
+    nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
+    nvgFillColor(args.vg, textColor);
+    nvgText(args.vg, 2, box.size.y/2+1.5, path.c_str(), NULL);
+  }
+};
+
 struct Presets : OpaqueWidget {
-  Preset *module;
+  Preset *module=nullptr;
   DirWidget *dirWidget;
   PresetItemWidget *presetWidget;
 
@@ -389,11 +421,11 @@ struct PresetWidget : ModuleWidget {
 	PresetWidget(Preset* module) {
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/Preset.svg")));
-
-    auto presetsWidget=new Presets(module,mm2px(Vec(6,8)),mm2px(Vec(70,100)));
+    auto pathWidget=new PathWidget(module,mm2px(Vec(6,8)),mm2px(Vec(70,4)));
+    addChild(pathWidget);
+    auto presetsWidget=new Presets(module,mm2px(Vec(6,14)),mm2px(Vec(70,100)));
     addChild(presetsWidget);
-    addInput(createInput<SmallPort>(mm2px(Vec(16,115)),module,Preset::TRIG_INPUT));
-    addInput(createInput<SmallPort>(mm2px(Vec(32,115)),module,Preset::CV_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(10,116)),module,Preset::CV_INPUT));
 	}
 };
 

@@ -339,29 +339,7 @@ struct CYC : Module {
     reconfig();
   }
 };
-/*
-template <typename TBase = app::ModuleLightWidget>
-struct TTransparentLightWidget : TBase {
-  TTransparentLightWidget() {
-    this->bgColor = nvgRGBA(0x33, 0x33, 0x33, 0x0);
-    this->borderColor = nvgRGBA(0, 0, 0, 0);
-  }
-};
-using TransparentLightWidget=TTransparentLightWidget<>;
 
-template<typename TBase = TransparentLightWidget,int R=0, int G=0, int B=0>
-struct TDBLight : TBase {
-  TDBLight() {
-    this->addBaseColor(nvgRGB(R,G,B));
-  }
-};
-using DBRedLight=TDBLight<TransparentLightWidget,0xff, 0x0, 0x0>;
-using DBYellowLight=TDBLight<TransparentLightWidget,0xff, 0xff, 0x0>;
-using DBGreenLight=TDBLight<TransparentLightWidget,0x0, 0xff, 0x0>;
-using DBOrangeLight=TDBLight<TransparentLightWidget,0xff, 0x88, 0x22>;
-using DBTurkLight=TDBLight<TransparentLightWidget,0x0, 0xff, 0xff>;
-using DBPurpleLight=TDBLight<TransparentLightWidget,0xd5, 0x2b, 0xed>;
-*/
 struct SmallGrayRoundButton : SvgSwitch {
   SmallGrayRoundButton() {
     momentary = false;
