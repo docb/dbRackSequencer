@@ -49,6 +49,7 @@ struct P16B : Module {
     configOutput(GATE_B_OUTPUT,"Gate_B");
     configOutput(GATE_C_OUTPUT,"Gate C");
     configOutput(GATE_D_OUTPUT,"Gate D");
+    configOutput(TRG_OUTPUT,"CV changed Trigger");
     configOutput(GATE_DIV_OUTPUT,"Divider Gate");
     configInput(CLK_INPUT,"Clock");
     configInput(RST_INPUT,"Reset");
@@ -150,10 +151,10 @@ struct P16BWidget : ModuleWidget {
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/P16B.svg")));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+    addChild(createWidget<ScrewSilver>(Vec(0,0)));
+    addChild(createWidget<ScrewSilver>(Vec(box.size.x-15,0)));
+    addChild(createWidget<ScrewSilver>(Vec(0,365)));
+    addChild(createWidget<ScrewSilver>(Vec(box.size.x-15,365)));
 
     float x=2.5;
     float y=13;
@@ -225,14 +226,16 @@ struct P16BWidget : ModuleWidget {
     addOutput(createOutput<SmallPort>(mm2px(Vec(x,y)),module,P16B::GATE_D_OUTPUT));
     addChild(createLightCentered<DBSmallLight<RedLight>>(mm2px(Vec(x+3.1,y-2)),module,P16B::GATE_LIGHTS+3));
 
-    y=92;
-    addInput(createInput<SmallPort>(mm2px(Vec(6.5,y+12)),module,P16B::CLK_INPUT));
-    addInput(createInput<SmallPort>(mm2px(Vec(6.5,y+24)),module,P16B::RST_INPUT));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(17,y+12)),module,P16B::OFS_PARAM));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(28,y)),module,P16B::SIZE_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(17,y+24)),module,P16B::OFS_INPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(28,y+12)),module,P16B::TRG_OUTPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(28,y+24)),module,P16B::CV_OUTPUT));
+    y=96;
+    addInput(createInput<SmallPort>(mm2px(Vec(4,y)),module,P16B::CLK_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(4,y+20)),module,P16B::RST_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(17,y)),module,P16B::OFS_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(17,y+7)),module,P16B::OFS_INPUT));
+
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(17,116)),module,P16B::SIZE_PARAM));
+
+    addOutput(createOutput<SmallPort>(mm2px(Vec(30,y)),module,P16B::TRG_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(30,y+20)),module,P16B::CV_OUTPUT));
   }
 };
 

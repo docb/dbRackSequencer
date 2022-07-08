@@ -197,19 +197,25 @@
       "slug": "TME",
       "name": "TME",
       "description": "TME",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "CSR",
       "name": "CSR",
       "description": "",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "P16B",
       "name": "P16B",
       "description": "",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "SEQMod",
@@ -221,19 +227,26 @@
       "slug": "Preset",
       "name": "Preset",
       "description": "Preset Selector/Sequencer",
-      "tags": ["Utility","Sequencer"]
+      "tags": [
+        "Utility",
+        "Sequencer"
+      ]
     },
     {
       "slug": "CCA",
       "name": "CCA",
       "description": "Contineous Cellular Automaton Sequencer",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "CCA2",
       "name": "CCA2",
       "description": "2D Contineous Cellular Atomaton Sequencer",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "P16A",
@@ -241,6 +254,14 @@
       "description": "Address Sequencer",
       "tags": [
         "Sequencer"
+      ]
+    },
+    {
+      "slug": "CDiv",
+      "name": "CDiv",
+      "description": "Clock divider",
+      "tags": [
+        "Clock modulator"
       ]
     }
   ]

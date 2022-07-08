@@ -147,7 +147,7 @@ struct MouseSeq : Module {
       configInput(CLOCK_INPUT+k,"Clock "+std::to_string(k+1));
     }
     configOutput(VOCT_OUTPUT,"V/Oct");
-    configOutput(VEL_OUTPUT,"Vel");
+    configOutput(VEL_OUTPUT,"Cv X");
     configOutput(RTR_OUTPUT,"ReTrigger");
     configOutput(GATE_OUTPUT,"Gate");
     configButton(PLAY_PARAM,"Replay");
@@ -161,6 +161,7 @@ struct MouseSeq : Module {
     configInput(CLOCK_SELECT_INPUT,"Clock Select");
     configSwitch(MODE_PARAM,0,1,0,"Mode",{"Mouse","Extern"});
     configParam(PAT_PARAM,0,NUM_PAT-1,0,"Pattern Selection");
+    configInput(PAT_INPUT,"Pattern Selection");
     configButton(LOCK_PARAM,"Lock");
 
   }
