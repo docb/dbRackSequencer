@@ -64,7 +64,7 @@ struct P4 : Module {
     }
     if(inputs[XY_INPUT].isConnected()) {
       int c=clamp(inputs[XY_INPUT].getVoltage(),0.f,9.99f)*0.2f;
-      getParamQuantity(OFS_PARAM)->setValue(c);
+      getParamQuantity(XY_PARAM)->setValue(c);
     }
 
     bool advance=false;

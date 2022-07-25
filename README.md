@@ -1,6 +1,6 @@
 # dbRackSequencer
 
-A collection of sequencers. Most modules of this plugin are inspired by the XOR plugin
+A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -18,6 +18,8 @@ which is not available in Rack v2.
         - [A complex 16-step sequence](#a-complex-16-step-sequence)
     - [P16](#p16)
     - [PXY](#pxy)
+    - [P16A](#p16a)
+    - [P16B](#p16b)
   - [C42](#c42)
     - [Gate/Trigger Sequencer](#gatetrigger-sequencer)
     - [Creating melodies](#creating-melodies)
@@ -25,6 +27,8 @@ which is not available in Rack v2.
     - [Examples](#examples)
       - [Classic Sequencing](#classic-sequencing)
       - [Chaos](#chaos)
+  - [CCA](#cca)
+  - [CCA2](#cca2)
   - [TheMatrix](#thematrix)
 - [Some other sequencers](#some-other-sequencers)
   - [Uno](#uno)
@@ -32,10 +36,15 @@ which is not available in Rack v2.
   - [M851](#m851)
   - [CYC](#cyc)
   - [N3](#n3)
+- [Some further sequencers](#some-further-sequencers)
+  - [TME](#tme)
+  - [SigMod](#sigmod)
+  - [MouseSeq](#mouseseq)
 - [Utilities](#utilities)
   - [Sum](#sum)
   - [CV](#cv)
   - [PwmClock](#pwmclock)
+  - [CDiv](#cdiv)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -74,10 +83,10 @@ Some use cases of the module:
 - On every trigger event on the Clk input it updates its state by adding the value of the Step parameter
 - On a trigger on the reset input or pressing the rst button the state is set to the value of the set param or set input if connected.
 - The output always reflects the current the state.
-- If the internal state crosses zero a pulse will be sent through the trigger output.
+- If the internal state crosses the value given by the Trsh parameter or input, a pulse will be sent through the trigger output.
   The trigger output can be self patched to the rst input to make loops.
 
-If the step param is set to 0.1V ACC can be used to drive AG.
+If the step param is set to 0.1V ACC can be used to drive AG, Chords, Faders, P16, P16A.
 
 ### Chords
 ![](images/Chords.png?raw=true)
@@ -180,6 +189,20 @@ Here an example of the first 10 sequences.
 
 https://user-images.githubusercontent.com/1134412/167461717-dcd016cd-858e-4bdb-9e3b-25aaaae53013.mp4
 
+#### P16A
+![](images/P16A.png?raw=true)
+
+A variant of P16 with editable patterns and some extras:
+
+- Active buttons below the lights cause that the step will not be touched on random generation.
+- There is a polyphonic CV output for all values.
+- The pattern can be reversed via the rev button.
+
+#### P16B
+![](images/P16B.png?raw=true)
+
+This is a variant of the [TME](#tme) module for generating CV addressing patterns.
+
 
 #### PXY
 
@@ -192,13 +215,6 @@ This size should be 16 for TD 4.
 Here an example:
 
 https://user-images.githubusercontent.com/1134412/167461807-b4f6fbb2-5726-4762-abbb-8dfcab86d55c.mp4
-
-#### P16A
-
-#### P16B
-
-
-### TME
 
 
 ### C42
@@ -314,6 +330,10 @@ an ADSR/Filter cutoff.
 
 https://user-images.githubusercontent.com/1134412/167783412-6dd213e9-b0b4-4d48-86a2-25c285fb9923.mp4
 
+### CCA
+![](images/CCA.png?raw=true)
+### CCA2
+![](images/CCA2.png?raw=true)
 
 ### TheMatrix
 ![](images/TheMatrix.png?raw=true)
@@ -549,13 +569,27 @@ https://user-images.githubusercontent.com/1134412/169410966-ff140fd2-2877-47cc-a
 Note that in the Exact mode (exact hits) the Skew,Rotate and Degree parameters should somehow
 fit together to get overall some hits, e.g. could be integers.
 
-### SeqMod
+## Some further sequencers
 
-SeqMod has a 16 value shift register (SR)
-with 5 tabs which can be placed inside the SR via the Pos parameters.
-The first three tabs are for making a decision if the incoming signal is read and 
-put into the SR or the value at the read position (configured by the Read Pos parameter) is taken.
+### TME
+![](images/TME.png?raw=true)
+### SigMod
+![](images/sigmod.png?raw=true)
 
+SigMod has a 16 value shift register (SR)
+with 5 tabs which can be placed inside the SR via the Pos parameters (Pos1,Pos2,Pos3,PosR,PosO).
+On a clock trigger the first three tabs are used for making a decision if either the incoming signal
+(through the IN input) is read and  put into the SR 
+or the value inside the SR at the read position (PosR) is taken.
+The decision is build as follows:
+
+`!(v1<Cmp1 XOR v2<Cmp2) XOR v3<Cmp3`  
+
+where v1,v2,v3 are the values of the SR at the tab positions Pos1,Pos2,Pos3.
+The 'less than' decision can be inverted in the menu for each comparator separately. 
+
+### MouseSeq
+![](images/MouseSeq.png?raw=true)
 
 
 ## Utilities
@@ -593,3 +627,12 @@ i.e
 - 2V = 4 HZ = 240 BPM
 
 The BPM output delivers vice versa.
+
+### CDiv
+
+![](images/CDiv.png?raw=true)
+
+Clock dividers. Why another?
+
+I needed some with a reliable reset behaviour and divisions up to 100. 
+The dividers are always in sync even while changing the division.

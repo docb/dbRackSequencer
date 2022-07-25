@@ -3,13 +3,13 @@
 
 struct P16A : Module {
 	enum ParamId {
-		ADDR_PARAMS,RND_PARAM=ADDR_PARAMS+16,LENGTH_PARAM,OFS_PARAM,SIZE_PARAM,PAT_PARAM,COPY_PARAM,PASTE_PARAM,EDIT_PARAM,HOLD_PARAMS,MODE_PARAM=HOLD_PARAMS+16,PARAMS_LEN
+		ADDR_PARAMS,RND_PARAM=ADDR_PARAMS+16,LENGTH_PARAM,OFS_PARAM,SIZE_PARAM,PAT_PARAM,COPY_PARAM,PASTE_PARAM,EDIT_PARAM,HOLD_PARAMS,REVERSE_PARAM=HOLD_PARAMS+16,PARAMS_LEN
 	};
 	enum InputId {
-		STEP_PLUS_INPUT,STEP_MINUS_INPUT,RESET_INPUT,PAT_INPUT,RND_INPUT,OFS_INPUT,INPUTS_LEN
+		CLK_INPUT,UNUSED_INPUT,RESET_INPUT,PAT_INPUT,RND_INPUT,OFS_INPUT,INPUTS_LEN
 	};
 	enum OutputId {
-		CV_OUTPUT,OUTPUTS_LEN
+		CV_OUTPUT,POLY_CV_OUTPUT,OUTPUTS_LEN
 	};
 	enum LightId {
 		LIGHTS_LEN=16
@@ -126,13 +126,15 @@ struct P16A : Module {
   int patterns[MAX_PATS][16]={};
   int cb[16]={};
   int stepCounter=0;
-
+  bool divBy10=false;
   dsp::SchmittTrigger clockTrigger;
-  dsp::SchmittTrigger clockTriggerMinus;
   dsp::SchmittTrigger rstTrigger;
   dsp::PulseGenerator rstPulse;
   dsp::SchmittTrigger rndTrigger;
   dsp::SchmittTrigger manualRndTrigger;
+  dsp::ClockDivider paramDivider;
+  dsp::ClockDivider lightDivider;
+
 	P16A() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
     for(int k=0;k<16;k++) {
@@ -143,21 +145,25 @@ struct P16A : Module {
     configButton(RND_PARAM,"Randomize Pattern");
     configButton(COPY_PARAM,"Copy Pattern");
     configButton(PASTE_PARAM,"Paste Pattern");
+    configButton(REVERSE_PARAM,"Reverse Pattern");
     configButton(EDIT_PARAM,"LOCK");
     getParamQuantity(OFS_PARAM)->snapEnabled=true;
     configParam(LENGTH_PARAM,2,16,16,"Length");
     getParamQuantity(LENGTH_PARAM)->snapEnabled=true;
     configParam(SIZE_PARAM,2,32,16,"Pattern Size");
     getParamQuantity(SIZE_PARAM)->snapEnabled=true;
-    configButton(MODE_PARAM,"div by 10");
-    configInput(STEP_PLUS_INPUT,"Step +");
+    configInput(CLK_INPUT,"Step +");
     configInput(RESET_INPUT,"Reset");
     configInput(PAT_INPUT,"Pattern Select");
     configInput(OFS_INPUT,"Offset");
     configInput(RND_INPUT,"Randomize Pattern");
     configOutput(CV_OUTPUT,"CV");
+    configOutput(POLY_CV_OUTPUT,"Poly CV (static)");
+
     configParam(PAT_PARAM,0,MAX_PATS-1,0,"Pattern Selection");
     init();
+    paramDivider.setDivision(32);
+    lightDivider.setDivision(32);
 	}
 
   void init() {
@@ -251,16 +257,25 @@ struct P16A : Module {
     }
     setCurrentPattern();
   }
-
+  void reverse() {
+    int pat=params[PAT_PARAM].getValue();
+    copy();
+    for(int k=0;k<16;k++) {
+      patterns[pat][k]=cb[15-k];
+    }
+    setCurrentPattern();
+  }
 
 	void process(const ProcessArgs& args) override {
-    if(inputs[PAT_INPUT].isConnected() && params[EDIT_PARAM].getValue() == 0) {
-      int c=clamp(inputs[PAT_INPUT].getVoltage(),0.f,9.99f)*float(MAX_PATS)/10.f;
-      getParamQuantity(PAT_PARAM)->setValue(c);
-    }
-    if(inputs[OFS_INPUT].isConnected()) {
-      int c=inputs[OFS_INPUT].getVoltage()*1.6f;
-      getParamQuantity(OFS_PARAM)->setValue(c);
+    if(paramDivider.process()) {
+      if(inputs[PAT_INPUT].isConnected()&&params[EDIT_PARAM].getValue()==0) {
+        int c=clamp(inputs[PAT_INPUT].getVoltage(),0.f,9.99f)*float(MAX_PATS)/10.f;
+        getParamQuantity(PAT_PARAM)->setValue(c);
+      }
+      if(inputs[OFS_INPUT].isConnected()) {
+        int c=inputs[OFS_INPUT].getVoltage()*1.6f;
+        getParamQuantity(OFS_PARAM)->setValue(c);
+      }
     }
     int pat=params[PAT_PARAM].getValue();
     int len=params[LENGTH_PARAM].getValue();
@@ -273,19 +288,19 @@ struct P16A : Module {
       rstPulse.trigger(0.001f);
     }
     bool resetGate=rstPulse.process(args.sampleTime);
-    if(clockTrigger.process(inputs[STEP_PLUS_INPUT].getVoltage()) && !resetGate) {
+    if(clockTrigger.process(inputs[CLK_INPUT].getVoltage())&&!resetGate) {
       stepCounter=(stepCounter+1)%len;
       if(stepCounter==16) stepCounter=0;
     }
-    if(clockTriggerMinus.process(inputs[STEP_MINUS_INPUT].getVoltage()) && !resetGate) {
-      stepCounter=(stepCounter-1);
-      if(stepCounter<0) stepCounter=len-1;
-    }
     int pos=(ofs+stepCounter)%16;
-    outputs[CV_OUTPUT].setVoltage(float(patterns[pat][pos]%16)*(params[MODE_PARAM].getValue()==0.f?10.f:1.f)/params[SIZE_PARAM].getValue());
+    outputs[CV_OUTPUT].setVoltage(float(patterns[pat][pos]%16)*(divBy10?1.f:10.f)/params[SIZE_PARAM].getValue());
 
-    for(int k=0;k<16;k++) {
-      lights[k].setBrightness(k==pos?1.f:0.f);
+    if(lightDivider.process()) {
+      for(int k=0;k<16;k++) {
+        lights[k].setBrightness(k==pos?1.f:0.f);
+        outputs[POLY_CV_OUTPUT].setVoltage(float(patterns[pat][k]%16)*(divBy10?1.f:10.f)/params[SIZE_PARAM].getValue(),k);
+      }
+      outputs[POLY_CV_OUTPUT].setChannels(len);
     }
 	}
 };
@@ -383,6 +398,23 @@ struct P16APatternSelect : SpinParamWidget {
   }
 };
 
+template<typename M>
+struct ReverseButton : SmallButtonWithLabel {
+  P16A *module;
+
+  ReverseButton() : SmallButtonWithLabel() {
+    momentary=true;
+  }
+
+  void onChange(const ChangeEvent &e) override {
+    SvgSwitch::onChange(e);
+    if(module) {
+      if(module->params[P16A::REVERSE_PARAM].getValue()>0)
+        module->reverse();
+    }
+  }
+};
+
 struct P16AWidget : ModuleWidget {
 	P16AWidget(P16A* module) {
 		setModule(module);
@@ -401,35 +433,50 @@ struct P16AWidget : ModuleWidget {
       addChild(createLightCentered<DBMediumLight<GreenLight>>(mm2px(Vec(10+4.5*k,85)),module,k));
       addParam(createParam<SmallRoundButton>(mm2px(Vec(8.5+4.5*k,89)),module,P16A::HOLD_PARAMS+k));
     }
-    auto patParam=createParam<P16APatternSelect>(mm2px(Vec(29,100)),module,P16A::PAT_PARAM);
+    float x=18;
+    auto patParam=createParam<P16APatternSelect>(mm2px(Vec(x,100.5)),module,P16A::PAT_PARAM);
     patParam->module=module;
     addParam(patParam);
-    auto editButton=createParam<SmallButtonWithLabel>(mm2px(Vec(29,110)),module,P16A::EDIT_PARAM);
-    editButton->setLabel("Lock");
-    addParam(editButton);
-    addInput(createInput<SmallPort>(mm2px(Vec(29,114)),module,P16A::PAT_INPUT));
-    auto copyButton=createParam<CopyButton<P16A>>(mm2px(Vec(37,100)),module,P16A::COPY_PARAM);
+    addInput(createInput<SmallPort>(mm2px(Vec(x,114)),module,P16A::PAT_INPUT));
+    auto copyButton=createParam<CopyButton<P16A>>(mm2px(Vec(x+8,100)),module,P16A::COPY_PARAM);
     copyButton->label="Cpy";
     copyButton->module=module;
     addParam(copyButton);
-    auto pasteButton=createParam<PasteButton<P16A>>(mm2px(Vec(37,104)),module,P16A::PASTE_PARAM);
+    auto pasteButton=createParam<PasteButton<P16A>>(mm2px(Vec(x+8,104)),module,P16A::PASTE_PARAM);
     pasteButton->label="Pst";
     pasteButton->module=module;
     addParam(pasteButton);
-    addInput(createInput<SmallPort>(mm2px(Vec(8,98)),module,P16A::STEP_PLUS_INPUT));
-    addInput(createInput<SmallPort>(mm2px(Vec(8,106)),module,P16A::STEP_MINUS_INPUT));
-    addInput(createInput<SmallPort>(mm2px(Vec(8,114)),module,P16A::RESET_INPUT));
-    addParam(createParam<MLEDM>(mm2px(Vec(50,100)),module,P16A::RND_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(58,100)),module,P16A::RND_INPUT));
+    auto reverseButton=createParam<ReverseButton<P16A>>(mm2px(Vec(x+8,108)),module,P16A::REVERSE_PARAM);
+    reverseButton->label="Rev";
+    reverseButton->module=module;
+    addParam(reverseButton);
+    auto editButton=createParam<SmallButtonWithLabel>(mm2px(Vec(x+8,116)),module,P16A::EDIT_PARAM);
+    editButton->setLabel("Lock");
+    addParam(editButton);
+
+    addInput(createInput<SmallPort>(mm2px(Vec(6,100)),module,P16A::CLK_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(6,114)),module,P16A::RESET_INPUT));
+    addParam(createParam<MLEDM>(mm2px(Vec(42,100)),module,P16A::RND_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(50,100)),module,P16A::RND_INPUT));
     addParam(createParam<TrimbotWhite>(mm2px(Vec(42,114)),module,P16A::OFS_PARAM));
     addInput(createInput<SmallPort>(mm2px(Vec(50,114)),module,P16A::OFS_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(62,100)),module,P16A::SIZE_PARAM));
     addParam(createParam<TrimbotWhite>(mm2px(Vec(62,114)),module,P16A::LENGTH_PARAM));
-    auto modeButton=createParam<SmallButtonWithLabel>(mm2px(Vec(66,101.5)),module,P16A::MODE_PARAM);
-    modeButton->setLabel("/10");
-    addParam(modeButton);
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(74,100)),module,P16A::SIZE_PARAM));
+
+    addOutput(createOutput<SmallPort>(mm2px(Vec(74,100)),module,P16A::POLY_CV_OUTPUT));
     addOutput(createOutput<SmallPort>(mm2px(Vec(74,114)),module,P16A::CV_OUTPUT));
 	}
+
+  void appendContextMenu(Menu *menu) override {
+    P16A *module=dynamic_cast<P16A *>(this->module);
+    assert(module);
+    menu->addChild(new MenuSeparator);
+    menu->addChild(createCheckMenuItem("DivBy10","",[=]() {
+      return module->divBy10;
+    },[=]() {
+      module->divBy10=!module->divBy10;
+    }));
+  }
 };
 
 

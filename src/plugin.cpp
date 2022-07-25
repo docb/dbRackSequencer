@@ -34,6 +34,8 @@ extern Model* modelP16B;
 extern Model* modelSEQMod;
 extern Model* modelPreset;
 extern Model* modelCDiv;
+extern Model* modelP16S;
+extern Model* modelAnt;
 
 void init(Plugin *p) {
   pluginInstance=p;
@@ -69,6 +71,8 @@ void init(Plugin *p) {
   p->addModel(modelSEQMod);
   p->addModel(modelPreset);
 	p->addModel(modelCDiv);
+	p->addModel(modelP16S);
+  p->addModel(modelAnt);
 }
 
 void SmallButtonWithLabel::draw(const Widget::DrawArgs &args) {

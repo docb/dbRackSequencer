@@ -218,9 +218,9 @@
       ]
     },
     {
-      "slug": "SEQMod",
-      "name": "SEQMod",
-      "description": "Sequence Scrambler",
+      "slug": "SigMod",
+      "name": "SigMod",
+      "description": "Signal Scrambler",
       "tags": []
     },
     {
@@ -262,6 +262,22 @@
       "description": "Clock divider",
       "tags": [
         "Clock modulator"
+      ]
+    },
+    {
+      "slug": "P16S",
+      "name": "P16S",
+      "description": "Polyswitch for CV addressing or sequencing",
+      "tags": [
+        "Sequencer"
+      ]
+    },
+    {
+      "slug": "Ant",
+      "name": "Ant",
+      "description": "Laurents-Ant Cellular Automaton",
+      "tags": [
+        "Sequencer"
       ]
     }
   ]

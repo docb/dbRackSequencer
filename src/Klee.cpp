@@ -488,7 +488,7 @@ struct KleeWidget : ModuleWidget {
   void appendContextMenu(Menu *menu) override {
     Klee *module=dynamic_cast<Klee *>(this->module);
     assert(module);
-    menu->addChild(new MenuEntry);
+    menu->addChild(new MenuSeparator);
     std::vector <MinMaxRange> ranges={{-3,3},
                                       {-2,2},
                                       {-1,1},

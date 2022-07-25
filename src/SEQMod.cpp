@@ -359,4 +359,4 @@ struct SEQModWidget : ModuleWidget {
 };
 
 
-Model *modelSEQMod=createModel<SEQMod,SEQModWidget>("SEQMod");
+Model *modelSEQMod=createModel<SEQMod,SEQModWidget>("SigMod");

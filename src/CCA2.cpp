@@ -54,7 +54,8 @@ struct CCA2Matrix {
   }
 
   void setValue(int row,int col,float v) {
-    gridSave[row][col]=grid[row][col]=v;
+    grid[row][col]=v;
+    save();
   }
 
   void reset() {
@@ -62,6 +63,14 @@ struct CCA2Matrix {
       for(int y=0;y<CCASIZE;y++) {
         grid[x][y]=gridSave[x][y];
       }
+  }
+
+  void save() {
+    for(int x=0;x<CCASIZE;x++)
+      for(int y=0;y<CCASIZE;y++) {
+        gridSave[x][y]=grid[x][y];
+      }
+
   }
 
   void clear() {
@@ -144,7 +153,7 @@ struct CCA2 : Module {
     CV_X_PARAM,CV_Y_PARAM,SCALE_PARAM,OFS_PARAM,THRS_PARAM,RND_PARAM,DENS_PARAM,STEP_PARAM,ON_PARAM,RST_PARAM,F_PARAM,CF_PARAM,PARAMS_LEN
   };
   enum InputId {
-    CV_X_INPUT,CV_Y_INPUT,SCALE_INPUT,OFS_INPUT,STEP_INPUT,RST_INPUT,ON_INPUT,DENS_INPUT,RND_INPUT,CF_INPUT,INPUTS_LEN
+    CV_X_INPUT,CV_Y_INPUT,SCALE_INPUT,OFS_INPUT,STEP_INPUT,RST_INPUT,ON_INPUT,DENS_INPUT,RND_INPUT,CF_INPUT,SET_INPUT,INPUTS_LEN
   };
   enum OutputId {
     CV_OUTPUT,GATE_OUTPUT,OUTPUTS_LEN
@@ -165,6 +174,7 @@ struct CCA2 : Module {
   dsp::PulseGenerator rstPulse;
   dsp::SchmittTrigger rndTrigger;
   dsp::SchmittTrigger manualRndTrigger;
+  dsp::SchmittTrigger setTrigger;
 
   CCA2() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
@@ -187,6 +197,7 @@ struct CCA2 : Module {
     configInput(OFS_INPUT,"Out voltage offset");
     configInput(SCALE_INPUT,"Out scale factor");
     configInput(STEP_INPUT,"Next Step");
+    configInput(SET_INPUT,"Save");
     configInput(RST_INPUT,"Reset");
     configInput(ON_INPUT,"Generation On");
     configInput(DENS_INPUT,"Random Density");
@@ -233,7 +244,9 @@ struct CCA2 : Module {
     if(inputs[DENS_INPUT].isConnected()) {
       getParamQuantity(DENS_PARAM)->setValue(inputs[DENS_INPUT].getVoltage());
     }
-
+    if(setTrigger.process(inputs[SET_INPUT].getVoltage())) {
+      ccaMatrix.save();
+    }
     int channelsX=0;
     if(inputs[CV_X_INPUT].isConnected()) {
       channelsX=inputs[CV_X_INPUT].getChannels();
@@ -326,7 +339,7 @@ struct CCA2Display : OpaqueWidget {
   const int margin=2;
   int oldC=-1;
   int oldR=-1;
-  float current;
+  float value;
   std::vector<std::string> colorModeLabels={"Grey","Palette 1","Palette 2","Palette 3"};
   const int cellXSize=11;
   const int cellYSize=11;
@@ -419,12 +432,12 @@ struct CCA2Display : OpaqueWidget {
       int c=oldC=floor(e.pos.x/(box.size.x/float(numRows)));
       int r=oldR=floor(e.pos.y/(box.size.y/float(numRows)));
       if((e.mods&RACK_MOD_MASK)==0) {
-        current=1.f;
+        value=1.f;
 
       } else if((e.mods&RACK_MOD_MASK)==GLFW_MOD_SHIFT) {
-        current=0.f;
+        value=0.f;
       }
-      module->ccaMatrix.setValue(r,c,current);
+      module->ccaMatrix.setValue(r,c,value);
       e.consume(this);
       dragPosition=e.pos;
     } else if(e.action==GLFW_PRESS&&e.button==GLFW_MOUSE_BUTTON_RIGHT) {
@@ -446,7 +459,7 @@ struct CCA2Display : OpaqueWidget {
         if(e.button==GLFW_MOUSE_BUTTON_RIGHT)
           module->setCurrent(r,c);
         else
-          module->ccaMatrix.setValue(r,c,current);
+          module->ccaMatrix.setValue(r,c,value);
       }
       oldC=c;
       oldR=r;
@@ -488,8 +501,9 @@ struct CCA2Widget : ModuleWidget {
     addParam(createParam<TrimbotWhite>(mm2px(Vec(x+9,y)),module,CCA2::CF_PARAM));
     addInput(createInput<SmallPort>(mm2px(Vec(x+18,y)),module,CCA2::CF_INPUT));
     y+=12;
-    addParam(createParam<MLEDM>(mm2px(Vec(x2,y)),module,CCA2::RST_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(x2+9,y)),module,CCA2::RST_INPUT));
+    addParam(createParam<MLEDM>(mm2px(Vec(x,y)),module,CCA2::RST_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+9,y)),module,CCA2::RST_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+18,y)),module,CCA2::SET_INPUT));
     y+=12;
     addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,CCA2::DENS_PARAM));
     addParam(createParam<MLEDM>(mm2px(Vec(x+9,y)),module,CCA2::RND_PARAM));
