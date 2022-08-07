@@ -173,6 +173,16 @@ struct JTChords : Module {
     chrMgr.paste(currentChord);
   }
 
+  void insert() {
+    int currentChord=params[CHORD_PARAM].getValue();
+    chrMgr.insert(currentChord);
+  }
+
+  void del() {
+    int currentChord=params[CHORD_PARAM].getValue();
+    chrMgr.del(currentChord);
+  }
+
   void noteMod(int amt) {
     int currentChord=params[CHORD_PARAM].getValue();
     chrMgr.noteMod(currentChord,amt);
@@ -420,6 +430,36 @@ struct JTChordsWidget : ModuleWidget {
     },[=]() {
       module->autoReorder=!module->autoReorder;
     }));
+    struct InsertItem : ui::MenuItem {
+      JTChords *module;
+
+      InsertItem(JTChords *m) : module(m) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        if(!module)
+          return;
+        module->insert();
+      }
+    };
+    auto insertMenu=new InsertItem(module);
+    insertMenu->text="Insert Pattern";
+    menu->addChild(insertMenu);
+    struct DelItem : ui::MenuItem {
+      JTChords *module;
+
+      DelItem(JTChords *m) : module(m) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        if(!module)
+          return;
+        module->del();
+      }
+    };
+    auto delMenu=new DelItem(module);
+    delMenu->text="Delete Pattern";
+    menu->addChild(delMenu);
   }
 };
 

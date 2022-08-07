@@ -4,7 +4,7 @@
 
 struct AG : Module {
 	enum ParamId {
-		PAT_PARAM,EDIT_PARAM,COPY_PARAM,PASTE_PARAM,PARAMS_LEN
+		PAT_PARAM,EDIT_PARAM,COPY_PARAM,PASTE_PARAM,INSERT_PARAM,DELETE_PARAM,PARAMS_LEN
 	};
 	enum InputId {
 		PAT_CV_INPUT,INPUTS_LEN
@@ -25,6 +25,8 @@ struct AG : Module {
     configParam(PAT_PARAM,0,MAX_PATS-1,0,"Pattern Selection");
     configButton(COPY_PARAM,"Copy");
     configButton(PASTE_PARAM,"Paste");
+    configButton(INSERT_PARAM,"Insert");
+    configButton(DELETE_PARAM,"Delete");
     configButton(EDIT_PARAM,"Edit");
     configInput(PAT_CV_INPUT,"Pattern (0.1V/Step)");
     configOutput(GATE_OUTPUT,"Gate");
@@ -84,6 +86,27 @@ struct AG : Module {
     }
     for(int k=0;k<PORT_MAX_CHANNELS;k++) {
       outputs[GATE_OUTPUT].setVoltage(0,k);
+    }
+  }
+
+  void insert() {
+    int currentPattern=params[PAT_PARAM].getValue();
+    for(int k=99;k>currentPattern;k--) {
+      for(int j=0;j<16;j++) {
+        gates[k][j]=gates[k-1][j];
+      }
+    }
+    for(int j=0;j<16;j++) {
+      gates[currentPattern][j]=false;
+    }
+  }
+
+  void del() {
+    int currentPattern=params[PAT_PARAM].getValue();
+    for(int k=currentPattern;k<99;k++) {
+      for(int j=0;j<16;j++) {
+        gates[k][j]=gates[k+1][j];
+      }
     }
   }
 
@@ -266,7 +289,16 @@ struct AGWidget : ModuleWidget {
     pasteButton->label="Pst";
     pasteButton->module=module;
     addParam(pasteButton);
-    addChild(new GateDisplay<AG>(module,mm2px(Vec(1.7f,MHEIGHT-87))));
+    auto insertButton=createParam<InsertButton<AG>>(mm2px(Vec(1.7f,MHEIGHT-88)),module,AG::INSERT_PARAM);
+    insertButton->label="+";
+    insertButton->module=module;
+    addParam(insertButton);
+    auto delButton=createParam<DelButton<AG>>(mm2px(Vec(1.7f,MHEIGHT-84)),module,AG::DELETE_PARAM);
+    delButton->label="-";
+    delButton->module=module;
+    addParam(delButton);
+
+    addChild(new GateDisplay<AG>(module,mm2px(Vec(1.7f,MHEIGHT-79))));
     addOutput(createOutput<SmallPort>(mm2px(Vec(x,MHEIGHT-19.f)),module,AG::GATE_OUTPUT));
   }
   void appendContextMenu(Menu *menu) override {

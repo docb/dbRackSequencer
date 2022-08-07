@@ -17,9 +17,10 @@ which is not available in Rack v2.
         - [Simulating a Z8000 Sequencer](#simulating-a-z8000-sequencer)
         - [A complex 16-step sequence](#a-complex-16-step-sequence)
     - [P16](#p16)
-    - [PXY](#pxy)
     - [P16A](#p16a)
     - [P16B](#p16b)
+    - [P16S](#p16s)
+    - [PXY](#pxy)
   - [C42](#c42)
     - [Gate/Trigger Sequencer](#gatetrigger-sequencer)
     - [Creating melodies](#creating-melodies)
@@ -27,9 +28,10 @@ which is not available in Rack v2.
     - [Examples](#examples)
       - [Classic Sequencing](#classic-sequencing)
       - [Chaos](#chaos)
+  - [TheMatrix](#thematrix)
   - [CCA](#cca)
   - [CCA2](#cca2)
-  - [TheMatrix](#thematrix)
+  - [Ant](#ant)
 - [Some other sequencers](#some-other-sequencers)
   - [Uno](#uno)
   - [Klee](#klee)
@@ -40,11 +42,13 @@ which is not available in Rack v2.
   - [TME](#tme)
   - [SigMod](#sigmod)
   - [MouseSeq](#mouseseq)
+  - [Preset](#preset)
 - [Utilities](#utilities)
   - [Sum](#sum)
   - [CV](#cv)
   - [PwmClock](#pwmclock)
   - [CDiv](#cdiv)
+  - [CSR](#csr)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -203,6 +207,11 @@ A variant of P16 with editable patterns and some extras:
 
 This is a variant of the [TME](#tme) module for generating CV addressing patterns.
 
+#### P16S
+
+![](images/P16S.png?raw=true)
+
+P16S sequences the values provided by the polyphonic In port according to the method given by the dir param.  
 
 #### PXY
 
@@ -330,10 +339,6 @@ an ADSR/Filter cutoff.
 
 https://user-images.githubusercontent.com/1134412/167783412-6dd213e9-b0b4-4d48-86a2-25c285fb9923.mp4
 
-### CCA
-![](images/CCA.png?raw=true)
-### CCA2
-![](images/CCA2.png?raw=true)
 
 ### TheMatrix
 ![](images/TheMatrix.png?raw=true)
@@ -407,11 +412,51 @@ The Rnd Button or a trigger on the Rnd input will fill the grid with random char
 range set by the Range parameters min and max. The dens parameter or input controls how many spaces
 are generated.
 
+
+
+### CCA
+![](images/CCA.png?raw=true)
+
+A one dimension [continuous cellular automaton](https://www.wolframscience.com/nks/p155--continuous-cellular-automata/) voltage addressable sequencer.
+
+- The inputs 0-15, 16-31 are for setting the initial values displayed on the left bar.
+- On te initial values the automaton rule defined by Func and Param is successively applied from left to right.
+- For the other parameters and inputs and outputs see C42/TheMatrix.
+- Gates are fired if the value of the cell is above the threshold set by the knob.
+
+### CCA2
+![](images/CCA2.png?raw=true)
+
+A two dimensional variant. Similar to C42. The rule is defined by a function and a parameter.
+(...).
+
+### Ant
+![](images/Ant.png?raw=true)
+
+A 2D turing machine also known as Langton's Ant.
+
+- Rules can have up to 16 colors. The Rule input interprets the polyphonic signal as follows:
+  - 0V = B (backward)
+  - 1V = R (right)
+  - 2V = F (forward)
+  - 3V = L (left)
+
+- There can be placed up to eight Ants via the Ants input:
+  - The number of ants is `# channels div 2`
+  - The x coordinate is given in even channels
+  - The y coordinate is given in odd channels
+  - The orientation is given by the signs of the x,y pair
+
+- There are additionally some standard rules and number of ants configurable in the menu to start with (applied if the
+Ants/Rule inputs are disconnected).
+- The Xout and Yout ports deliver the coordinates of the ants. These can directly used for
+  TheMatrix, CCA, CCA2 or C42 with grid size 32.
+- The number of steps per clock pulse can be set using the Steps parameter 
+
 ## Some other sequencers
 
 The following sequencers are reimplementations with additional/different features
 of some sequencers of the XOR plugin.
-
 ### Uno
 ![](images/Uno.png?raw=true)
 
@@ -573,6 +618,18 @@ fit together to get overall some hits, e.g. could be integers.
 
 ### TME
 ![](images/TME.png?raw=true)
+
+A Triadex Muse Emulator.
+
+- Has a Scl input for setting a custom scale (eight valued polyphonic signal with semi tones in v/oct).
+- The resulting CV comes through Note output.
+- The Trg output delivers a pulse if the CV has changed.
+- The CV output delivers the built number D*8+C*4+B*2+A multiplied with Lvl.
+- The Clock mode can be set in the menu
+  - If PWMClock is checked then the falling edge of the clock will be used for the C1/2
+  - Otherwise (the default) only the rising edge is used - so it should be clocked with double speed.
+
+
 ### SigMod
 ![](images/sigmod.png?raw=true)
 
@@ -591,6 +648,19 @@ The 'less than' decision can be inverted in the menu for each comparator separat
 ### MouseSeq
 ![](images/MouseSeq.png?raw=true)
 
+A sequencer, solo player driven by the nouse.
+
+How to use:
+
+![](images/MouseSeqUsage.png?raw=true)
+
+Then press and move the mouse on the green pad.
+
+### Preset
+![](images/Preset.png?raw=true)
+
+- Shows the presets of a module (user and factory)
+- Presets are selectable via mouse or CV (0.1V steps)
 
 ## Utilities
 
@@ -636,3 +706,8 @@ Clock dividers. Why another?
 
 I needed some with a reliable reset behaviour and divisions up to 100. 
 The dividers are always in sync even while changing the division.
+
+### CSR
+![](images/CSR.png?raw=true)
+
+A 16 value shift register (used also in SigMod).

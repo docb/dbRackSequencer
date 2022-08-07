@@ -35,6 +35,25 @@ struct M851 : Module {
   enum LightId {
     STEP_LIGHT,LIGHTS_LEN=STEP_LIGHT+64
   };
+  dsp::SchmittTrigger clockTrigger;
+  dsp::SchmittTrigger rstTrigger;
+  //dsp::PulseGenerator gatePulse;
+  dsp::PulseGenerator rstPulse;
+  RND rnd;
+  RND rnd2;
+  int stepCounter=0;
+  int subStepCounter=0;
+  bool reverseDirection=false;
+  float lastCV=0.f;
+  SlewLimiter sl;
+  float min=-2;
+  float max=2;
+  bool quantize=false;
+  bool gate=false;
+  int dirty=0; // dirty hack
+
+  std::string seqLen="8";
+  dsp::ClockDivider divider;
 
   M851() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
@@ -57,24 +76,10 @@ struct M851 : Module {
     configOutput(GATE_OUTPUT,"Gate");
     configOutput(CV_OUTPUT,"CV");
     configSwitch(RUN_MODE_PARAM,0,4,0,"Run Mode",{"-->","<--","<->","?-?","???"});
+    divider.setDivision(32);
   }
 
-  dsp::SchmittTrigger clockTrigger;
-  dsp::SchmittTrigger rstTrigger;
-  //dsp::PulseGenerator gatePulse;
-  dsp::PulseGenerator rstPulse;
-  RND rnd;
-  RND rnd2;
-  int stepCounter=0;
-  int subStepCounter=0;
-  bool reverseDirection=false;
-  float lastCV=0.f;
-  SlewLimiter sl;
-  float min=-2;
-  float max=2;
-  bool quantize=false;
-  bool gate=false;
-  int dirty=0; // dirty hack
+
 
   bool gateOn() {
     switch((int)params[GATE_MODE_PARAM+stepCounter%8].getValue()) {
@@ -161,6 +166,17 @@ struct M851 : Module {
     }
   }
 
+  int getSequenceLength() {
+    int stepLength=params[STEP_COUNT_PARAM].getValue();
+    int count=0;
+    for(int k=0;k<stepLength;k++) {
+      if(params[ON_OFF_PARAM+k].getValue()>0) {
+        count += int(params[REP_PARAM+k].getValue()+1.f);
+      }
+    }
+    return count;
+  }
+
   bool next() {
     int currentRepCount=(int)params[REP_PARAM+stepCounter%8].getValue()+1;
     subStepCounter++;
@@ -226,13 +242,16 @@ struct M851 : Module {
       if(gate)
         outputs[GATE_OUTPUT].setVoltage(inputs[CLK_INPUT].getVoltage()>1.f?10.0f:0.0f);
     }
-    for(int k=0;k<64;k++)
-      lights[k].setBrightness(0.f);
-    lights[(stepCounter%8)*8].setBrightness(1.f);
-    if(subStepCounter>0) {
-      lights[(stepCounter%8)*8+subStepCounter].setBrightness(1.f);
-    }
 
+    if(divider.process()) {
+      for(int k=0;k<64;k++)
+        lights[k].setBrightness(0.f);
+      lights[(stepCounter%8)*8].setBrightness(1.f);
+      if(subStepCounter>0) {
+        lights[(stepCounter%8)*8+subStepCounter].setBrightness(1.f);
+      }
+      seqLen=std::to_string(getSequenceLength());
+    }
   }
 
   void reconfig() {
@@ -367,6 +386,10 @@ struct M851Widget : ModuleWidget {
       } else {
         x+=8.5;
       }
+    }
+    if(module) {
+      auto seqW=new DBTextWidget(&module->seqLen,mm2px(Vec(41,41)),mm2px(Vec(6,3)));
+      addChild(seqW);
     }
     addInput(createInput<SmallPort>(mm2px(Vec(40.5,MHEIGHT-111.5-6.237)),module,M851::POLY_CV_INPUT));
     float y=7;

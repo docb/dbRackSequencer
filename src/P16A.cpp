@@ -234,6 +234,29 @@ struct P16A : Module {
     patterns[pat][nr]=value;
   }
 
+  void insert() {
+    int pat=params[PAT_PARAM].getValue();
+    for(int k=99;k>pat;k--) {
+      for(int j=0;j<16;j++) {
+        patterns[k][j]=patterns[k-1][j];
+      }
+    }
+    for(int j=0;j<16;j++) {
+      patterns[pat][j]=0;
+    }
+    setCurrentPattern();
+  }
+
+  void del() {
+    int pat=params[PAT_PARAM].getValue();
+    for(int k=pat;k<99;k++) {
+      for(int j=0;j<16;j++) {
+        patterns[k][j]=patterns[k+1][j];
+      }
+    }
+    setCurrentPattern();
+  }
+
   void copy() {
     int pat=params[PAT_PARAM].getValue();
     for(int k=0;k<16;k++) {
@@ -476,6 +499,36 @@ struct P16AWidget : ModuleWidget {
     },[=]() {
       module->divBy10=!module->divBy10;
     }));
+    struct InsertItem : ui::MenuItem {
+      P16A *module;
+
+      InsertItem(P16A *m) : module(m) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        if(!module)
+          return;
+        module->insert();
+      }
+    };
+    auto insertMenu=new InsertItem(module);
+    insertMenu->text="Insert Pattern";
+    menu->addChild(insertMenu);
+    struct DelItem : ui::MenuItem {
+      P16A *module;
+
+      DelItem(P16A *m) : module(m) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        if(!module)
+          return;
+        module->del();
+      }
+    };
+    auto delMenu=new DelItem(module);
+    delMenu->text="Delete Pattern";
+    menu->addChild(delMenu);
   }
 };
 

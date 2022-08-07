@@ -228,8 +228,8 @@ struct Ant : Module {
     LIGHTS_LEN
   };
   AntMatrix antMatrix;
-  dsp::SchmittTrigger stepTrigger;
-  dsp::SchmittTrigger manualStepTrigger;
+  dsp::SchmittTrigger stepTrigger[NUM_ANTS];
+  dsp::SchmittTrigger manualStepTrigger[NUM_ANTS];
   dsp::SchmittTrigger rstTrigger;
   dsp::SchmittTrigger rstManualTrigger;
   dsp::SchmittTrigger rndTrigger;
@@ -241,6 +241,7 @@ struct Ant : Module {
   int colorMode=0;
   int defaultRule=0;
   int numAnts=1;
+  bool outputClock=false;
   uint8_t defaultPosX[NUM_ANTS+1]={16,12,20,12,20,8,24,8,24};
   uint8_t defaultPosY[NUM_ANTS+1]={16,12,20,20,12,8,24,24,8};
 
@@ -354,7 +355,7 @@ struct Ant : Module {
       outputs[X_OUTPUT].setVoltage(10.f*float(antMatrix.ants[k].posX)/float(CASIZE),k);
       outputs[Y_OUTPUT].setVoltage(10.f*float(antMatrix.ants[k].posY)/float(CASIZE),k);
       if(v>=params[TRSH_PARAM].getValue()) {
-        outputs[GATE_OUTPUT].setVoltage(10.f,k);
+        outputs[GATE_OUTPUT].setVoltage(outputClock?inputs[STEP_INPUT].getVoltage(k):10.f,k);
       } else {
         outputs[GATE_OUTPUT].setVoltage(0.f,k);
       }
@@ -381,10 +382,12 @@ struct Ant : Module {
     bool rstGate=rstPulse.process(args.sampleTime*32);
     int numSteps = params[NUM_STEPS_PARAM].getValue();
     //int numAnts = params[NUM_ANTS_PARAM].getValue();
-    if(!rstGate&&(stepTrigger.process(inputs[STEP_INPUT].getVoltage())&&params[ON_PARAM].getValue()>0.f)|manualStepTrigger.process(params[STEP_PARAM].getValue())) {
-      for(int k=0;k<numSteps;k++) {
-        for(int j=0;j<numAnts;j++)
+
+    for(int j=0;j<numAnts;j++) {
+      if(!rstGate&&(stepTrigger[j].process(inputs[STEP_INPUT].getPolyVoltage(j))&&params[ON_PARAM].getValue()>0.f)|manualStepTrigger[j].process(params[STEP_PARAM].getValue())) {
+        for(int k=0;k<numSteps;k++) {
           antMatrix.next(j);
+        }
       }
     }
     setOutputs(numAnts);
@@ -398,6 +401,8 @@ struct Ant : Module {
     if(jColorMode) colorMode=json_integer_value(jColorMode);
     json_t *jNumAnts=json_object_get(root,"numAnts");
     if(jNumAnts) numAnts=json_integer_value(jNumAnts);
+    json_t *jDefaultRule=json_object_get(root,"defaultRule");
+    if(jDefaultRule) defaultRule=json_integer_value(jDefaultRule);
   }
 
   json_t *dataToJson() override {
@@ -405,6 +410,7 @@ struct Ant : Module {
     json_object_set_new(root,"matrix",antMatrix.toJson());
     json_object_set_new(root,"colorMode",json_integer(colorMode));
     json_object_set_new(root,"numAnts",json_integer(numAnts));
+    json_object_set_new(root,"defaultRule",json_integer(defaultRule));
     return root;
   }
 
@@ -704,7 +710,11 @@ struct AntWidget : ModuleWidget {
     numAntsItem->text="Num Ants";
     numAntsItem->rightText=string::f("%d",module->numAnts)+"  "+ +RIGHT_ARROW;
     menu->addChild(numAntsItem);
-
+    menu->addChild(createCheckMenuItem("Output Clock","",[=]() {
+      return module->outputClock;
+    },[=]() {
+      module->outputClock=!module->outputClock;
+    }));
   }
 };
 

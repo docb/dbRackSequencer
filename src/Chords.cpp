@@ -25,6 +25,7 @@ struct Chords : Module {
   ChordManager<MAX_NOTES,MAX_CHORDS> chrMgr;
   bool autoChannels=false;
   bool autoReorder=false;
+
   Chords() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     configSwitch(NOTE_UP_PARAM,0,1,0.f,"Note Up");
@@ -42,11 +43,11 @@ struct Chords : Module {
   void process(const ProcessArgs &args) override {
     chrMgr.adjustMaxChannels();
 
-    if(inputs[CHORD_INPUT].isConnected() && params[EDIT_PARAM].getValue() == 0) {
+    if(inputs[CHORD_INPUT].isConnected()&&params[EDIT_PARAM].getValue()==0) {
       int c=round(clamp(inputs[CHORD_INPUT].getVoltage(),0.f,9.99f)*float(MAX_CHORDS)/10.f);
       //if(c!=chrMgr.lastChord) {
       //  chrMgr.lastChord = c;
-        getParamQuantity(CHORD_PARAM)->setValue(c);
+      getParamQuantity(CHORD_PARAM)->setValue(c);
       //}
     }
     int autoMaxChannels=0;
@@ -74,7 +75,7 @@ struct Chords : Module {
   }
 
   json_t *dataToJson() override {
-    json_t *data = chrMgr.dataToJson();
+    json_t *data=chrMgr.dataToJson();
     json_object_set_new(data,"autoReorder",json_integer(autoReorder));
     json_object_set_new(data,"autoChannels",json_integer(autoChannels));
     return data;
@@ -114,16 +115,31 @@ struct Chords : Module {
     int currentChord=params[CHORD_PARAM].getValue();
     chrMgr.paste(currentChord);
   }
+
+  void insert() {
+    int currentChord=params[CHORD_PARAM].getValue();
+    chrMgr.insert(currentChord);
+  }
+
+  void del() {
+    int currentChord=params[CHORD_PARAM].getValue();
+    chrMgr.del(currentChord);
+  }
+
   void noteMod(int amt) {
     int currentChord=params[CHORD_PARAM].getValue();
     chrMgr.noteMod(currentChord,amt);
   }
+
   void updateKey(int key) {
     int currentChord=params[CHORD_PARAM].getValue();
-    int trg = chrMgr.updateKey(currentChord,key);
-    if(trg>=0) rtrPulse[trg].trigger(0.01f);
-    if(autoReorder) chrMgr.reorder(currentChord);
+    int trg=chrMgr.updateKey(currentChord,key);
+    if(trg>=0)
+      rtrPulse[trg].trigger(0.01f);
+    if(autoReorder)
+      chrMgr.reorder(currentChord);
   }
+
   void switchChord() {
     int newChord=params[CHORD_PARAM].getValue();
     chrMgr.switchChord(newChord);
@@ -132,10 +148,12 @@ struct Chords : Module {
         rtrPulse[k].trigger(0.01f);
       }
     }
-    if(autoReorder) chrMgr.reorder(newChord);
+    if(autoReorder)
+      chrMgr.reorder(newChord);
   }
+
   bool getNoteStatus(int key) {
-    int chord = int(params[CHORD_PARAM].getValue());
+    int chord=int(params[CHORD_PARAM].getValue());
     return chrMgr.getNoteStatus(chord,key);
   }
 
@@ -151,47 +169,50 @@ struct NoteButton : OpaqueWidget {
   BtnFormat btnType;
   int key;
   std::string labels[12]={"C","C#/Db","D","D#/Eb","E","F","F#/Gb","G","G#/Ab","A","A#/Bb","B"};
-  Tooltip *tooltip = nullptr;
+  Tooltip *tooltip=nullptr;
   std::string label;
-  NoteButton(M* _module,BtnFormat type,int _key,Vec pos, Vec size) : module(_module),btnType(type),key(_key) {
-    box.size = size;
-    box.pos = pos;
-    int oct = key/12 - 4;
-    label = string::f("%s%d",labels[key%12].c_str(),oct);
+
+  NoteButton(M *_module,BtnFormat type,int _key,Vec pos,Vec size) : module(_module),btnType(type),key(_key) {
+    box.size=size;
+    box.pos=pos;
+    int oct=key/12-4;
+    label=string::f("%s%d",labels[key%12].c_str(),oct);
   }
+
   void onButton(const event::Button &e) override {
     if(!(e.button==GLFW_MOUSE_BUTTON_LEFT&&(e.mods&RACK_MOD_MASK)==0)) {
       return;
     }
     if(e.action==GLFW_PRESS) {
-      if(module) module->updateKey(key);
+      if(module)
+        module->updateKey(key);
     }
   }
 
   void createTooltip() {
-    if (!settings::tooltips)
+    if(!settings::tooltips)
       return;
-    tooltip = new Tooltip;
-    tooltip->text = label;
+    tooltip=new Tooltip;
+    tooltip->text=label;
     APP->scene->addChild(tooltip);
   }
 
 
   void destroyTooltip() {
-    if (!tooltip)
+    if(!tooltip)
       return;
     APP->scene->removeChild(tooltip);
     delete tooltip;
-    tooltip = nullptr;
+    tooltip=nullptr;
   }
 
 
-  void onEnter(const EnterEvent& e) override {
+  void onEnter(const EnterEvent &e) override {
     createTooltip();
   }
 
 
-  void onLeave(const LeaveEvent& e) override {
+  void onLeave(const LeaveEvent &e) override {
     destroyTooltip();
   }
 
@@ -201,15 +222,17 @@ struct NoteButton : OpaqueWidget {
     }
     Widget::drawLayer(args,layer);
   }
+
   void _draw(const DrawArgs &args) {
     nvgBeginPath(args.vg);
     nvgRoundedRect(args.vg,1,1,box.size.x-2,box.size.y-2,2);
-    nvgFillColor(args.vg,(module && module->getNoteStatus(key))?btnType.onColor:btnType.offColor);
+    nvgFillColor(args.vg,(module&&module->getNoteStatus(key))?btnType.onColor:btnType.offColor);
     nvgStrokeColor(args.vg,btnType.border);
     nvgFill(args.vg);
     nvgStroke(args.vg);
   }
 };
+
 template<typename M>
 struct NoteDisplay : OpaqueWidget {
   M *module;
@@ -218,14 +241,14 @@ struct NoteDisplay : OpaqueWidget {
   NVGcolor whiteOn,whiteOff,blackOn,blackOff,whiteBorder,blackBorder;
 
   NoteDisplay(M *m,Vec _pos) : module(m) {
-    box.pos = _pos;
-    box.size = Vec(80,10*25);
-    white.onColor = nvgRGB(209,255,209);
-    white.offColor = nvgRGB(153,153,153);
-    white.border = nvgRGB(196,201,194);
-    black.onColor = nvgRGB(118,169,118);
-    black.offColor = nvgRGB(43,43,43);
-    black.border = nvgRGB(196,201,104);
+    box.pos=_pos;
+    box.size=Vec(80,10*25);
+    white.onColor=nvgRGB(209,255,209);
+    white.offColor=nvgRGB(153,153,153);
+    white.border=nvgRGB(196,201,194);
+    black.onColor=nvgRGB(118,169,118);
+    black.offColor=nvgRGB(43,43,43);
+    black.border=nvgRGB(196,201,104);
     for(int j=0;j<4;j++) {
       for(int k=0;k<24;k++) {
         switch((23-k)%12) {
@@ -315,15 +338,18 @@ struct ChordsWidget : ModuleWidget {
     menu->addChild(createIndexPtrSubmenuItem("Polyphony mode",{"Rotate","Reset","Reuse Note"},&module->chrMgr.mode));
     struct ReorderItem : ui::MenuItem {
       Chords *module;
-      ReorderItem(Chords *m) : module(m) {}
-      void onAction(const ActionEvent& e) override {
-        if (!module)
+
+      ReorderItem(Chords *m) : module(m) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        if(!module)
           return;
         module->reorder();
       }
     };
-    auto reorderMenu = new ReorderItem(module);
-    reorderMenu->text = "Reorder";
+    auto reorderMenu=new ReorderItem(module);
+    reorderMenu->text="Reorder";
     menu->addChild(reorderMenu);
     menu->addChild(createCheckMenuItem("Auto Channels","",[=]() {
       return module->autoChannels;
@@ -335,6 +361,37 @@ struct ChordsWidget : ModuleWidget {
     },[=]() {
       module->autoReorder=!module->autoReorder;
     }));
+
+    struct InsertItem : ui::MenuItem {
+      Chords *module;
+
+      InsertItem(Chords *m) : module(m) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        if(!module)
+          return;
+        module->insert();
+      }
+    };
+    auto insertMenu=new InsertItem(module);
+    insertMenu->text="Insert Pattern";
+    menu->addChild(insertMenu);
+    struct DelItem : ui::MenuItem {
+      Chords *module;
+
+      DelItem(Chords *m) : module(m) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        if(!module)
+          return;
+        module->del();
+      }
+    };
+    auto delMenu=new DelItem(module);
+    delMenu->text="Delete Pattern";
+    menu->addChild(delMenu);
   }
 };
 

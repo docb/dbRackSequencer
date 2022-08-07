@@ -105,21 +105,21 @@ struct TME : Module {
 
   TME() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
-    configSwitch(A_PARAM,0,39,39,"A",labels);
+    configSwitch(A_PARAM,0,39,0,"A",labels);
     getParamQuantity(A_PARAM)->snapEnabled=true;
-    configSwitch(B_PARAM,0,39,39,"B",labels);
+    configSwitch(B_PARAM,0,39,0,"B",labels);
     getParamQuantity(B_PARAM)->snapEnabled=true;
-    configSwitch(C_PARAM,0,39,39,"C",labels);
+    configSwitch(C_PARAM,0,39,0,"C",labels);
     getParamQuantity(C_PARAM)->snapEnabled=true;
-    configSwitch(D_PARAM,0,39,39,"D",labels);
+    configSwitch(D_PARAM,0,39,0,"D",labels);
     getParamQuantity(D_PARAM)->snapEnabled=true;
-    configSwitch(W_PARAM,0,39,39,"W",labels);
+    configSwitch(W_PARAM,0,39,0,"W",labels);
     getParamQuantity(W_PARAM)->snapEnabled=true;
-    configSwitch(X_PARAM,0,39,39,"X",labels);
+    configSwitch(X_PARAM,0,39,0,"X",labels);
     getParamQuantity(X_PARAM)->snapEnabled=true;
-    configSwitch(Y_PARAM,0,39,39,"Y",labels);
+    configSwitch(Y_PARAM,0,39,0,"Y",labels);
     getParamQuantity(Y_PARAM)->snapEnabled=true;
-    configSwitch(Z_PARAM,0,39,39,"Z",labels);
+    configSwitch(Z_PARAM,0,39,0,"Z",labels);
     getParamQuantity(Z_PARAM)->snapEnabled=true;
     configParam(LVL_PARAM,0,1,0.1,"CV Output scale");
     configOutput(CV_OUTPUT,"CV");

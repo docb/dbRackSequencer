@@ -157,6 +157,36 @@ struct ChordManager {
     }
   }
 
+  void insert(int currentChord) {
+    for(int k=99;k>currentChord;k--) {
+      for(int j=0;j<PORT_MAX_CHANNELS;j++) {
+        notes[k][j]=notes[k-1][j];
+        gates[k][j]=gates[k-1][j];
+      }
+      for(int j=0;j<NOTES;j++) {
+        chords[k][j]=chords[k-1][j];
+      }
+    }
+    for(int j=0;j<PORT_MAX_CHANNELS;j++) {
+      notes[currentChord][j]=-1;
+      gates[currentChord][j]=false;
+    }
+    for(int j=0;j<NOTES;j++) {
+      chords[currentChord][j]=false;
+    }
+  }
+  void del(int currentChord) {
+    for(int k=currentChord;k<99;k++) {
+      for(int j=0;j<PORT_MAX_CHANNELS;j++) {
+        notes[k][j]=notes[k+1][j];
+        gates[k][j]=gates[k+1][j];
+      }
+      for(int j=0;j<NOTES;j++) {
+        chords[k][j]=chords[k+1][j];
+      }
+    }
+  }
+
   void copy(int currentChord) {
     for(int k=0;k<PORT_MAX_CHANNELS;k++) {
       cbNotes[k]=notes[currentChord][k];
