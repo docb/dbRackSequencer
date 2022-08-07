@@ -154,7 +154,7 @@ struct P16 : Module {
       changed=old!=c;
     }
     if(inputs[DIR_INPUT].isConnected()) {
-      getParamQuantity(DIR_PARAM)->setValue(inputs[DIR_INPUT].getVoltage()>0?1:0);
+      getParamQuantity(DIR_PARAM)->setValue(inputs[DIR_INPUT].getVoltage()>5.f?1:0);
     }
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage()) || changed) {
       stepCounter=0;
