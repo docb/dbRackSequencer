@@ -3,6 +3,9 @@
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
+New modules in 2.1.0: [P16A](#p16a),[P16B](#p16b),[P16S](#p16s),[CCA](#cca),[CCA2](#cca2),
+[Ant](#ant),[TME](#tme),[SigMod](#sigmod),[MouseSeq](#mouseseq),[Preset](#preset),[CDiv](#cdiv),[CSR](#csr)
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  
@@ -624,7 +627,7 @@ A Triadex Muse Emulator.
 - Has a Scl input for setting a custom scale (eight valued polyphonic signal with semi tones in v/oct).
 - The resulting CV comes through Note output.
 - The Trg output delivers a pulse if the CV has changed.
-- The CV output delivers the built number D*8+C*4+B*2+A multiplied with Lvl.
+- The CV output delivers the built number `D*8+C*4+B*2+A` multiplied with Lvl.
 - The Clock mode can be set in the menu
   - If PWMClock is checked then the falling edge of the clock will be used for the C1/2
   - Otherwise (the default) only the rising edge is used - so it should be clocked with double speed.
@@ -648,7 +651,7 @@ The 'less than' decision can be inverted in the menu for each comparator separat
 ### MouseSeq
 ![](images/MouseSeq.png?raw=true)
 
-A sequencer, solo player driven by the nouse.
+A sequencer, solo player driven by the mouse.
 
 How to use:
 

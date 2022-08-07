@@ -196,7 +196,7 @@
     {
       "slug": "TME",
       "name": "TME",
-      "description": "TME",
+      "description": "Triadex Muse emulator",
       "tags": [
         "Sequencer"
       ]
@@ -204,7 +204,7 @@
     {
       "slug": "CSR",
       "name": "CSR",
-      "description": "",
+      "description": "16 value shift register",
       "tags": [
         "Sequencer"
       ]
@@ -212,7 +212,7 @@
     {
       "slug": "P16B",
       "name": "P16B",
-      "description": "",
+      "description": "Address CV generator",
       "tags": [
         "Sequencer"
       ]
@@ -221,7 +221,7 @@
       "slug": "SigMod",
       "name": "SigMod",
       "description": "Signal Scrambler",
-      "tags": []
+      "tags": ["Sequencer"]
     },
     {
       "slug": "Preset",
@@ -235,7 +235,7 @@
     {
       "slug": "CCA",
       "name": "CCA",
-      "description": "Contineous Cellular Automaton Sequencer",
+      "description": "Continuous Cellular Automaton Sequencer",
       "tags": [
         "Sequencer"
       ]
@@ -243,7 +243,15 @@
     {
       "slug": "CCA2",
       "name": "CCA2",
-      "description": "2D Contineous Cellular Atomaton Sequencer",
+      "description": "2D Continuous Cellular Automaton Sequencer",
+      "tags": [
+        "Sequencer"
+      ]
+    },
+    {
+      "slug": "Ant",
+      "name": "Ant",
+      "description": "Laurent's-Ant Cellular Automaton",
       "tags": [
         "Sequencer"
       ]
@@ -267,15 +275,7 @@
     {
       "slug": "P16S",
       "name": "P16S",
-      "description": "Polyswitch for CV addressing or sequencing",
-      "tags": [
-        "Sequencer"
-      ]
-    },
-    {
-      "slug": "Ant",
-      "name": "Ant",
-      "description": "Laurents-Ant Cellular Automaton",
+      "description": "Poly switch for CV addressing or sequencing",
       "tags": [
         "Sequencer"
       ]
