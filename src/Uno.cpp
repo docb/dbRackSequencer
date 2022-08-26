@@ -232,6 +232,11 @@ struct UnoWidget : ModuleWidget {
     },[=]() {
       module->quantize=!module->quantize;
     }));
+    menu->addChild(createCheckMenuItem("Output step address","",[=]() {
+      return module->unoStrip.stepAddress;
+    },[=]() {
+      module->unoStrip.stepAddress=!module->unoStrip.stepAddress;
+    }));
   }
 
 };

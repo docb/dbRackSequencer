@@ -123,6 +123,7 @@ struct P16 : Module {
   dsp::SchmittTrigger clockTrigger;
   dsp::SchmittTrigger rstTrigger;
   dsp::PulseGenerator rstPulse;
+  dsp::ClockDivider divider;
   int stepCounter=0;
 	P16() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -138,23 +139,26 @@ struct P16 : Module {
     configInput(OFS_INPUT,"Offset");
     configInput(PAT_CV_INPUT,"Pattern Selection");
     configOutput(CV_OUTPUT,"CV");
+    divider.setDivision(32);
 	}
 
 	void process(const ProcessArgs& args) override {
-    if(inputs[PAT_CV_INPUT].isConnected()) {
-      int c=clamp(inputs[PAT_CV_INPUT].getVoltage(),0.f,9.99f)*float(MAX_PATS)/10.f;
-      getParamQuantity(PAT_PARAM)->setValue(c);
-    }
     bool advance=false;
     bool changed=false;
-    if(inputs[OFS_INPUT].isConnected()) {
-      int old=params[OFS_PARAM].getValue();
-      int c=clamp(inputs[OFS_INPUT].getVoltage(),0.f,9.99f)*1.6f;
-      getParamQuantity(OFS_PARAM)->setValue(c);
-      changed=old!=c;
-    }
-    if(inputs[DIR_INPUT].isConnected()) {
-      getParamQuantity(DIR_PARAM)->setValue(inputs[DIR_INPUT].getVoltage()>5.f?1:0);
+    if(divider.process()) {
+      if(inputs[PAT_CV_INPUT].isConnected()) {
+        int c=clamp(inputs[PAT_CV_INPUT].getVoltage(),0.f,9.99f)*float(MAX_PATS)/10.f;
+        getParamQuantity(PAT_PARAM)->setValue(c);
+      }
+      if(inputs[OFS_INPUT].isConnected()) {
+        int old=params[OFS_PARAM].getValue();
+        int c=clamp(inputs[OFS_INPUT].getVoltage(),0.f,9.99f)*1.6f;
+        getParamQuantity(OFS_PARAM)->setValue(c);
+        changed=old!=c;
+      }
+      if(inputs[DIR_INPUT].isConnected()) {
+        getParamQuantity(DIR_PARAM)->setValue(inputs[DIR_INPUT].getVoltage()>5.f?1:0);
+      }
     }
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage()) || changed) {
       stepCounter=0;

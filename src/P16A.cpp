@@ -316,7 +316,7 @@ struct P16A : Module {
       if(stepCounter==16) stepCounter=0;
     }
     int pos=(ofs+stepCounter)%16;
-    outputs[CV_OUTPUT].setVoltage(float(patterns[pat][pos]%16)*(divBy10?1.f:10.f)/params[SIZE_PARAM].getValue());
+    outputs[CV_OUTPUT].setVoltage(float(patterns[pat][pos]%16)*(divBy10?1.f:10.01f)/params[SIZE_PARAM].getValue());
 
     if(lightDivider.process()) {
       for(int k=0;k<16;k++) {
@@ -327,6 +327,7 @@ struct P16A : Module {
     }
 	}
 };
+template<typename P>
 struct PSwitchButton : OpaqueWidget {
   P16A *module;
   int nr;
@@ -362,7 +363,7 @@ struct PSwitchButton : OpaqueWidget {
 
   void onDragEnter(const event::DragEnter &e) override {
     if(e.button==GLFW_MOUSE_BUTTON_LEFT) {
-      auto origin=dynamic_cast<ParamWidget *>(e.origin);
+      auto origin=dynamic_cast<P *>(e.origin);
       if(origin) {
         auto paramWidget=getAncestorOfType<ParamWidget>();
         assert(paramWidget);
@@ -386,7 +387,7 @@ struct AddrParam : ParamWidget {
     const float margin=0;
     float height=box.size.y-2*margin;
     for(unsigned int i=0;i<16;i++) {
-      auto selectButton=new PSwitchButton(module,nr,i);
+      auto selectButton=new PSwitchButton<AddrParam>(module,nr,i);
       selectButton->box.pos=Vec(0,(height/16)*(15-i)+margin);
       selectButton->box.size=Vec(box.size.x,height/16);
       addChild(selectButton);
@@ -404,7 +405,7 @@ struct AddrParam : ParamWidget {
   }
   void onChange(const ChangeEvent &e) override {
     if(module) {
-      module->setValue(nr,getParamQuantity()->getValue());
+      //module->setValue(nr,getParamQuantity()->getValue());
     }
     ParamWidget::onChange(e);
   }

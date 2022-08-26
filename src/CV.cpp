@@ -18,11 +18,14 @@ struct CV : Module {
   //unsigned int sizeIndex=0;
   std::vector<float> sizes={1.f/12.f,0.1,10.f/32.f,0.5,0.625,1,10.f/8.f};
   int currentValue=12;
+  dsp::ClockDivider divider;
 
   CV() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     configParam(CV_PARAM,0,24,12,"CV");
-    configParam(LEVEL_PARAM,0.01,2.5,1.f/12.f,"CV");
+    configParam(LEVEL_PARAM,0.01,2.5,1.f/12.f,"Level");
+    configInput(CV_INPUT,"CV mod");
+    divider.setDivision(64);
   }
 
   float getVoltage(int value) {
@@ -30,10 +33,19 @@ struct CV : Module {
   }
 
   void process(const ProcessArgs &args) override {
-    float in=inputs[CV_INPUT].getVoltage();
-    int param=params[CV_PARAM].getValue();//0-24
-    currentValue=float(param)+float(in);
-    outputs[CV_PARAM].setVoltage(getVoltage(currentValue));
+    if(inputs[CV_INPUT].isConnected()) {
+      float in=inputs[CV_INPUT].getVoltage();
+      int param=params[CV_PARAM].getValue();//0-24
+      currentValue=float(param)+float(in);
+      outputs[CV_PARAM].setVoltage(getVoltage(currentValue));
+    } else {
+      if(divider.process()) {
+        int param=params[CV_PARAM].getValue();//0-24
+        currentValue=float(param);
+        outputs[CV_PARAM].setVoltage(getVoltage(currentValue));
+      }
+
+    }
   }
 
   void setLevelIndex(int index) {

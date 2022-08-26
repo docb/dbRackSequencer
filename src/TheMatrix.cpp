@@ -15,6 +15,7 @@ struct SubMatrix {
       }
     }
   }
+
 };
 
 struct Matrix {
@@ -139,7 +140,7 @@ struct TheMatrix : Module {
     CV_X_INPUT,CV_Y_INPUT,DENS_INPUT,LEVEL_INPUT,RND_INPUT,TRIG_INPUT,VOCT_INPUT,INPUTS_LEN
   };
   enum OutputId {
-    CV_OUTPUT,GATE_OUTPUT,OUTPUTS_LEN
+    CV_OUTPUT,GATE_OUTPUT,TRIG_OUTPUT,OUTPUTS_LEN
   };
   enum LightId {
     LIGHTS_LEN
@@ -150,13 +151,16 @@ struct TheMatrix : Module {
   int curCol[16]={};
   int channels=0;
   int colorMode=0;
+  bool loaded=false;
   int x0=0;int x1=0;int y0=0;int y1=0;
   dsp::SchmittTrigger rndTrigger;
   dsp::SchmittTrigger extTrigger;
   dsp::SchmittTrigger manualRndTrigger;
+  dsp::PulseGenerator trigPulse[16];
   float voct=0.f;
   bool extNote=false;
   bool saveToHistory=false;
+  int lastVal[16]={};
 
   TheMatrix() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
@@ -178,6 +182,7 @@ struct TheMatrix : Module {
     configInput(LEVEL_INPUT,"Out Level Factor");
     configOutput(GATE_OUTPUT,"Gate");
     configOutput(CV_OUTPUT,"CV");
+    configOutput(TRIG_OUTPUT,"Trg");
   }
 
   std::vector<int> getSelected(int row,int col) {
@@ -188,6 +193,13 @@ struct TheMatrix : Module {
       }
     }
     return ret;
+  }
+
+  float getLevel(int chn) {
+    if(inputs[LEVEL_INPUT].isConnected()) {
+      return clamp(inputs[LEVEL_INPUT].getPolyVoltage(chn),0.f,1.f);
+    }
+    return params[LEVEL_PARAM].getValue();
   }
 
   void process(const ProcessArgs &args) override {
@@ -237,15 +249,21 @@ struct TheMatrix : Module {
     }
     for(int chn=0;chn<channels;chn++) {
       int curVal=m.get(curRow[chn],curCol[chn]);
+      if(curVal!=lastVal[chn]) {
+        trigPulse[chn].trigger();
+      }
       if(curVal>32) {
-        outputs[CV_OUTPUT].setVoltage((curVal-80)*params[LEVEL_PARAM].getValue(),chn);
+        outputs[CV_OUTPUT].setVoltage(float(curVal-80)*getLevel(chn),chn);
         outputs[GATE_OUTPUT].setVoltage(10.f,chn);
       } else {
         outputs[GATE_OUTPUT].setVoltage(0.f,chn);
       }
+      outputs[TRIG_OUTPUT].setVoltage(trigPulse[chn].process(args.sampleTime)?10.f:0.f,chn);
+      lastVal[chn]=curVal;
     }
     outputs[CV_OUTPUT].setChannels(channels);
     outputs[GATE_OUTPUT].setChannels(channels);
+    outputs[TRIG_OUTPUT].setChannels(channels);
   }
 
   void randomize() {
@@ -260,6 +278,10 @@ struct TheMatrix : Module {
     json_t *data=json_object();
     json_object_set_new(data,"matrix",json_string(m.toString().c_str()));
     json_object_set_new(data,"colorMode",json_integer(colorMode));
+    json_object_set_new(data,"x0",json_integer(x0));
+    json_object_set_new(data,"x1",json_integer(x1));
+    json_object_set_new(data,"y0",json_integer(y0));
+    json_object_set_new(data,"y1",json_integer(y1));
     return data;
   }
 
@@ -272,6 +294,11 @@ struct TheMatrix : Module {
     if(jColorMode) {
       colorMode=json_integer_value(jColorMode);
     }
+    x0=json_integer_value(json_object_get(rootJ,"x0"));
+    x1=json_integer_value(json_object_get(rootJ,"x1"));
+    y0=json_integer_value(json_object_get(rootJ,"y0"));
+    y1=json_integer_value(json_object_get(rootJ,"y1"));
+    loaded=true;
   }
 
 };
@@ -345,6 +372,13 @@ struct MatrixDisplay : OpaqueWidget {
   void _draw(const DrawArgs &args) {
     if(!theMatrix)
       return;
+    if(theMatrix->loaded) {
+      posX=theMatrix->x0;
+      selX=theMatrix->x1;
+      posY=theMatrix->y0;
+      selY=theMatrix->y1;
+      theMatrix->loaded=false;
+    }
     if(theMatrix->extNote) {
       save();
       theMatrix->m.set(posY,posX,char(roundf(clamp(theMatrix->voct*12+80.f,33.f,126.f))));
@@ -398,6 +432,15 @@ struct MatrixDisplay : OpaqueWidget {
     }
   }
 
+  void goDown(int x) {
+    if(posY<MAX_SIZE-1) {
+      posX=x;
+      posY++;
+    }
+    selX=posX;
+    selY=posY;
+  }
+
   void goRight(bool updateSelect=true) {
     if(posX==MAX_SIZE-1) {
       if(posY<MAX_SIZE-1) {
@@ -413,11 +456,11 @@ struct MatrixDisplay : OpaqueWidget {
     }
   }
 
-  void setPosition(Vec mouse) {
-    posX=mouse.x/cellXSize;
+  void setPos(Vec mouse) {
+    posX=int(mouse.x/float(cellXSize));
     if(posX>=MAX_SIZE)
       posX=MAX_SIZE-1;
-    posY=mouse.y/cellYSize;
+    posY=int(mouse.y/float(cellYSize));
     if(posY>=MAX_SIZE)
       posY=MAX_SIZE-1;
   }
@@ -425,7 +468,7 @@ struct MatrixDisplay : OpaqueWidget {
   void onButton(const ButtonEvent &e) override {
     OpaqueWidget::onButton(e);
     if(e.action==GLFW_PRESS&&e.button==GLFW_MOUSE_BUTTON_LEFT) {
-      setPosition(e.pos);
+      setPos(e.pos);
       selX=posX;
       selY=posY;
     }
@@ -435,11 +478,11 @@ struct MatrixDisplay : OpaqueWidget {
     OpaqueWidget::onDragHover(e);
 
     if(e.origin==this) {
-      setPosition(e.pos);
+      setPos(e.pos);
     }
   }
   void pushHistory() {
-    history::ModuleChange *h = new history::ModuleChange;
+    auto *h = new history::ModuleChange;
     h->name = "change matrix";
     h->moduleId = theMatrix->id;
     h->oldModuleJ = oldModuleJson;
@@ -453,9 +496,20 @@ struct MatrixDisplay : OpaqueWidget {
   void pasteClipboard() {
     const char *newText=glfwGetClipboardString(APP->window->win);
     const char *ptr=newText;
+    int startX=posX;
+    bool cr=false;
     while(*ptr) {
-      theMatrix->m.set(posY,posX,*ptr);
-      goRight();
+      if(*ptr=='\n') {
+        if(!cr) goDown(startX);
+        else cr=false;
+      } else if(*ptr=='\r') {
+        cr=true;
+        goDown(startX);
+      } else {
+        theMatrix->m.set(posY,posX,*ptr);
+        goRight();
+        cr=false;
+      }
       ptr++;
     }
   }
@@ -600,7 +654,7 @@ struct TheMatrixWidget : ModuleWidget {
 
     auto matrixDisplay=new MatrixDisplay(module,mm2px(Vec(6,4)));
     addChild(matrixDisplay);
-    float y=TY(104);
+    float y=15;
     float x=132;
     auto rndButton=createParam<RandomizeButton<TheMatrixWidget>>(mm2px(Vec(x,y)),module,TheMatrix::RND_PARAM);
     rndButton->widget=this;
@@ -621,14 +675,14 @@ struct TheMatrixWidget : ModuleWidget {
     y+=12;
     addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,TheMatrix::LEVEL_PARAM));
     addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,TheMatrix::LEVEL_INPUT));
-    y=TY(26);
+    y=93;
     x=130;
     addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,TheMatrix::TRIG_INPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y)),module,TheMatrix::GATE_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y)),module,TheMatrix::TRIG_OUTPUT));
     y+=12;
     addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,TheMatrix::VOCT_INPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y)),module,TheMatrix::CV_OUTPUT));
-
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y)),module,TheMatrix::GATE_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y+12)),module,TheMatrix::CV_OUTPUT));
   }
 
   void pushHistory() {

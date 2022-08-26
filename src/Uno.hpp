@@ -21,6 +21,7 @@ struct UnoStrip {
   RND rnd;
   int setStep=-1;
   bool masterReset = false;
+  bool stepAddress=false;
   void resetCurrentStep(int direction) {
     switch(direction) {
       case 0:  // forward
@@ -34,19 +35,23 @@ struct UnoStrip {
         forward=false;
         break;
     }
-    //INFO("RST %d",stepCounter);
+    //INFO("RST %d %d",direction,stepCounter);
     next(direction);
   }
 
   void next(int direction) {
+    //INFO("next %d",stepCounter);
     if(setStep>=0) {
       stepCounter=setStep;
       setStep=-1;
       return;
     }
     if(module->getRst(stepCounter)) {
-      resetCurrentStep(direction);
-      return;
+      if((stepCounter==NUM_STEPS-1 && direction==0)||(stepCounter==0&&direction==1)) {}
+      else {
+        resetCurrentStep(direction);
+        return;
+      }
     }
     for(int k=0;k<NUM_STEPS*2;k++) {
       switch(direction) {
@@ -85,7 +90,7 @@ struct UnoStrip {
       //INFO("%d prop %f %lf",stepCounter,prob,d);
       if(d>=(1-prob)) break;
     }
-    //INFO("Next %d",stepCounter);
+    //INFO("End Next %d",stepCounter);
   }
   void process(float sampleTime) {
     int direction=module->params[M::DIR_PARAM].getValue();;
@@ -113,7 +118,6 @@ struct UnoStrip {
       float cv=module->getCV(stepCounter);
       module->outputs[M::CV_OUTPUT].setVoltage(cv);
     }
-
     if(lightDivider.process()) {
       bool gateOn=false;
       if(module->getGlide(stepCounter)) {
@@ -133,8 +137,11 @@ struct UnoStrip {
           module->outputs[M::STEP_OUTPUT].setVoltage(0.f,k);
         }
       }
+      if(stepAddress) {
+        module->outputs[M::STEP_OUTPUT].setVoltage(stepCounter/3.2f);
+      }
     }
-    module->outputs[M::STEP_OUTPUT].setChannels(NUM_STEPS);
+    module->outputs[M::STEP_OUTPUT].setChannels(stepAddress?1:NUM_STEPS);
   }
 };
 #endif //DBCAEMODULES_UNO_HPP
