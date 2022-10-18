@@ -37,7 +37,7 @@ struct CDiv : Module {
     if(paramDivider.process()) {
       for(int k=0;k<NUM_DIV;k++) {
         if(inputs[DIV_INPUT+k].isConnected()) {
-          int c=clamp(inputs[DIV_INPUT+k].getVoltage(),1.f,9.99f)*float(MAX_DIV)/10.f;
+          int c=clamp(inputs[DIV_INPUT+k].getVoltage(),0.f,9.99f)*float(MAX_DIV)/10.f;
           getParamQuantity(DIV_PARAM+k)->setValue(c);
         }
       }

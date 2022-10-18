@@ -51,7 +51,7 @@ struct Klee : Module {
       configInput(CV_INPUT+k,"CV "+std::to_string(k+1));
       configParam(PATTERN_PARAM+k,0,1,0,"Bit "+std::to_string(k+1));
       configParam(TAB_PARAMS+k,0,1,0,"Tab "+std::to_string(k+1));
-      configSwitch(BUS_PARAM+k,0,2,0,"Bus Select "+std::to_string(k+1),{"Bus 1","Bus 2","Bus 3"});
+      configSwitch(BUS_PARAM+k,0,2,1,"Bus Select "+std::to_string(k+1),{"Bus 1","Bus 2","Bus 3"});
     }
     configButton(LOAD_PARAM,"Load");
     configButton(BUS_LOAD_PARAM,"Load from Bus 1");

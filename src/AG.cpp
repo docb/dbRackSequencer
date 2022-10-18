@@ -91,7 +91,7 @@ struct AG : Module {
 
   void insert() {
     int currentPattern=params[PAT_PARAM].getValue();
-    for(int k=99;k>currentPattern;k--) {
+    for(int k=MAX_PATS-1;k>currentPattern;k--) {
       for(int j=0;j<16;j++) {
         gates[k][j]=gates[k-1][j];
       }
@@ -103,7 +103,7 @@ struct AG : Module {
 
   void del() {
     int currentPattern=params[PAT_PARAM].getValue();
-    for(int k=currentPattern;k<99;k++) {
+    for(int k=currentPattern;k<MAX_PATS-1;k++) {
       for(int j=0;j<16;j++) {
         gates[k][j]=gates[k+1][j];
       }

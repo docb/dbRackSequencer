@@ -403,6 +403,8 @@ struct Ant : Module {
     if(jNumAnts) numAnts=json_integer_value(jNumAnts);
     json_t *jDefaultRule=json_object_get(root,"defaultRule");
     if(jDefaultRule) defaultRule=json_integer_value(jDefaultRule);
+    json_t *jOutputClock=json_object_get(root,"outputClock");
+    if(jOutputClock) outputClock=json_integer_value(jOutputClock);
   }
 
   json_t *dataToJson() override {
@@ -411,6 +413,7 @@ struct Ant : Module {
     json_object_set_new(root,"colorMode",json_integer(colorMode));
     json_object_set_new(root,"numAnts",json_integer(numAnts));
     json_object_set_new(root,"defaultRule",json_integer(defaultRule));
+    json_object_set_new(root,"outputClock",json_integer(outputClock));
     return root;
   }
 

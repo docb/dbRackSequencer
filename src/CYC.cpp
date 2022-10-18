@@ -23,6 +23,7 @@ struct Track {
   int runModeId;
   int trackOnId;
   int onOffId;
+  int trackOnInputId;
   //int runModeInputBaseId;
   int lightBaseId;
 
@@ -38,6 +39,7 @@ struct Track {
     //runModeInputBaseId=M::RUN_MODE_INPUT+nr;
     lightBaseId=nr*CYCLEN;
     trackOnId=M::TRACK_ON_PARAM+nr;
+    trackOnInputId=M::TRACK_ON_INPUT+nr;
     onOffId=M::ON_OFF_PARAM+nr*CYCLEN;
     divider.setDivision(64);
     //INFO("init %d %d %d %d %d",nr,startBaseId,lengthBaseId,strideBaseId,lightBaseId);
@@ -141,6 +143,9 @@ struct Track {
   }
 
   void process(const Module::ProcessArgs &args) {
+    if(module->inputs[trackOnInputId].isConnected()) {
+      module->getParamQuantity(trackOnId)->setValue(module->inputs[trackOnInputId].getVoltage()>1.f);
+    }
     if(module->params[trackOnId].getValue()>0) {
       bool advance=false;
       if(rstTrigger.process(module->inputs[M::RST_INPUT+nr].getVoltage())) {
@@ -189,6 +194,7 @@ struct Track {
   }
 
   void show(bool on=true) {
+    getStride();
     int len=getLength();
     int start=getStart();
     for(int k=0;k<CYCLEN;k++) {
@@ -218,7 +224,7 @@ struct CYC : Module {
     RUN_MODE_PARAM,OFFSET_PARAM=RUN_MODE_PARAM+NUM_TRACK,LENGTH_PARAM=OFFSET_PARAM+NUM_TRACK,STRIDE_PARAM=LENGTH_PARAM+NUM_TRACK,TRACK_ON_PARAM=STRIDE_PARAM+NUM_TRACK,ON_OFF_PARAM=TRACK_ON_PARAM+NUM_TRACK,CV_PARAM=ON_OFF_PARAM+NUM_TRACK*32,PARAMS_LEN=CV_PARAM+32
   };
   enum InputId {
-    CLK_INPUT,RST_INPUT=CLK_INPUT+NUM_TRACK,OFFSET_INPUT=RST_INPUT+NUM_TRACK,LENGTH_INPUT=OFFSET_INPUT+NUM_TRACK,STRIDE_INPUT=LENGTH_INPUT+NUM_TRACK,CV_INPUT=STRIDE_INPUT+NUM_TRACK,CV_POLY_0_15_INPUT=CV_INPUT+32,CV_POLY_16_31_INPUT,SEED_INPUT,INPUTS_LEN
+    CLK_INPUT,RST_INPUT=CLK_INPUT+NUM_TRACK,OFFSET_INPUT=RST_INPUT+NUM_TRACK,LENGTH_INPUT=OFFSET_INPUT+NUM_TRACK,STRIDE_INPUT=LENGTH_INPUT+NUM_TRACK,CV_INPUT=STRIDE_INPUT+NUM_TRACK,CV_POLY_0_15_INPUT=CV_INPUT+32,CV_POLY_16_31_INPUT,SEED_INPUT,TRACK_ON_INPUT,INPUTS_LEN=TRACK_ON_INPUT+NUM_TRACK
   };
   enum OutputId {
     CV_OUTPUT,GATE_OUTPUT=CV_OUTPUT+NUM_TRACK,OUTPUTS_LEN=GATE_OUTPUT+NUM_TRACK
@@ -261,6 +267,7 @@ struct CYC : Module {
       getParamQuantity(STRIDE_PARAM+k)->snapEnabled=true;
       configInput(STRIDE_INPUT+k,"Stride "+std::to_string(k+1));
       configSwitch(TRACK_ON_PARAM+k,0,1,k==0?1:0,"Track "+std::to_string(k+1),{"Off","On"});
+      configInput(TRACK_ON_INPUT+k,"On/Off "+std::to_string(k+1));
     }
     configInput(CV_POLY_0_15_INPUT,"Poly CV 0-15");
     configInput(CV_POLY_16_31_INPUT,"Poly CV 0-15");
@@ -466,6 +473,7 @@ struct CYCWidget : ModuleWidget {
       addInput(createInput<SmallPort>(mm2px(Vec(165,y+8)),module,CYC::STRIDE_INPUT+k));
 
       addParam(createParam<MLED>(mm2px(Vec(175,y)),module,CYC::TRACK_ON_PARAM+k));
+      addInput(createInput<SmallPort>(mm2px(Vec(175,y+8)),module,CYC::TRACK_ON_INPUT+k));
       //addInput(createInput<SmallPort>(mm2px(Vec(175,y+8)),module,CYC::ON_OFF_INPUT+k));
       addOutput(createOutput<SmallPort>(mm2px(Vec(191.25,y)),module,CYC::CV_OUTPUT+k));
       addOutput(createOutput<SmallPort>(mm2px(Vec(191.25,y+8)),module,CYC::GATE_OUTPUT+k));

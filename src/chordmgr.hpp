@@ -158,7 +158,7 @@ struct ChordManager {
   }
 
   void insert(int currentChord) {
-    for(int k=99;k>currentChord;k--) {
+    for(int k=NUM_CHORDS-1;k>currentChord;k--) {
       for(int j=0;j<PORT_MAX_CHANNELS;j++) {
         notes[k][j]=notes[k-1][j];
         gates[k][j]=gates[k-1][j];
@@ -176,7 +176,7 @@ struct ChordManager {
     }
   }
   void del(int currentChord) {
-    for(int k=currentChord;k<99;k++) {
+    for(int k=currentChord;k<NUM_CHORDS-1;k++) {
       for(int j=0;j<PORT_MAX_CHANNELS;j++) {
         notes[k][j]=notes[k+1][j];
         gates[k][j]=gates[k+1][j];
