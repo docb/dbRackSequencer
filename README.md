@@ -3,8 +3,8 @@
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
-New modules in 2.1.0: [P16A](#p16a),[P16B](#p16b),[P16S](#p16s),[CCA](#cca),[CCA2](#cca2),
-[Ant](#ant),[TME](#tme),[SigMod](#sigmod),[MouseSeq](#mouseseq),[Preset](#preset),[CDiv](#cdiv),[CSR](#csr)
+New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa), [CCA](#cca), [CCA2](#cca2),
+[Ant](#ant), [TME](#tme), [SigMod](#sigmod), [MouseSeq](#mouseseq), [Preset](#preset), [CDiv](#cdiv), [CSR](#csr)
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -23,6 +23,7 @@ New modules in 2.1.0: [P16A](#p16a),[P16B](#p16b),[P16S](#p16s),[CCA](#cca),[CCA
     - [P16A](#p16a)
     - [P16B](#p16b)
     - [P16S](#p16s)
+    - [UnoA](#unoa)
     - [PXY](#pxy)
   - [C42](#c42)
     - [Gate/Trigger Sequencer](#gatetrigger-sequencer)
@@ -431,7 +432,7 @@ are generated.
 A one dimension [continuous cellular automaton](https://www.wolframscience.com/nks/p155--continuous-cellular-automata/) voltage addressable sequencer.
 
 - The inputs 0-15, 16-31 are for setting the initial values displayed on the left bar.
-- On te initial values the automaton rule defined by Func and Param is successively applied from left to right.
+- On the initial values the automaton rule defined by Func and Param is successively applied from left to right.
 - For the other parameters and inputs and outputs see C42/TheMatrix.
 - Gates are fired if the value of the cell is above the threshold set by the knob.
 
@@ -634,7 +635,7 @@ A Triadex Muse Emulator.
 - Has a Scl input for setting a custom scale (eight valued polyphonic signal with semi tones in v/oct).
 - The resulting CV comes through Note output.
 - The Trg output delivers a pulse if the CV has changed.
-- The CV output delivers the built number `D*8+C*4+B*2+A` multiplied with Lvl.
+- The CV output delivers the number `D*8+C*4+B*2+A` multiplied with Lvl.
 - The Clock mode can be set in the menu
   - If PWMClock is checked then the falling edge of the clock will be used for the C1/2
   - Otherwise (the default) only the rising edge is used - so it should be clocked with double speed.
