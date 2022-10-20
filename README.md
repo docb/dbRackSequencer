@@ -74,6 +74,8 @@ But every other module or combinations which outputs step functions (e.g. S&H) c
 can be manually selected, otherwise a connected address input will disable manual stepping.
 - A click on the copy button will make a copy of the gate values.
 - After selecting a new step it can be pasted there.
+- The + button inserts an empty pattern i.e. moves the following patterns one to the right. The last pattern is removed.
+- The - button removes the current pattern by moving all following patterns one to the left. 
 - On randomize the density setting in the menu is taken to randomize the selected pattern (only). 
 
 Some use cases of the module:
@@ -215,6 +217,12 @@ This is a variant of the [TME](#tme) module for generating CV addressing pattern
 ![](images/P16S.png?raw=true)
 
 P16S sequences the values provided by the polyphonic In port according to the method given by the dir param.  
+
+#### UnoA
+![](images/UnoA.png?raw=true)
+
+This is a 16 step [Uno](#uno) with polyphonic inputs for probability and sequence reset (SR) suited for
+addressing. 
 
 #### PXY
 
@@ -411,7 +419,7 @@ Text can also be pasted from the system clipboard.
 
 The editor is also connected to the undo/redo system of VCVRack.
 
-The Rnd Button or a trigger on the Rnd input will fill the grid with random characters in the
+The Rnd Button or a trigger on the Rnd input will fill the grid or the selection with random characters in the
 range set by the Range parameters min and max. The dens parameter or input controls how many spaces
 are generated.
 
@@ -430,8 +438,7 @@ A one dimension [continuous cellular automaton](https://www.wolframscience.com/n
 ### CCA2
 ![](images/CCA2.png?raw=true)
 
-A two dimensional variant. Similar to C42. The rule is defined by a function and a parameter.
-(...).
+A two-dimensional variant of continuous cellular automaton. Similar to C42. The rule is defined by a function and a parameter.
 
 ### Ant
 ![](images/Ant.png?raw=true)

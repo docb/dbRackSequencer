@@ -279,6 +279,14 @@
       "tags": [
         "Sequencer"
       ]
+    },
+    {
+      "slug": "UnoA",
+      "name": "UnoA",
+      "description": "Uno for address sequencing",
+      "tags": [
+        "Sequencer"
+      ]
     }
   ]
 }
