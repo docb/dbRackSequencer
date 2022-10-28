@@ -462,12 +462,19 @@ A 2D turing machine also known as Langton's Ant.
 Ants/Rule inputs are disconnected).
 - The Xout and Yout ports deliver the coordinates of the ants. These can directly used for
   TheMatrix, CCA, CCA2 or C42 with grid size 32.
-- The number of steps per clock pulse can be set using the Steps parameter 
+- The number of steps per clock pulse can be set using the Steps parameter
+- The set knob or input triggers storing the current grid and ants, which will be set if a reset is triggered.
 
-Here is an example with 3 Ants configured in the menu with the rule LLRRRLRLRLLR, where it is not clear
+Here is a simple example with 3 Ants configured in the menu with the rule LLRRRLRLRLLR, where it is not clear
 in which time this sequence would repeat.
 
 https://user-images.githubusercontent.com/1134412/198703138-915d2495-e716-4cb7-9cbd-be547074b18c.mp4
+
+
+Here an example configured with the ants and rule input (BBBRLBFB).
+
+
+https://user-images.githubusercontent.com/1134412/198720606-a42da3ca-bc6c-4c92-b1da-49ea7be213b6.mp4
 
 
 
