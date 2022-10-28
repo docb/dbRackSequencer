@@ -464,6 +464,13 @@ Ants/Rule inputs are disconnected).
   TheMatrix, CCA, CCA2 or C42 with grid size 32.
 - The number of steps per clock pulse can be set using the Steps parameter 
 
+Here is an example with 3 Ants configured in the menu with the rule LLRRRLRLRLLR, where it is not clear
+in which time this sequence would repeat.
+
+https://user-images.githubusercontent.com/1134412/198703138-915d2495-e716-4cb7-9cbd-be547074b18c.mp4
+
+
+
 ## Some other sequencers
 
 The following sequencers are reimplementations with additional/different features
