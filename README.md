@@ -663,6 +663,19 @@ A Triadex Muse Emulator.
   - If PWMClock is checked then the falling edge of the clock will be used for the C1/2
   - Otherwise (the default) only the rising edge is used - so it should be clocked with double speed.
 
+Here an example of changing the scale.
+
+
+https://user-images.githubusercontent.com/1134412/198822402-09162005-72b9-4659-880a-378d2ab2c5ef.mp4
+
+
+In the following example the CV output is used for addressing the TD4 sequencer.
+The Level must be set to 10/16V to have 16 steps in 0-10V.
+
+
+https://user-images.githubusercontent.com/1134412/198822450-cddd8ef5-4e0a-44fe-9389-a5469b538bcf.mp4
+
+
 
 ### SigMod
 ![](images/sigmod.png?raw=true)
