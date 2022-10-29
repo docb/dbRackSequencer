@@ -677,7 +677,14 @@ The decision is build as follows:
 `!(v1<Cmp1 XOR v2<Cmp2) XOR v3<Cmp3`  
 
 where v1,v2,v3 are the values of the SR at the tab positions Pos1,Pos2,Pos3.
-The 'less than' decision can be inverted in the menu for each comparator separately. 
+The 'less than' decision can be inverted in the menu for each comparator separately.
+
+Here an example. It shows how the original sequence is scrumbled but still there somehow.
+
+
+https://user-images.githubusercontent.com/1134412/198817855-d4cc421a-d1b8-493b-b96d-0abde74013b1.mp4
+
+
 
 ### MouseSeq
 ![](images/MouseSeq.png?raw=true)
@@ -689,6 +696,15 @@ How to use:
 ![](images/MouseSeqUsage.png?raw=true)
 
 Then press and move the mouse on the green pad.
+The current clock input can be switched with the keyboard `z,x,c,v`.
+The sales can be switched via `a,s,d,f`.
+Here an example:
+
+
+https://user-images.githubusercontent.com/1134412/198819843-25800021-1423-41da-b80b-4b2a301cdc4f.mp4
+
+
+
 
 ### Preset
 ![](images/Preset.png?raw=true)
