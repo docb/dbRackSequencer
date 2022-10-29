@@ -212,18 +212,28 @@ A variant of P16 with editable patterns and some extras:
 ![](images/P16B.png?raw=true)
 
 This is a variant of the [TME](#tme) module for generating CV addressing patterns.
+The output is built by `(A*1+B*2+C*4+D*8) * 10/size` where A (B,C,D) is zero or one reflecting if the
+clock dividers are on or off at the position of A (B,C,D)
 
 #### P16S
 
 ![](images/P16S.png?raw=true)
 
-P16S sequences the values provided by the polyphonic In port according to the method given by the dir param.  
+P16S sequences the values provided by the polyphonic In port according to the method given by the dir param.
+It can also used as sequential switch (like 23volts SwitchN1)
 
 #### UnoA
 ![](images/UnoA.png?raw=true)
 
 This is a 16 step [Uno](#uno) with polyphonic inputs for probability and sequence reset (SR) suited for
-addressing. 
+addressing.
+
+Example Usage:
+
+
+https://user-images.githubusercontent.com/1134412/198848122-db6a0e34-0f93-4179-af81-bff62eb621ce.mp4
+
+
 
 #### PXY
 
