@@ -441,6 +441,15 @@ A one dimension [continuous cellular automaton](https://www.wolframscience.com/n
 
 A two-dimensional variant of continuous cellular automaton. Similar to C42. The rule is defined by a function and a parameter.
 
+Here an example: 4 playheads are placed static on the grid and the clock drives the generation.
+
+
+
+https://user-images.githubusercontent.com/1134412/198815185-18c993f1-2439-45ca-8715-29882053e671.mp4
+
+
+
+
 ### Ant
 ![](images/Ant.png?raw=true)
 
