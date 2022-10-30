@@ -117,8 +117,10 @@ If the step param is set to 0.1V ACC can be used to drive AG, Chords, Faders, P1
 - In the menu the number of polyphonic channels and the polyphony modes Rotate,Reset and Reuse for the channel assignment can be configured.
 - The Reorder action in the menu causes the chord to be ordered in the polyphonic channels from the lowest note to the highest.
 - The Auto-Reorder option causes the Reorder action on every change and the polyphony modes are ignored. 
-- The Auto-Channel option causes the outputs only have as many channels as key buttons are pressed.
-In this case the Polyphonic Channels setting is ignored.
+- The Auto-Channel option causes the outputs only have as many channels as key buttons are pressed. In this case the Polyphonic Channels setting is ignored.
+- Clicking The menu "Insert Chord" causes inserting an empty chord and moving the following chords one to the right. The last chord is removed.
+- Clicking The menu "Delete Chord" causes removes the current chord by moving all following chords one to the left.
+(Note: currently there are wrong labels - "Insert Pattern" and "Delete Pattern")
 
 The ACC module can be used to drive a chord sequence.
 
