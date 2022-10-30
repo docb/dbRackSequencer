@@ -436,6 +436,12 @@ The Rnd Button or a trigger on the Rnd input will fill the grid or the selection
 range set by the Range parameters min and max. The dens parameter or input controls how many spaces
 are generated.
 
+Here an impression what can be done with multiple playheads:
+
+
+
+https://user-images.githubusercontent.com/1134412/198893701-24a33a29-0b95-4325-b53b-31a91c0a0682.mp4
+
 
 
 ### CCA
