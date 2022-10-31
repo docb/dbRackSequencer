@@ -671,7 +671,7 @@ fit together to get overall some hits, e.g. could be integers.
 ### TME
 ![](images/TME.png?raw=true)
 
-A Triadex Muse Emulator.
+A Triadex Muse Emulator (see e.g. [here](https://till.com/articles/muse/)).
 
 - Has a Scl input for setting a custom scale (eight valued polyphonic signal with semi tones in v/oct).
 - The resulting CV comes through Note output.
