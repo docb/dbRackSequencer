@@ -375,7 +375,7 @@ struct ChordsWidget : ModuleWidget {
       }
     };
     auto insertMenu=new InsertItem(module);
-    insertMenu->text="Insert Pattern";
+    insertMenu->text="Insert Chord";
     menu->addChild(insertMenu);
     struct DelItem : ui::MenuItem {
       Chords *module;
@@ -390,7 +390,7 @@ struct ChordsWidget : ModuleWidget {
       }
     };
     auto delMenu=new DelItem(module);
-    delMenu->text="Delete Pattern";
+    delMenu->text="Delete Chord";
     menu->addChild(delMenu);
   }
 };

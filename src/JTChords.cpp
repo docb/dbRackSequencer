@@ -443,7 +443,7 @@ struct JTChordsWidget : ModuleWidget {
       }
     };
     auto insertMenu=new InsertItem(module);
-    insertMenu->text="Insert Pattern";
+    insertMenu->text="Insert Chord";
     menu->addChild(insertMenu);
     struct DelItem : ui::MenuItem {
       JTChords *module;
@@ -458,7 +458,7 @@ struct JTChordsWidget : ModuleWidget {
       }
     };
     auto delMenu=new DelItem(module);
-    delMenu->text="Delete Pattern";
+    delMenu->text="Delete Chord";
     menu->addChild(delMenu);
   }
 };
