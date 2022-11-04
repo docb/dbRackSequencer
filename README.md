@@ -454,6 +454,14 @@ A one dimension [continuous cellular automaton](https://www.wolframscience.com/n
 - For the other parameters and inputs and outputs see C42/TheMatrix.
 - Gates are fired if the value of the cell is above the threshold set by the knob.
 
+Here an example with one playhead driven by Walk2 and switching the function parameter with AddrSeq. The initial values are
+randomly chosen.
+
+
+https://user-images.githubusercontent.com/1134412/199918183-bbc5518b-632d-49e4-a298-79926b29c9ff.mp4
+
+
+
 ### CCA2
 ![](images/CCA2.png?raw=true)
 
