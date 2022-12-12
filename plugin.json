@@ -221,7 +221,9 @@
       "slug": "SigMod",
       "name": "SigMod",
       "description": "Signal Scrambler",
-      "tags": ["Sequencer"]
+      "tags": [
+        "Sequencer"
+      ]
     },
     {
       "slug": "Preset",
@@ -251,7 +253,7 @@
     {
       "slug": "Ant",
       "name": "Ant",
-      "description": "Laurent's-Ant Cellular Automaton",
+      "description": "Langton's-Ant Cellular Automaton",
       "tags": [
         "Sequencer"
       ]
@@ -286,6 +288,16 @@
       "description": "Uno for address sequencing",
       "tags": [
         "Sequencer"
+      ]
+    },
+    {
+      "slug": "Carambol",
+      "name": "Carambol",
+      "description": "Carambolage Simulation",
+      "tags": [
+        "Sequencer",
+        "Low-frequency Oscillator",
+        "Polyphonic"
       ]
     }
   ]

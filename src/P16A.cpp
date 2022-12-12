@@ -127,6 +127,8 @@ struct P16A : Module {
   int cb[16]={};
   int stepCounter=0;
   bool divBy10=false;
+  int rndMin=0;
+  int rndMax=15;
   dsp::SchmittTrigger clockTrigger;
   dsp::SchmittTrigger rstTrigger;
   dsp::PulseGenerator rstPulse;
@@ -177,7 +179,7 @@ struct P16A : Module {
   void onRandomize(const RandomizeEvent &e) override {
     for(int k=0;k<MAX_PATS;k++) {
       for(int j=0;j<16;j++) {
-        patterns[k][j]=rnd.nextRange(0,15);
+        patterns[k][j]=rnd.nextRange(rndMin,rndMax);
       }
     }
     setCurrentPattern();
@@ -200,6 +202,8 @@ struct P16A : Module {
       json_array_append_new(patternList,onList);
     }
     json_object_set_new(data,"patterns",patternList);
+    json_object_set_new(data,"rndMin",json_integer(rndMin));
+    json_object_set_new(data,"rndMax",json_integer(rndMax));
     return data;
   }
 
@@ -215,6 +219,14 @@ struct P16A : Module {
           patterns[k][j]=json_integer_value(pattern);
         }
       }
+    }
+    json_t *jRndMin=json_object_get(rootJ,"rndMin");
+    if(jRndMin) {
+      rndMin=json_integer_value(jRndMin);
+    }
+    json_t *jRndMax=json_object_get(rootJ,"rndMax");
+    if(jRndMax) {
+      rndMax=json_integer_value(jRndMax);
     }
   }
 
@@ -276,7 +288,7 @@ struct P16A : Module {
     int pat=params[PAT_PARAM].getValue();
     for(int k=0;k<16;k++) {
       if(params[HOLD_PARAMS+k].getValue()==0.f)
-        patterns[pat][k]=rnd.nextRange(0,15);
+        patterns[pat][k]=rnd.nextRange(rndMin,rndMax);
     }
     setCurrentPattern();
   }
@@ -530,6 +542,17 @@ struct P16AWidget : ModuleWidget {
     auto delMenu=new DelItem(module);
     delMenu->text="Delete Pattern";
     menu->addChild(delMenu);
+
+    auto rndMinSelect=new IntSelectItem(&module->rndMin,0,15);
+    rndMinSelect->text="Rnd Min";
+    rndMinSelect->rightText=string::f("%d",module->rndMin)+"  "+RIGHT_ARROW;
+    menu->addChild(rndMinSelect);
+
+    auto rndMaxSelect=new IntSelectItem(&module->rndMax,0,15);
+    rndMaxSelect->text="Rnd Max";
+    rndMaxSelect->rightText=string::f("%d",module->rndMax)+"  "+RIGHT_ARROW;
+    menu->addChild(rndMaxSelect);
+
   }
 };
 

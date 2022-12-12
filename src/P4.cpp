@@ -48,6 +48,8 @@ struct P4 : Module {
     configInput(OFS_INPUT,"Offset");
     configInput(XY_INPUT,"XY");
     configOutput(CV_OUTPUT,"CV");
+    configInput(CLK_INPUT,"Clock");
+    configInput(RST_INPUT,"Reset");
 	}
 
 	void process(const ProcessArgs& args) override {
