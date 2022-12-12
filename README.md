@@ -118,8 +118,10 @@ If the step param is set to 0.1V ACC can be used to drive AG, Chords, Faders, P1
 - In the menu the number of polyphonic channels and the polyphony modes Rotate,Reset and Reuse for the channel assignment can be configured.
 - The Reorder action in the menu causes the chord to be ordered in the polyphonic channels from the lowest note to the highest.
 - The Auto-Reorder option causes the Reorder action on every change and the polyphony modes are ignored. 
-- The Auto-Channel option causes the outputs only have as many channels as key buttons are pressed.
-In this case the Polyphonic Channels setting is ignored.
+- The Auto-Channel option causes the outputs only have as many channels as key buttons are pressed. In this case the Polyphonic Channels setting is ignored.
+- Clicking The menu "Insert Chord" causes inserting an empty chord and moving the following chords one to the right. The last chord is removed.
+- Clicking The menu "Delete Chord" causes removes the current chord by moving all following chords one to the left.
+(Note: currently there are wrong labels - "Insert Pattern" and "Delete Pattern")
 
 The ACC module can be used to drive a chord sequence.
 
@@ -213,18 +215,28 @@ A variant of P16 with editable patterns and some extras:
 ![](images/P16B.png?raw=true)
 
 This is a variant of the [TME](#tme) module for generating CV addressing patterns.
+The output is built by `(A*1+B*2+C*4+D*8) * 10/size` where A (B,C,D) is zero or one reflecting if the
+clock dividers are on or off at the position of A (B,C,D)
 
 #### P16S
 
 ![](images/P16S.png?raw=true)
 
-P16S sequences the values provided by the polyphonic In port according to the method given by the dir param.  
+P16S sequences the values provided by the polyphonic In port according to the method given by the dir param.
+It can also used as sequential switch (like 23volts SwitchN1)
 
 #### UnoA
 ![](images/UnoA.png?raw=true)
 
 This is a 16 step [Uno](#uno) with polyphonic inputs for probability and sequence reset (SR) suited for
-addressing. 
+addressing.
+
+Example Usage:
+
+
+https://user-images.githubusercontent.com/1134412/198848122-db6a0e34-0f93-4179-af81-bff62eb621ce.mp4
+
+
 
 #### PXY
 
@@ -431,6 +443,12 @@ The Rnd Button or a trigger on the Rnd input will fill the grid or the selection
 range set by the Range parameters min and max. The dens parameter or input controls how many spaces
 are generated.
 
+Here an impression what can be done with multiple playheads:
+
+
+
+https://user-images.githubusercontent.com/1134412/198893701-24a33a29-0b95-4325-b53b-31a91c0a0682.mp4
+
 
 
 ### CCA
@@ -443,10 +461,27 @@ A one dimension [continuous cellular automaton](https://www.wolframscience.com/n
 - For the other parameters and inputs and outputs see C42/TheMatrix.
 - Gates are fired if the value of the cell is above the threshold set by the knob.
 
+Here an example with one playhead driven by Walk2 and switching the function parameter with AddrSeq. The initial values are
+randomly chosen.
+
+
+https://user-images.githubusercontent.com/1134412/199918183-bbc5518b-632d-49e4-a298-79926b29c9ff.mp4
+
+
+
 ### CCA2
 ![](images/CCA2.png?raw=true)
 
 A two-dimensional variant of continuous cellular automaton. Similar to C42. The rule is defined by a function and a parameter.
+
+Here an example: 4 playheads are placed static on the grid and the clock drives the generation.
+
+
+
+https://user-images.githubusercontent.com/1134412/198815185-18c993f1-2439-45ca-8715-29882053e671.mp4
+
+
+
 
 ### Ant
 ![](images/Ant.png?raw=true)
@@ -469,7 +504,21 @@ A 2D turing machine also known as Langton's Ant.
 Ants/Rule inputs are disconnected).
 - The Xout and Yout ports deliver the coordinates of the ants. These can directly used for
   TheMatrix, CCA, CCA2 or C42 with grid size 32.
-- The number of steps per clock pulse can be set using the Steps parameter 
+- The number of steps per clock pulse can be set using the Steps parameter
+- The set knob or input triggers storing the current grid and ants, which will be set if a reset is triggered.
+
+Here is a simple example with 3 Ants configured in the menu with the rule LLRRRLRLRLLR, where it is not clear
+in which time this sequence would repeat.
+
+https://user-images.githubusercontent.com/1134412/198703138-915d2495-e716-4cb7-9cbd-be547074b18c.mp4
+
+
+Here an example configured with the ants and rule input (BBBRLBFB).
+
+
+https://user-images.githubusercontent.com/1134412/198720606-a42da3ca-bc6c-4c92-b1da-49ea7be213b6.mp4
+
+
 
 ## Some other sequencers
 
@@ -660,7 +709,7 @@ Inputs:
 ### TME
 ![](images/TME.png?raw=true)
 
-A Triadex Muse Emulator.
+A Triadex Muse Emulator (see e.g. [here](https://till.com/articles/muse/)).
 
 - Has a Scl input for setting a custom scale (eight valued polyphonic signal with semi tones in v/oct).
 - The resulting CV comes through Note output.
@@ -669,6 +718,19 @@ A Triadex Muse Emulator.
 - The Clock mode can be set in the menu
   - If PWMClock is checked then the falling edge of the clock will be used for the C1/2
   - Otherwise (the default) only the rising edge is used - so it should be clocked with double speed.
+
+Here an example of changing the scale.
+
+
+https://user-images.githubusercontent.com/1134412/198822402-09162005-72b9-4659-880a-378d2ab2c5ef.mp4
+
+
+In the following example the CV output is used for addressing the TD4 sequencer.
+The Level must be set to 10/16V to have 16 steps in 0-10V.
+
+
+https://user-images.githubusercontent.com/1134412/198822450-cddd8ef5-4e0a-44fe-9389-a5469b538bcf.mp4
+
 
 
 ### SigMod
@@ -684,7 +746,14 @@ The decision is build as follows:
 `!(v1<Cmp1 XOR v2<Cmp2) XOR v3<Cmp3`  
 
 where v1,v2,v3 are the values of the SR at the tab positions Pos1,Pos2,Pos3.
-The 'less than' decision can be inverted in the menu for each comparator separately. 
+The 'less than' decision can be inverted in the menu for each comparator separately.
+
+Here an example. It shows how the original sequence is scrumbled but still there somehow.
+
+
+https://user-images.githubusercontent.com/1134412/198817855-d4cc421a-d1b8-493b-b96d-0abde74013b1.mp4
+
+
 
 ### MouseSeq
 ![](images/MouseSeq.png?raw=true)
@@ -696,6 +765,15 @@ How to use:
 ![](images/MouseSeqUsage.png?raw=true)
 
 Then press and move the mouse on the green pad.
+The current clock input can be switched with the keyboard `z,x,c,v`.
+The sales can be switched via `a,s,d,f`.
+Here an example:
+
+
+https://user-images.githubusercontent.com/1134412/198819843-25800021-1423-41da-b80b-4b2a301cdc4f.mp4
+
+
+
 
 ### Preset
 ![](images/Preset.png?raw=true)
