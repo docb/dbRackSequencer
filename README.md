@@ -2,6 +2,7 @@
 
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
+New modules in 2.2.0
 
 New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa), [CCA](#cca), [CCA2](#cca2),
 [Ant](#ant), [TME](#tme), [SigMod](#sigmod), [MouseSeq](#mouseseq), [Preset](#preset), [CDiv](#cdiv), [CSR](#csr)
@@ -236,6 +237,12 @@ This size should be 16 for TD 4.
 Here an example:
 
 https://user-images.githubusercontent.com/1134412/167461807-b4f6fbb2-5726-4762-abbb-8dfcab86d55c.mp4
+
+#### PMod
+![](images/PMod.png?raw=true)
+
+Generates address sequences by multiplying the step number (increased by the clock input)
+with the value of the Mult parameter and modulo the value given by the Mod parameter.
 
 
 ### C42
@@ -626,6 +633,29 @@ Note that in the Exact mode (exact hits) the Skew,Rotate and Degree parameters s
 fit together to get overall some hits, e.g. could be integers.
 
 ## Some further sequencers
+### Carambol
+![](images/Carambol.png?raw=true)
+
+A billiard simulation for sequencing and modulation.
+
+Params:
+- **R** sets the radius for all balls if the R input is not connected
+- **COR** the coefficient of restitution, should be normally 1 or below. 
+  Values greater than one will exponentially speed up over time.
+- **Count** number of balls (1-16). Changing the count will reset the scene.
+
+Outputs:
+- **X,Y** Polyphonic outputs for the positions of all balls.
+- **Wall** Polyphonic output of triggers whenever a wall is hit.
+- **Hit** Polyphonic output of triggers whenever two balls collide (one trigger for each).
+
+Inputs:
+- **R** Polyphonic input for set the radius for each ball separately.
+- **Rst** resets the scene, all balls will get new random positions and velocities
+- **seed** if connected and > 0 the value is taken as seed for the random generation.
+  This causes identical start positions and velocities on a reset.
+- **SX,SY,VX,VY** if connected the random start positions or velocities are overwritten by the given values.
+- **Clk** If connected the trigger outputs are delayed until a clock trigger is received
 
 ### TME
 ![](images/TME.png?raw=true)
