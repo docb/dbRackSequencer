@@ -299,6 +299,14 @@
         "Low-frequency Oscillator",
         "Polyphonic"
       ]
+    },
+    {
+      "slug": "PMod",
+      "name": "PMod",
+      "description": "Address sequencing via multiply and modulo",
+      "tags": [
+        "Sequencer"
+      ]
     }
   ]
 }
