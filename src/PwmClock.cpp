@@ -351,7 +351,7 @@ struct PwmClockWidget : ModuleWidget {
     addInput(createInput<SmallPort>(mm2px(Vec(35,TY(100))),module,PwmClock::RST_INPUT));
     addParam(createParam<MLED>(mm2px(Vec(43,TY(112))),module,PwmClock::RUN_PARAM));
     addParam(createParam<MLEDM>(mm2px(Vec(43,TY(100))),module,PwmClock::RST_PARAM));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(51,TY(100))),module,PwmClock::RUN_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(51,TY(112))),module,PwmClock::RUN_OUTPUT));
     addOutput(createOutput<SmallPort>(mm2px(Vec(51,TY(100))),module,PwmClock::RST_OUTPUT));
     float y=TY(80);
     for(int k=0;k<NUM_CLOCKS;k++) {
