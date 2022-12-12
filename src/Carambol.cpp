@@ -118,6 +118,8 @@ struct Ball {
   }
 };
 
+// Simulation ported and adapted from Ten Minute Physics -- Copyright 2021 Matthias Müller
+
 struct World {
   RND rnd;
   Vec size;

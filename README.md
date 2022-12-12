@@ -704,10 +704,12 @@ Outputs:
 Inputs:
 - **R** Polyphonic input for set the radius for each ball separately.
 - **Rst** resets the scene, all balls will get new random positions and velocities
-- **seed** if connected and > 0 the value is taken as seed for the random generation.
+- **Seed** if connected and > 0 the value is taken as seed for the random generation.
   This causes identical start positions and velocities on a reset.
 - **SX,SY,VX,VY** if connected the random start positions or velocities are overwritten by the given values.
 - **Clk** If connected the trigger outputs are delayed until a clock trigger is received
+
+The simulation was ported and adapted from Ten Minute Physics -- Copyright 2021 Matthias Müller.
 
 ### TME
 ![](images/TME.png?raw=true)
