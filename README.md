@@ -2,7 +2,8 @@
 
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
-New modules in 2.2.0
+
+New modules in 2.2.0 [PMod](#pmod),[Carambol](#carambol)
 
 New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa), [CCA](#cca), [CCA2](#cca2),
 [Ant](#ant), [TME](#tme), [SigMod](#sigmod), [MouseSeq](#mouseseq), [Preset](#preset), [CDiv](#cdiv), [CSR](#csr)
@@ -26,6 +27,7 @@ New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa)
     - [P16S](#p16s)
     - [UnoA](#unoa)
     - [PXY](#pxy)
+    - [PMod](#pmod)
   - [C42](#c42)
     - [Gate/Trigger Sequencer](#gatetrigger-sequencer)
     - [Creating melodies](#creating-melodies)
@@ -44,6 +46,7 @@ New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa)
   - [CYC](#cyc)
   - [N3](#n3)
 - [Some further sequencers](#some-further-sequencers)
+  - [Carambol](#carambol)
   - [TME](#tme)
   - [SigMod](#sigmod)
   - [MouseSeq](#mouseseq)
