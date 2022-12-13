@@ -709,6 +709,15 @@ Inputs:
 - **SX,SY,VX,VY** if connected the random start positions or velocities are overwritten by the given values.
 - **Clk** If connected the trigger outputs are delayed until a clock trigger is received
 
+Here an example showing the case with all connected inputs and the effect of cconnecting a clock.
+
+
+https://user-images.githubusercontent.com/1134412/207141868-d20c34ad-bdb9-4165-a912-8ae4c2c1e2ca.mp4
+
+
+
+
+
 The simulation was ported and adapted from Ten Minute Physics -- Copyright 2021 Matthias Müller.
 
 ### TME
