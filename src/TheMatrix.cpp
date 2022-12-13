@@ -498,17 +498,27 @@ struct MatrixDisplay : OpaqueWidget {
     const char *ptr=newText;
     int startX=posX;
     bool cr=false;
+    int cols=0;
     while(*ptr) {
       if(*ptr=='\n') {
-        if(!cr) goDown(startX);
+        if(!cr) {
+          if(cols<32) goDown(startX);
+          else cols=0;
+        }
         else cr=false;
+        cols=0;
       } else if(*ptr=='\r') {
         cr=true;
-        goDown(startX);
+        if(cols<32) {
+          goDown(startX);
+        }
+        else cols=0;
       } else {
+        cols++;
         theMatrix->m.set(posY,posX,*ptr);
         goRight();
         cr=false;
+        if(cols>32) cols=0;
       }
       ptr++;
     }

@@ -1,5 +1,6 @@
 #include "plugin.hpp"
 #include <sstream>
+
 #define NUM_CLOCKS 9
 
 struct Clock {
@@ -7,21 +8,29 @@ struct Clock {
   double step=0;
   bool oddBeat=false;
   dsp::PulseGenerator clockPulse;
+
   void reset() {
     step=-1;
     clockPulse.reset();
     oddBeat=false;
   }
+
   void setNewLength(double newLength) {
-    if(step>=0) step *= (newLength/period);
-    period = newLength;
+    if(step>=0)
+      step*=(newLength/period);
+    period=newLength;
 
   }
+
   bool process(float pwm,float sampleTime,float swing) {
     bool ret=false;
     double dur=period;
-    if(oddBeat) dur+=dur*swing;
-    if(step<0) step=dur; else step+=sampleTime;
+    if(oddBeat)
+      dur+=dur*swing;
+    if(step<0)
+      step=dur;
+    else
+      step+=sampleTime;
     if(step>=dur) {
       step-=dur;
       clockPulse.trigger(period*pwm);
@@ -63,7 +72,7 @@ struct PwmClock : Module {
   enum LightId {
     LIGHTS_LEN
   };
-  std::vector <std::string> labels={"16/1 (/64)","8/1 (/32)","4/1 (/16)","2/1 (/8)","1/1 (/4)","3/4 (/3)","1/2 (/2)","3/8 (/1.5)","1/3 (4/3)","1/4 (x1 Beat)","3/16 (x1.5)","1/6","1/8 x2","3/32 x2.5","1/12","1/16 (x4)","3/64","1/24 x6","1/32 (x8)","3/128","1/48 (x12)","1/64 (x16)","1/128 (x32)"};
+  std::vector<std::string> labels={"16/1 (/64)","8/1 (/32)","4/1 (/16)","2/1 (/8)","1/1 (/4)","3/4 (/3)","1/2 (/2)","3/8 (/1.5)","1/3 (4/3)","1/4 (x1 Beat)","3/16 (x1.5)","1/6","1/8 x2","3/32 x2.5","1/12","1/16 (x4)","3/64","1/24 x6","1/32 (x8)","3/128","1/48 (x12)","1/64 (x16)","1/128 (x32)"};
   float ticks[23]={16*4,8*4,4*4,2*4,4,0.75*4,0.5*4,0.375*4,4/3.f,0.25*4,0.1875*4,4.f/6.f,0.125*4,0.09375*4,1.f/3.f,0.0625*4,0.046875*4,1/6.f,0.03125*4,0.0234375*4,1/12.f,0.015625*4,0.015625*2};
 
   Clock clocks[NUM_CLOCKS];
@@ -78,7 +87,9 @@ struct PwmClock : Module {
   float bpm=0.f;
   bool init=true;
   bool bpmVoltageStandard=false;
+  bool showTime=true;
   uint32_t pos=0;
+
   PwmClock() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     configParam(BPM_PARAM,30,240,120,"BPM");
@@ -87,7 +98,7 @@ struct PwmClock : Module {
     for(int k=0;k<NUM_CLOCKS;k++) {
       configSwitch(RATIO_PARAM+k,0,22,15,"Ratio "+std::to_string(k+1),labels);
       getParamQuantity(RATIO_PARAM+k)->snapEnabled=true;
-      configParam(PWM_PARAM+k,0,1,0.5,"PW " + std::to_string(k+1));
+      configParam(PWM_PARAM+k,0,1,0.5,"PW "+std::to_string(k+1));
       configParam(SWING_PARAM+k,0,0.5,0,"Swing "+std::to_string(k+1),"%",0,100);
       configInput(PWM_INPUT+k,"Pw "+std::to_string(k+1));
       configOutput(CLK_OUTPUT+k,"Clk "+std::to_string(k+1));
@@ -121,7 +132,7 @@ struct PwmClock : Module {
 
   void updateRatio(int k) {
     //for(int k=0;k<NUM_CLOCKS;k++) {
-      //clocks[k].reset();
+    //clocks[k].reset();
     //}
     changeRatio(k);
   }
@@ -131,6 +142,7 @@ struct PwmClock : Module {
     double length=(ticks[idx]*60.f)/bpm;
     clocks[k].setNewLength(length);
   }
+
   float getPwm(int k) {
     if(inputs[PWM_INPUT+k].isConnected()) {
       getParamQuantity(PWM_PARAM+k)->setValue(inputs[PWM_INPUT+k].getVoltage()/10.f);
@@ -141,6 +153,7 @@ struct PwmClock : Module {
   void sendReset() {
     rstPulse.trigger(0.001f);
   }
+
   double getCurrentTime() {
     return double(pos)*APP->engine->getSampleTime();
   }
@@ -200,12 +213,14 @@ struct PwmClock : Module {
     }
     outputs[RUN_OUTPUT].setVoltage(on?10.f:0.f);
     outputs[RST_OUTPUT].setVoltage(rstPulse.process(args.sampleTime)?10.f:0.f);
-    if(on) pos++;
+    if(on)
+      pos++;
   }
 
-  json_t* dataToJson() override {
+  json_t *dataToJson() override {
     json_t *root=json_object();
     json_object_set_new(root,"bpmVoltageStandard",json_boolean(bpmVoltageStandard));
+    json_object_set_new(root,"showTime",json_boolean(showTime));
     return root;
   }
 
@@ -213,6 +228,10 @@ struct PwmClock : Module {
     json_t *jBpmVoltageStandard=json_object_get(root,"bpmVoltageStandard");
     if(jBpmVoltageStandard) {
       bpmVoltageStandard=json_boolean_value(jBpmVoltageStandard);
+    }
+    json_t *jShowTime=json_object_get(root,"showTime");
+    if(jShowTime) {
+      showTime=json_boolean_value(jShowTime);
     }
   }
 
@@ -249,7 +268,7 @@ struct BpmDisplay : OpaqueWidget {
     if(module) {
       text=rack::string::f("%3.2f",module->getBpm());
     }
-    std::shared_ptr <Font> font=APP->window->loadFont(fontPath);
+    std::shared_ptr<Font> font=APP->window->loadFont(fontPath);
     nvgFillColor(args.vg,nvgRGB(255,255,128));
     nvgFontFaceId(args.vg,font->handle);
     nvgFontSize(args.vg,20);
@@ -258,12 +277,14 @@ struct BpmDisplay : OpaqueWidget {
   }
 };
 
-struct TimeDisplay: OpaqueWidget {
+struct TimeDisplay : OpaqueWidget {
   PwmClock *module;
   std::basic_string<char> fontPath;
-  TimeDisplay(PwmClock *_module):module(_module) {
+
+  TimeDisplay(PwmClock *_module) : module(_module) {
     fontPath=asset::plugin(pluginInstance,"res/FreeMonoBold.ttf");
   }
+
   void drawLayer(const DrawArgs &args,int layer) override {
     if(layer==1) {
       _draw(args);
@@ -272,18 +293,18 @@ struct TimeDisplay: OpaqueWidget {
   }
 
   void _draw(const DrawArgs &args) {
+    if(!module) return;
+    if(!module->showTime) return;
     std::string text="000:00:000";
-    if(module) {
-      auto timems=int32_t(module->getCurrentTime()*1000);
-      uint32_t _seconds=timems/1000;
-      uint32_t ms=timems%1000;
-      uint32_t minutes=_seconds/60;
-      uint32_t seconds=_seconds%60;
-      std::stringstream ss;
-      ss<<std::setfill('0')<<std::setw(3)<<minutes<<":"<<std::setw(2)<<seconds<<":"<<std::setw(3)<<ms;
-      text=ss.str();
-    }
-    std::shared_ptr <Font> font=APP->window->loadFont(fontPath);
+    auto timems=int32_t(module->getCurrentTime()*1000);
+    uint32_t _seconds=timems/1000;
+    uint32_t ms=timems%1000;
+    uint32_t minutes=_seconds/60;
+    uint32_t seconds=_seconds%60;
+    std::stringstream ss;
+    ss<<std::setfill('0')<<std::setw(3)<<minutes<<":"<<std::setw(2)<<seconds<<":"<<std::setw(3)<<ms;
+    text=ss.str();
+    std::shared_ptr<Font> font=APP->window->loadFont(fontPath);
     nvgFillColor(args.vg,nvgRGB(255,255,128));
     nvgFontFaceId(args.vg,font->handle);
     nvgFontSize(args.vg,13);
@@ -299,7 +320,7 @@ struct RatioDisplay : OpaqueWidget {
   int nr;
 
   std::basic_string<char> fontPath;
-  std::vector <std::string> labels={"16/1","8/1","4/1","2/1","1/1","3/4","1/2","3/8","1/3","1/4","3/16","1/6","1/8","3/32","1/12","1/16","3/64","1/24","1/32","3/128","1/48","1/64","1/128"};
+  std::vector<std::string> labels={"16/1","8/1","4/1","2/1","1/1","3/4","1/2","3/8","1/3","1/4","3/16","1/6","1/8","3/32","1/12","1/16","3/64","1/24","1/32","3/128","1/48","1/64","1/128"};
 
   RatioDisplay(PwmClock *_module,int _nr) : OpaqueWidget(),module(_module),nr(_nr) {
     fontPath=asset::plugin(pluginInstance,"res/FreeMonoBold.ttf");
@@ -317,7 +338,7 @@ struct RatioDisplay : OpaqueWidget {
     if(module) {
       text=labels[module->getRatioIndex(nr)];
     }
-    std::shared_ptr <Font> font=APP->window->loadFont(fontPath);
+    std::shared_ptr<Font> font=APP->window->loadFont(fontPath);
     nvgFillColor(args.vg,nvgRGB(255,255,128));
     nvgFontFaceId(args.vg,font->handle);
     nvgFontSize(args.vg,9);
@@ -325,6 +346,7 @@ struct RatioDisplay : OpaqueWidget {
     nvgText(args.vg,0,box.size.y/2,text.c_str(),NULL);
   }
 };
+
 struct PwmClockWidget : ModuleWidget {
   PwmClockWidget(PwmClock *module) {
     setModule(module);
@@ -334,10 +356,10 @@ struct PwmClockWidget : ModuleWidget {
     addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,0)));
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
-    auto bpmParam = createParam<TrimbotWhite9>(mm2px(Vec(12,MHEIGHT-108.2-8.985)),module,PwmClock::BPM_PARAM);
+    auto bpmParam=createParam<TrimbotWhite9>(mm2px(Vec(12,MHEIGHT-108.2-8.985)),module,PwmClock::BPM_PARAM);
     //if(module) bpmParam->update = &module->update;
     addParam(bpmParam);
-    auto bpmDisplay = new BpmDisplay(module);
+    auto bpmDisplay=new BpmDisplay(module);
     bpmDisplay->box.pos=mm2px(Vec(5,MHEIGHT-105));
     bpmDisplay->box.size=mm2px(Vec(23.2,4));
     addChild(bpmDisplay);
@@ -359,7 +381,7 @@ struct PwmClockWidget : ModuleWidget {
       ratioKnob->module=module;
       ratioKnob->nr=k;
       addParam(ratioKnob);
-      auto ratioDisplay = new RatioDisplay(module,k);
+      auto ratioDisplay=new RatioDisplay(module,k);
       ratioDisplay->box.pos=mm2px(Vec(10.5,y+2.5));
       ratioDisplay->box.size=mm2px(Vec(10,2));
       addChild(ratioDisplay);
@@ -377,11 +399,9 @@ struct PwmClockWidget : ModuleWidget {
     auto *module=dynamic_cast<PwmClock *>(this->module);
     assert(module);
     menu->addChild(new MenuSeparator);
-    menu->addChild(createCheckMenuItem("BPM Voltage Standard","",[=]() {
-      return module->bpmVoltageStandard;
-    },[=]() {
-      module->bpmVoltageStandard=!module->bpmVoltageStandard;
-    }));
+    menu->addChild(createBoolPtrMenuItem("BPM Voltage Standard", "", &module->bpmVoltageStandard));
+    menu->addChild(createBoolPtrMenuItem("Show Time", "", &module->showTime));
+
   }
 
 };

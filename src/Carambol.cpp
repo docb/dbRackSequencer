@@ -257,6 +257,8 @@ struct Carambol : Module {
     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
     configOutput(WALL_OUTPUT,"Wall hits");
     configOutput(COLLISION_OUTPUT,"Collisions");
+    configOutput(POS_X_OUTPUT,"X");
+    configOutput(POS_Y_OUTPUT,"Y");
     configParam(COUNT_PARAM,1,16,8,"Count");
     configParam(RADIUS_PARAM,0.05,0.15,0.1,"Radius");
     configParam(REST_PARAM,0,2,1,"Coefficient Of Restitution");
@@ -433,8 +435,8 @@ struct CarambolWidget : ModuleWidget {
     addInput(createInput<SmallPort>(mm2px(Vec(26,y)),module,Carambol::SY_INPUT));
     addInput(createInput<SmallPort>(mm2px(Vec(36,y)),module,Carambol::VX_INPUT));
     addInput(createInput<SmallPort>(mm2px(Vec(46,y)),module,Carambol::VY_INPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(78,y)),module,Carambol::POS_Y_OUTPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(88,y)),module,Carambol::POS_X_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(78,y)),module,Carambol::POS_X_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(88,y)),module,Carambol::POS_Y_OUTPUT));
     y=116;
     addInput(createInput<SmallPort>(mm2px(Vec(6,y)),module,Carambol::CLOCK_INPUT));
     addInput(createInput<SmallPort>(mm2px(Vec(16,y)),module,Carambol::SEED_INPUT));
