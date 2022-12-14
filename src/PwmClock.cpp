@@ -5,56 +5,38 @@
 
 struct Clock {
   double period=0;
-  double step=0;
-  bool oddBeat=false;
   dsp::PulseGenerator clockPulse;
 
   void reset() {
-    step=-1;
     clockPulse.reset();
-    oddBeat=false;
   }
 
   void setNewLength(double newLength) {
-    if(step>=0)
-      step*=(newLength/period);
     period=newLength;
-
-  }
-
-  bool process(float pwm,float sampleTime,float swing) {
-    bool ret=false;
-    double dur=period;
-    if(oddBeat)
-      dur+=dur*swing;
-    if(step<0)
-      step=dur;
-    else
-      step+=sampleTime;
-    if(step>=dur) {
-      step-=dur;
-      clockPulse.trigger(period*pwm);
-      ret=true;
-      oddBeat=!oddBeat;
-    } else {
-      ret=clockPulse.process(sampleTime);
-    }
-    return ret;
   }
 
   bool process(float pwm,float sampleRate,float swing,uint32_t pos) {
-    bool ret;
-    auto swingOffset=oddBeat?uint32_t(period*swing*sampleRate):0;
-    auto samples=uint32_t(period*sampleRate);
-    uint32_t lp=pos%samples;
-    if(lp==swingOffset) {
-      clockPulse.trigger(float(period)*pwm);
-      ret=true;
-      oddBeat=!oddBeat;
+    double sampleTime=1.0/double(sampleRate);
+    double time=pos*sampleTime;
+    auto beats=uint32_t(time/period);
+    bool odd=beats%2;
+    if(odd && swing >0.f) {
+      uint32_t swi=int32_t(period*swing*sampleRate);
+      uint32_t pos1=pos-swi;
+      double time1=pos1*sampleTime;
+      double rest=fmod(time1,period);
+      if(rest<sampleTime) {
+        //INFO("trigger oddbeat beats=%d pos1=%d pos=%d period=%f rest=%lf",beats,pos1,pos,period,rest);
+        clockPulse.trigger(float(period)*pwm);
+      }
     } else {
-      ret=clockPulse.process(1.f/sampleRate);
+      double rest=fmod(time,period);
+      if(rest<sampleTime) {
+        //INFO("trigger beat beats=%d pos=%d period=%f rest=%lf",beats,pos,period,rest);
+        clockPulse.trigger(float(period)*pwm);
+      }
     }
-    return ret;
+    return clockPulse.process(1.f/sampleRate);
   }
 };
 
@@ -131,9 +113,6 @@ struct PwmClock : Module {
   }
 
   void updateRatio(int k) {
-    //for(int k=0;k<NUM_CLOCKS;k++) {
-    //clocks[k].reset();
-    //}
     changeRatio(k);
   }
 
@@ -184,7 +163,7 @@ struct PwmClock : Module {
       sendReset();
       pos=0;
       for(int k=0;k<NUM_CLOCKS;k++) {
-        //clocks[k].reset();
+        clocks[k].reset();
         changeRatio(k);
       }
     }
@@ -194,7 +173,7 @@ struct PwmClock : Module {
       sendReset();
       pos=0;
       for(int k=0;k<NUM_CLOCKS;k++) {
-        //clocks[k].reset();
+        clocks[k].reset();
         changeRatio(k);
       }
     }
