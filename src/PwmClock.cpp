@@ -27,13 +27,13 @@ struct Clock {
       double rest=fmod(time1,period);
       if(rest<sampleTime) {
         //INFO("trigger oddbeat beats=%d pos1=%d pos=%d period=%f rest=%lf",beats,pos1,pos,period,rest);
-        clockPulse.trigger(float(period)*pwm);
+        clockPulse.trigger(float(period)*pwm*(1-swing));
       }
     } else {
       double rest=fmod(time,period);
       if(rest<sampleTime) {
         //INFO("trigger beat beats=%d pos=%d period=%f rest=%lf",beats,pos,period,rest);
-        clockPulse.trigger(float(period)*pwm);
+        clockPulse.trigger(float(period)*pwm*(1+swing));
       }
     }
     return clockPulse.process(1.f/sampleRate);
