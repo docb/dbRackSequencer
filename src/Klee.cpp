@@ -230,11 +230,13 @@ struct Klee : Module {
 
   void process(const ProcessArgs &args) override {
     if(paramDivider.process()) {
+      int polyCVChannels=inputs[POLY_CV_INPUT].getChannels();
       for(int k=0;k<16;k++) {
         if(inputs[CV_INPUT+k].isConnected()) {
           getParamQuantity(CV_PARAM+k)->setValue(inputs[CV_INPUT+k].getVoltage());
         } else if(inputs[POLY_CV_INPUT].isConnected()) {
-          getParamQuantity(CV_PARAM+k)->setValue(inputs[POLY_CV_INPUT].getVoltage(k));
+          if(k<polyCVChannels)
+            getParamQuantity(CV_PARAM+k)->setValue(inputs[POLY_CV_INPUT].getVoltage(k));
         }
         if(inputs[TAB_INPUT].isConnected()) {
           getParamQuantity(TAB_PARAMS+k)->setValue(inputs[TAB_INPUT].getVoltage(k)>1.f);

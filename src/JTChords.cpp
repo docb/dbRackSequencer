@@ -148,12 +148,25 @@ struct JTChords : Module {
   }
 
   json_t *dataToJson() override {
-    return chrMgr.dataToJson();
+    json_t *data=chrMgr.dataToJson();
+    json_object_set_new(data,"autoReorder",json_integer(autoReorder));
+    json_object_set_new(data,"autoChannels",json_integer(autoChannels));
+    return data;
   }
 
   void dataFromJson(json_t *rootJ) override {
     chrMgr.dataFromJson(rootJ);
+    json_t *jAutoChannels=json_object_get(rootJ,"autoChannels");
+    if(jAutoChannels) {
+      autoChannels=json_integer_value(jAutoChannels);
+    }
+    json_t *jAutoReorder=json_object_get(rootJ,"autoReorder");
+    if(jAutoReorder) {
+      autoReorder=json_integer_value(jAutoReorder);
+    }
+
   }
+
 
   void onReset(const ResetEvent &e) override {
     params[CHORD_PARAM].setValue(0);

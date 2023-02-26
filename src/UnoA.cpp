@@ -26,6 +26,7 @@ struct UnoA : Module {
     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
     configSwitch(DIR_PARAM,0,2,0,"Direction",{"-->","<--","<->"});
     configParam(SIZE_PARAM,4,32,32,"Pattern Size");
+    getParamQuantity(SIZE_PARAM)->snapEnabled=true;
     configParam(DEFAULT_PROP_PARAM,0,1,1,"Default Probability");
     configInput(CLK_INPUT,"Clock");
     configInput(RST_INPUT,"Rst");

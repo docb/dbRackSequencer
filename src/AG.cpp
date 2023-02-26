@@ -248,7 +248,7 @@ struct GateDisplay : OpaqueWidget {
     box.pos=_pos;
     box.size = Vec(20,10*16);
     for(int k=0;k<16;k++) {
-      addChild(new GateButton<AG>(module,k,Vec(0,k*10),Vec(20,10)));
+      addChild(new GateButton<M>(module,k,Vec(0,k*10),Vec(20,10)));
     }
   }
 };

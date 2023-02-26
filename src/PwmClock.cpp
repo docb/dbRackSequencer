@@ -13,6 +13,7 @@ struct Clock {
 
   void setNewLength(double newLength) {
     period=newLength;
+    reset();
   }
 
   bool process(float pwm,float sampleRate,float swing,uint32_t pos) {
@@ -26,13 +27,11 @@ struct Clock {
       double time1=pos1*sampleTime;
       double rest=fmod(time1,period);
       if(rest<sampleTime) {
-        //INFO("trigger oddbeat beats=%d pos1=%d pos=%d period=%f rest=%lf",beats,pos1,pos,period,rest);
         clockPulse.trigger(float(period)*pwm*(1-swing));
       }
     } else {
       double rest=fmod(time,period);
       if(rest<sampleTime) {
-        //INFO("trigger beat beats=%d pos=%d period=%f rest=%lf",beats,pos,period,rest);
         clockPulse.trigger(float(period)*pwm*(1+swing));
       }
     }
@@ -54,15 +53,13 @@ struct PwmClock : Module {
   enum LightId {
     LIGHTS_LEN
   };
-  std::vector<std::string> labels={"16/1 (/64)","8/1 (/32)","4/1 (/16)","2/1 (/8)","1/1 (/4)","3/4 (/3)","1/2 (/2)","3/8 (/1.5)","1/3 (4/3)","1/4 (x1 Beat)","3/16 (x1.5)","1/6","1/8 x2","3/32 x2.5","1/12","1/16 (x4)","3/64","1/24 x6","1/32 (x8)","3/128","1/48 (x12)","1/64 (x16)","1/128 (x32)"};
-  float ticks[23]={16*4,8*4,4*4,2*4,4,0.75*4,0.5*4,0.375*4,4/3.f,0.25*4,0.1875*4,4.f/6.f,0.125*4,0.09375*4,1.f/3.f,0.0625*4,0.046875*4,1/6.f,0.03125*4,0.0234375*4,1/12.f,0.015625*4,0.015625*2};
+  std::vector<std::string> labels={"16/1 (/64)","8/1 (/32)","4/1 (/16)","2/1 (/8)","1/1 (/4)","3/4 (/3)","1/2 (/2)","3/8 (/1.5)","1/3 (4/3)","1/4 (x1 Beat)","3/16 (x1.5)","1/6","1/8 x2","3/32 x2.5","1/12","1/16 (x4)","3/64","1/24 x6","1/32 (x8)","3/128","1/48 (x12)","1/64 (x16)","1/96 (x24)","1/128 (x32)"};
+  float ticks[24]={16*4,8*4,4*4,2*4,4,0.75*4,0.5*4,0.375*4,4/3.f,0.25*4,0.1875*4,4.f/6.f,0.125*4,0.09375*4,1.f/3.f,0.0625*4,0.046875*4,1/6.f,0.03125*4,0.0234375*4,1/12.f,0.015625*4,1/24.f,0.015625*2};
 
   Clock clocks[NUM_CLOCKS];
   dsp::SchmittTrigger resetTrigger;
   dsp::SchmittTrigger onTrigger;
-  dsp::SchmittTrigger onInputTrigger;
   dsp::SchmittTrigger resetInputTrigger;
-  dsp::SchmittTrigger pulseTrigger;
   dsp::PulseGenerator rstPulse;
   dsp::ClockDivider bpmParamDivider;
   float sampleRate=0;
@@ -78,7 +75,7 @@ struct PwmClock : Module {
     configButton(RUN_PARAM,"Run");
     configButton(RST_PARAM,"Reset");
     for(int k=0;k<NUM_CLOCKS;k++) {
-      configSwitch(RATIO_PARAM+k,0,22,15,"Ratio "+std::to_string(k+1),labels);
+      configSwitch(RATIO_PARAM+k,0,23,15,"Ratio "+std::to_string(k+1),labels);
       getParamQuantity(RATIO_PARAM+k)->snapEnabled=true;
       configParam(PWM_PARAM+k,0,1,0.5,"PW "+std::to_string(k+1));
       configParam(SWING_PARAM+k,0,0.5,0,"Swing "+std::to_string(k+1),"%",0,100);
@@ -149,7 +146,7 @@ struct PwmClock : Module {
       } else {
         if(inputs[BPM_INPUT].isConnected()) {
           float freq=powf(2,clamp(inputs[BPM_INPUT].getVoltage(),-1.f,2.f));
-          getParamQuantity(BPM_PARAM)->setValue(freq*60.f);
+          getParamQuantity(BPM_PARAM)->setValue(freq*120.f);
         }
         updateBpm(args.sampleRate);
         outputs[BPM_OUTPUT].setVoltage(log2f(params[BPM_PARAM].getValue()/60.f));
@@ -181,9 +178,11 @@ struct PwmClock : Module {
 
     if(on) {
       for(int k=0;k<NUM_CLOCKS;k++) {
-        float pwm=getPwm(k);
-        float swing=params[SWING_PARAM+k].getValue();
-        outputs[CLK_OUTPUT+k].setVoltage(clocks[k].process(pwm,args.sampleRate,swing,pos)?10.f:0.f);
+        if(outputs[CLK_OUTPUT+k].isConnected()) {
+          float pwm=getPwm(k);
+          float swing=params[SWING_PARAM+k].getValue();
+          outputs[CLK_OUTPUT+k].setVoltage(clocks[k].process(pwm,args.sampleRate,swing,pos)?10.f:0.f);
+        }
       }
     } else {
       for(int k=0;k<NUM_CLOCKS;k++) {
@@ -217,11 +216,11 @@ struct PwmClock : Module {
 };
 
 struct RatioKnob : TrimbotWhite {
-  PwmClock *module;
-  int nr;
+  PwmClock *module=nullptr;
+  int nr=0;
 
   void onChange(const ChangeEvent &e) override {
-    SVGKnob::onChange(e);
+    SvgKnob::onChange(e);
     if(module)
       module->updateRatio(nr);
   }
@@ -252,7 +251,7 @@ struct BpmDisplay : OpaqueWidget {
     nvgFontFaceId(args.vg,font->handle);
     nvgFontSize(args.vg,20);
     nvgTextAlign(args.vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
-    nvgText(args.vg,box.size.x/2,box.size.y/2,text.c_str(),NULL);
+    nvgText(args.vg,box.size.x/2,box.size.y/2,text.c_str(),nullptr);
   }
 };
 
@@ -288,7 +287,7 @@ struct TimeDisplay : OpaqueWidget {
     nvgFontFaceId(args.vg,font->handle);
     nvgFontSize(args.vg,13);
     nvgTextAlign(args.vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
-    nvgText(args.vg,0,box.size.y/2,text.c_str(),NULL);
+    nvgText(args.vg,0,box.size.y/2,text.c_str(),nullptr);
 
   }
 
@@ -299,7 +298,7 @@ struct RatioDisplay : OpaqueWidget {
   int nr;
 
   std::basic_string<char> fontPath;
-  std::vector<std::string> labels={"16/1","8/1","4/1","2/1","1/1","3/4","1/2","3/8","1/3","1/4","3/16","1/6","1/8","3/32","1/12","1/16","3/64","1/24","1/32","3/128","1/48","1/64","1/128"};
+  std::vector<std::string> labels={"16/1","8/1","4/1","2/1","1/1","3/4","1/2","3/8","1/3","1/4","3/16","1/6","1/8","3/32","1/12","1/16","3/64","1/24","1/32","3/128","1/48","1/64","1/96","1/128"};
 
   RatioDisplay(PwmClock *_module,int _nr) : OpaqueWidget(),module(_module),nr(_nr) {
     fontPath=asset::plugin(pluginInstance,"res/FreeMonoBold.ttf");
@@ -322,7 +321,7 @@ struct RatioDisplay : OpaqueWidget {
     nvgFontFaceId(args.vg,font->handle);
     nvgFontSize(args.vg,9);
     nvgTextAlign(args.vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
-    nvgText(args.vg,0,box.size.y/2,text.c_str(),NULL);
+    nvgText(args.vg,0,box.size.y/2,text.c_str(),nullptr);
   }
 };
 
