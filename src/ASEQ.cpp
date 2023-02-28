@@ -58,7 +58,7 @@ struct ASEQ : Module {
     getParamQuantity(LEN_PARAM)->snapEnabled=true;
     configParam(DENS_PARAM,2,16,16,"Density");
     getParamQuantity(DENS_PARAM)->snapEnabled=true;
-    configParam(RANGE_PARAM,0.1,10,2,"CV Range");
+    configParam(RANGE_PARAM,0.1,4,2,"CV Range");
     configParam(HOLD_PARAM,0,1,0,"Hold","%",0,100);
     configParam(ADD_PARAM,0,6,1,"Add Gate");
     getParamQuantity(ADD_PARAM)->snapEnabled=true;
@@ -189,6 +189,9 @@ struct ASEQ : Module {
   void process(const ProcessArgs &args) override {
     int len=int(getValue(LEN_PARAM));
     int dens=clamp(int(getValue(DENS_PARAM)),0,len);
+    float range=std::min(params[RANGE_PARAM].getValue(),getParamQuantity(CV_PARAMS)->getMaxValue());
+    pmin=range;
+    pmax=-range;
     bool excl=true;
     if(setTrigger.process(inputs[SET_TRIG_INPUT].getVoltage())|setMTrigger.process(params[SET_TRIG_PARAM].getValue())) {
       for(int k=0;k<NUM_STEPS;k++) {
@@ -221,7 +224,19 @@ struct ASEQ : Module {
       changeNote(len);
     }
     outputs[GATE_OUTPUT].setVoltage(gates[pos]?inputs[CLK_INPUT].getVoltage():0.f);
-    outputs[CV_OUTPUT].setVoltage(cv[pos]);
+    float out=cv[pos];
+    if(quantize) {
+      out=std::round(out*12.f)/12.f;
+    }
+    outputs[CV_OUTPUT].setVoltage(out);
+  }
+
+
+  void fromJson(json_t *root) override {
+    min=-3.f;
+    max=3.f;
+    reconfig();
+    Module::fromJson(root);
   }
 
   json_t *dataToJson() override {
@@ -237,6 +252,10 @@ struct ASEQ : Module {
     json_object_set_new(data,"gates",gateList);
     json_object_set_new(data,"gates1",gate1List);
     json_object_set_new(data,"cv",cvList);
+    json_object_set_new(data,"min",json_real(min));
+    json_object_set_new(data,"max",json_real(max));
+    json_object_set_new(data,"quantize",json_integer(quantize));
+
     return data;
   }
 
@@ -251,6 +270,32 @@ struct ASEQ : Module {
       gates1[j]=json_boolean_value(gate1);
       json_t *jcv=json_array_get(jCvList,j);
       cv[j]=json_real_value(jcv);
+    }
+    json_t *jMin=json_object_get(rootJ,"min");
+    if(jMin) {
+      min=json_real_value(jMin);
+    }
+
+    json_t *jMax=json_object_get(rootJ,"max");
+    if(jMax) {
+      max=json_real_value(jMax);
+    }
+    json_t *jQuantize=json_object_get(rootJ,"quantize");
+    if(jQuantize) {
+      quantize=json_integer_value(jQuantize);
+    }
+    reconfig();
+  }
+  void reconfig() {
+    for(int nr=0;nr<16;nr++) {
+      float value=getParamQuantity(CV_PARAMS+nr)->getValue();
+      if(value>max)
+        value=max;
+      if(value<min)
+        value=min;
+      configParam(CV_PARAMS+nr,min,max,0,"CV "+std::to_string(nr+1));
+      getParamQuantity(CV_PARAMS+nr)->setValue(value);
+      dirty=16;
     }
   }
 };
@@ -374,6 +419,11 @@ struct ASEQKnob : Knob {
   }
   void step() override {
     fb->dirty=true;
+    if(module&&module->dirty) {
+      ChangeEvent c;
+      onChange(c);
+      module->dirty--;
+    }
     Knob::step();
   }
   void onButton(const event::Button &e) override {
@@ -444,6 +494,29 @@ struct ASEQWidget : ModuleWidget {
     }
 
   }
+
+  void appendContextMenu(Menu *menu) override {
+    ASEQ *module=dynamic_cast<ASEQ *>(this->module);
+    assert(module);
+    menu->addChild(new MenuSeparator);
+    std::vector <MinMaxRange> ranges={{-4,4},{-3,3},
+                                      {-2,2},
+                                      {-1,1},
+                                      {0,1},
+                                      {0,2}};
+    auto rangeSelectItem=new RangeSelectItem<ASEQ>(module,ranges);
+    rangeSelectItem->text="Range";
+    rangeSelectItem->rightText=string::f("%0.1f/%0.1fV",module->min,module->max)+"  "+RIGHT_ARROW;
+    menu->addChild(rangeSelectItem);
+    menu->addChild(createCheckMenuItem("Quantize", "",
+                                       [=]() {return module->quantize;},
+                                       [=]() { module->quantize=!module->quantize;}));
+
+    //menu->addChild(new RandomizeItem(module,RNDCV,"Randomize CV"));
+    //menu->addChild(new RandomizeItem(module,RNDBUS,"Randomize Bus"));
+    //menu->addChild(new RandomizeItem(module,RNDLOAD,"Randomize Load"));
+  }
+
 };
 
 
