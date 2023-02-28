@@ -307,6 +307,22 @@
       "tags": [
         "Sequencer"
       ]
+    },
+    {
+      "slug": "ASEQ",
+      "name": "ASEQ",
+      "description": "A sequencer with fine grained random variations",
+      "tags": [
+        "Sequencer"
+      ]
+    },
+    {
+      "slug": "TXVI",
+      "name": "TXVI",
+      "description": "A 16 step sequencer, sequential switch, clock divider, s&h etc. ",
+      "tags": [
+        "Sequencer"
+      ]
     }
   ]
 }
