@@ -685,6 +685,36 @@ Note that in the Exact mode (exact hits) the Skew,Rotate and Degree parameters s
 fit together to get overall some hits, e.g. could be integers.
 
 ## Some further sequencers
+
+### ASEQ
+![](images/ASEQ.png?raw=true)
+
+
+ASEQ is a 16-step sequencer with some fine-grained possibilities for random variation over time.
+
+- It can be used as normal 16 step sequencer by setting the knob values. 
+  Clicking on a knob toggles the state of the step (active=gate or inactive=no gate).
+- The length of the sequence can be set using the Len parameter.
+- When clicking on Dice or there is a trigger on the dice input then the sequence is changed in the following way:
+  - The dens parameter sets the number of active steps. These active steps are placed randomly in the sequence.
+  - The hold value sets the percentage of how many knob values of steps are kept.
+  - Based on this number the steps to be changed are randomly selected and changed using the Range parameter.
+- When clicking on Var or there is a trigger on the Var input a variation of the active/inactive steps is generated.
+  - The parameter Add sets the number of active steps to be added and rthe Rm parameter sets the number of active steps to be inactive.
+  - i.e. if Add=1 and Rm=1 then one randomly selected active step is set to inactive, then some inactive step is set to be active.
+- When clicking on the Mod or a trigger is retrieved on the Mod input, then N randomly selected values are changed where N is the number set in the No parameter.
+- Rst resets the sequence to step 1 and recovers the last edited or diced sequence, i.e. all variations and modulations are rolled back.
+- Set "stores" a sequence to be recalled with a reset.
+- The Voltage Range of the Knob can be set in the menu.
+- The values can also be quantized to semi-tones if set in the menu. 
+
+### TXVI
+![](images/TXVI.png?raw=true)
+
+TXVI is a 16 step sequential or voltage addressable switch which also can be used as sequencer, track and hold, sample and hold.
+
+
+
 ### Carambol
 ![](images/Carambol.png?raw=true)
 

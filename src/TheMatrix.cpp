@@ -37,16 +37,20 @@ struct Matrix {
     clip.sizeX=x1-x0+1;
     int x=0;
     int y=0;
+    std::string text;
     for(int k=y0;k<=y1;k++) {
       for(int j=x0;j<=x1;j++) {
         clip.grid[y][x]=grid[k][j];
+        text+=clip.grid[y][x];
         if(del)
           grid[k][j]=32;
         x++;
       }
       y++;
+      text+="\n";
       x=0;
     }
+    glfwSetClipboardString(APP->window->win, text.c_str());
   }
 
   void cut(int posY,int posX,int selY,int selX) {
