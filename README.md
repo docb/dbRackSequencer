@@ -3,10 +3,13 @@
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
+New modules in 2.2.1: [ASEQ](#aseq), [TXVI](#txvi)
+
 New modules in 2.2.0 [PMod](#pmod),[Carambol](#carambol)
 
 New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa), [CCA](#cca), [CCA2](#cca2),
 [Ant](#ant), [TME](#tme), [SigMod](#sigmod), [MouseSeq](#mouseseq), [Preset](#preset), [CDiv](#cdiv), [CSR](#csr)
+
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -46,6 +49,8 @@ New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa)
   - [CYC](#cyc)
   - [N3](#n3)
 - [Some further sequencers](#some-further-sequencers)
+  - [ASEQ](#aseq)
+  - [TXVI](#txvi)
   - [Carambol](#carambol)
   - [TME](#tme)
   - [SigMod](#sigmod)
