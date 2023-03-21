@@ -43,7 +43,11 @@ struct M16S : Module {
             outputs[R_OUTPUT].setVoltage(inputs[k*2+1].getVoltage(),k);
           }
         } else {
-          outputs[R_OUTPUT].setVoltage(inputs[k*2].getVoltage(),k);
+          if(inputs[k*2].getChannels()>1 && mergePoly) {
+            outputs[R_OUTPUT].setVoltage(inputs[k*2].getVoltageSum(),k);
+          } else {
+            outputs[R_OUTPUT].setVoltage(inputs[k*2].getVoltage(),k);
+          }
         }
       } else {
         outputs[L_OUTPUT].setVoltage(0.f,k);
