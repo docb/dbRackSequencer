@@ -3,7 +3,7 @@
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
-New modules in 2.2.1: [ASEQ](#aseq), [TXVI](#txvi)
+New modules in 2.2.2: [ASEQ](#aseq), [TXVI](#txvi),[M16](#m16), [S16](#s16), [M16S](#m16s)
 
 New modules in 2.2.0 [PMod](#pmod),[Carambol](#carambol)
 
@@ -62,6 +62,9 @@ New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa)
   - [PwmClock](#pwmclock)
   - [CDiv](#cdiv)
   - [CSR](#csr)
+  - [M16](#m16)
+  - [S16](#s16)
+  - [M16S](#m16s)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
