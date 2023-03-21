@@ -323,6 +323,33 @@
       "tags": [
         "Sequencer"
       ]
+    },
+    {
+      "slug": "M16",
+      "name": "M16",
+      "description": "Merge 16 channels into polyphonic output",
+      "tags": [
+        "Polyphonic",
+        "Utility"
+      ]
+    },
+    {
+      "slug": "S16",
+      "name": "S16",
+      "description": "Split polyphonic input to 16 output channels",
+      "tags": [
+        "Polyphonic",
+        "Utility"
+      ]
+    },
+    {
+      "slug": "M16S",
+      "name": "M16S",
+      "description": "Merge stereo input channels into polyphonic stereo output",
+      "tags": [
+        "Polyphonic",
+        "Utility"
+      ]
     }
   ]
 }

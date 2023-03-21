@@ -41,6 +41,9 @@ extern Model* modelCarambol;
 extern Model* modelPMod;
 extern Model* modelASEQ;
 extern Model* modelTXVI;
+extern Model* modelM16;
+extern Model* modelS16;
+extern Model* modelM16S;
 
 void init(Plugin *p) {
   pluginInstance=p;
@@ -83,6 +86,9 @@ void init(Plugin *p) {
   p->addModel(modelPMod);
   p->addModel(modelASEQ);
   p->addModel(modelTXVI);
+  p->addModel(modelM16);
+  p->addModel(modelS16);
+  p->addModel(modelM16S);
 }
 
 void SmallButtonWithLabel::draw(const Widget::DrawArgs &args) {

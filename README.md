@@ -718,6 +718,22 @@ ASEQ is a 16-step sequencer with some fine-grained possibilities for random vari
 
 TXVI is a 16 step sequential or voltage addressable switch which also can be used as sequencer, track and hold, sample and hold.
 
+- If IN is not connected it is normalized to 10 V. In this mode TCVI can be used as 16 step sequencer by using the Scan output.
+- As long a high gate is present on the pause input, the sequence is stopped/paused.
+- As long a high gate is present on the rev input, the sequence is advanced in reverse direction.
+- The sequencer is voltage addressable via the Addr input (16 steps = 0-10V)
+- The SAdr output delivers te current step in a 0-10V range.
+- The Step output triggers whenever the sequence is advanced.
+- The Scan output delivers the voltage of the current step.
+- There are two input operation modes configurable in the menu:
+  - Track (default): If IN is connected then the output of the current step (or Scan) tracks the incoming signal
+  - Sample: If IN is connected then the output of the current step samples the incoming signal
+- There are two output modes configurable in the menu:
+  - Solo (default): All outputs which are not active via the current step are set to zero
+  - All: The outputs always deliver their last tracked or sampled value.
+- The IN input tracks and samples also a polyphonic signal which is reflected on the Outputs and the Scan output.
+- Although the sequence can be shortened vi connecting a gate output to the Rst input, there is a Len parameter which does
+  the same thing and the Rst input can be used otherwise.
 
 
 ### Carambol
@@ -879,3 +895,20 @@ The dividers are always in sync even while changing the division.
 ![](images/CSR.png?raw=true)
 
 A 16 value shift register (used also in SigMod).
+
+### M16
+![](images/M16.png?raw=true)
+
+A 2HP module to merge 16 mono channels into a poly output.
+
+### S16
+![](images/S16.png?raw=true)
+
+A 2HP module to split a polyphonic input into 16 mono outputs.
+
+### M16S
+Like M16 but it provides stereo inputs and outputs. The left inputs are normalized to the right if not connected.
+Additionally, if an input has more than one channel it is summed up (can be turned off in the menu).
+Can be used as stereo mixer like this:
+
+![](images/mastermix.png?raw=true)
