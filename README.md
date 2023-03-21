@@ -68,6 +68,7 @@ New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+See also the demo patches on [PatchStorage](https://patchstorage.com/author/docb/) or on [youtube](https://www.youtube.com/@docb7593)
 
 ## Voltage addressable Sequencers
 
@@ -132,7 +133,6 @@ If the step param is set to 0.1V ACC can be used to drive AG, Chords, Faders, P1
 - The Auto-Channel option causes the outputs only have as many channels as key buttons are pressed. In this case the Polyphonic Channels setting is ignored.
 - Clicking The menu "Insert Chord" causes inserting an empty chord and moving the following chords one to the right. The last chord is removed.
 - Clicking The menu "Delete Chord" causes removes the current chord by moving all following chords one to the left.
-(Note: currently there are wrong labels - "Insert Pattern" and "Delete Pattern")
 
 The ACC module can be used to drive a chord sequence.
 
@@ -700,7 +700,7 @@ fit together to get overall some hits, e.g. could be integers.
 
 ASEQ is a 16-step sequencer with some fine-grained possibilities for random variation over time.
 
-- It can be used as normal 16 step sequencer by setting the knob values. 
+- It can be used as normal 16-step sequencer by setting the knob values. 
   Clicking on a knob toggles the state of the step (active=gate or inactive=no gate).
 - The length of the sequence can be set using the Len parameter.
 - When clicking on Dice or there is a trigger on the dice input then the sequence is changed in the following way:
@@ -708,12 +708,12 @@ ASEQ is a 16-step sequencer with some fine-grained possibilities for random vari
   - The hold value sets the percentage of how many knob values of steps are kept.
   - Based on this number the steps to be changed are randomly selected and changed using the Range parameter.
 - When clicking on Var or there is a trigger on the Var input a variation of the active/inactive steps is generated.
-  - The parameter Add sets the number of active steps to be added and rthe Rm parameter sets the number of active steps to be inactive.
+  - The parameter Add sets the number of active steps to be added and the Rm parameter sets the number of active steps to be inactive.
   - i.e. if Add=1 and Rm=1 then one randomly selected active step is set to inactive, then some inactive step is set to be active.
 - When clicking on the Mod or a trigger is retrieved on the Mod input, then N randomly selected values are changed where N is the number set in the No parameter.
 - Rst resets the sequence to step 1 and recovers the last edited or diced sequence, i.e. all variations and modulations are rolled back.
 - Set "stores" a sequence to be recalled with a reset.
-- The Voltage Range of the Knob can be set in the menu.
+- The voltage range of the knobs can be set in the menu.
 - The values can also be quantized to semi-tones if set in the menu. 
 
 ### TXVI
@@ -725,7 +725,7 @@ TXVI is a 16 step sequential or voltage addressable switch which also can be use
 - As long a high gate is present on the pause input, the sequence is stopped/paused.
 - As long a high gate is present on the rev input, the sequence is advanced in reverse direction.
 - The sequencer is voltage addressable via the Addr input (16 steps = 0-10V)
-- The SAdr output delivers te current step in a 0-10V range.
+- The SAdr output delivers the current step in a 0-10V range.
 - The Step output triggers whenever the sequence is advanced.
 - The Scan output delivers the voltage of the current step.
 - There are two input operation modes configurable in the menu:
@@ -734,8 +734,8 @@ TXVI is a 16 step sequential or voltage addressable switch which also can be use
 - There are two output modes configurable in the menu:
   - Solo (default): All outputs which are not active via the current step are set to zero
   - All: The outputs always deliver their last tracked or sampled value.
-- The IN input tracks and samples also a polyphonic signal which is reflected on the Outputs and the Scan output.
-- Although the sequence can be shortened vi connecting a gate output to the Rst input, there is a Len parameter which does
+- The IN input tracks and samples also a polyphonic signal which is reflected on the outputs and the Scan output.
+- Although the sequence can be shortened via connecting a gate output to the Rst input, there is a Len parameter which does
   the same thing and the Rst input can be used otherwise.
 
 
