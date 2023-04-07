@@ -23,6 +23,7 @@ extern Model* modelSE;
 extern Model* modelUno;
 extern Model* modelUnoE;
 extern Model* modelTheMatrix;
+extern Model* modelTheMatrix4;
 extern Model* modelN3;
 extern Model* modelCCA;
 extern Model* modelCCA2;
@@ -68,6 +69,7 @@ void init(Plugin *p) {
 	p->addModel(modelUno);
 	p->addModel(modelUnoE);
 	p->addModel(modelTheMatrix);
+  p->addModel(modelTheMatrix4);
 	p->addModel(modelN3);
   p->addModel(modelCCA);
   p->addModel(modelCCA2);

@@ -2,15 +2,17 @@
 #include "rnd.h"
 
 #define MAX_SIZE 32
-
+//#define MAX_SIZE_X 4
+//#define MAX_SIZE_Y 32
+template<size_t MAX_SIZE_X,size_t MAX_SIZE_Y>
 struct SubMatrix {
-  char grid[MAX_SIZE][MAX_SIZE];
+  char grid[MAX_SIZE_Y][MAX_SIZE_X];
   int sizeX;
   int sizeY;
 
   void clear() {
-    for(int k=0;k<MAX_SIZE;k++) {
-      for(int j=0;j<MAX_SIZE;j++) {
+    for(int k=0;k<MAX_SIZE_Y;k++) {
+      for(int j=0;j<MAX_SIZE_X;j++) {
         grid[k][j]=32;
       }
     }
@@ -18,10 +20,11 @@ struct SubMatrix {
 
 };
 
+template<size_t MAX_SIZE_X,size_t MAX_SIZE_Y>
 struct Matrix {
   RND rnd;
-  char grid[MAX_SIZE][MAX_SIZE];
-  SubMatrix clip;
+  char grid[MAX_SIZE_Y][MAX_SIZE_X];
+  SubMatrix<MAX_SIZE_X,MAX_SIZE_Y> clip;
 
   Matrix() {
     clear();
@@ -60,7 +63,7 @@ struct Matrix {
   void paste(int posY,int posX) {
     for(int k=0;k<clip.sizeY;k++) {
       for(int j=0;j<clip.sizeX;j++) {
-        if(posY+k<MAX_SIZE&&posX+j<MAX_SIZE)
+        if(posY+k<MAX_SIZE_Y&&posX+j<MAX_SIZE_X)
           grid[posY+k][posX+j]=clip.grid[k][j];
       }
     }
@@ -83,8 +86,8 @@ struct Matrix {
 
 
   void clear() {
-    for(int k=0;k<MAX_SIZE;k++) {
-      for(int j=0;j<MAX_SIZE;j++) {
+    for(int k=0;k<MAX_SIZE_Y;k++) {
+      for(int j=0;j<MAX_SIZE_X;j++) {
         grid[k][j]=32;
       }
     }
@@ -96,8 +99,8 @@ struct Matrix {
 
   std::string toString() {
     std::string ret;
-    for(int k=0;k<MAX_SIZE;k++) {
-      for(int j=0;j<MAX_SIZE;j++) {
+    for(int k=0;k<MAX_SIZE_Y;k++) {
+      for(int j=0;j<MAX_SIZE_X;j++) {
         ret+=get(k,j);
       }
     }
@@ -107,17 +110,17 @@ struct Matrix {
   void fromString(std::string s) {
     clear();
     for(unsigned k=0;k<s.length();k++) {
-      set(k/MAX_SIZE,k%MAX_SIZE,s[k]);
+      set(k/MAX_SIZE_X,k%MAX_SIZE_X,s[k]);
     }
   }
 
   void randomize(float dens,int from,int to) {
-    for(int x=0;x<MAX_SIZE;x++) {
-      for(int y=0;y<MAX_SIZE;y++) {
+    for(int y=0;y<MAX_SIZE_Y;y++) {
+      for(int x=0;x<MAX_SIZE_X;x++) {
         if(rnd.nextCoin(1.0-dens)) {
-          grid[x][y]=rnd.nextRange(from,to);
+          grid[y][x]=rnd.nextRange(from,to);
         } else {
-          grid[x][y]=32;
+          grid[y][x]=32;
         }
       }
     }
@@ -136,6 +139,7 @@ struct Matrix {
 
 };
 
+template<size_t MAX_SIZE_X,size_t MAX_SIZE_Y>
 struct TheMatrix : Module {
   enum ParamId {
     CV_X_PARAM,CV_Y_PARAM,DENS_PARAM,RND_PARAM,LEVEL_PARAM,FROM_PARAM,TO_PARAM,PARAMS_LEN
@@ -150,7 +154,7 @@ struct TheMatrix : Module {
     LIGHTS_LEN
   };
 
-  Matrix m;
+  Matrix<MAX_SIZE_X,MAX_SIZE_Y> m;
   int curRow[16]={};
   int curCol[16]={};
   int channels=0;
@@ -168,9 +172,9 @@ struct TheMatrix : Module {
 
   TheMatrix() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
-    configParam(CV_X_PARAM,0,MAX_SIZE-1,0,"X");
+    configParam(CV_X_PARAM,0,MAX_SIZE_X-1,0,"X");
     getParamQuantity(CV_X_PARAM)->snapEnabled=true;
-    configParam(CV_Y_PARAM,0,MAX_SIZE-1,0,"Y");
+    configParam(CV_Y_PARAM,0,MAX_SIZE_Y-1,0,"Y");
     getParamQuantity(CV_Y_PARAM)->snapEnabled=true;
     configParam(DENS_PARAM,0,1,0.9,"Random Density");
     configParam(LEVEL_PARAM,0.01,1,0.1,"Out Level Factor");
@@ -221,30 +225,30 @@ struct TheMatrix : Module {
     if(inputs[CV_X_INPUT].isConnected()) {
       channelsX=inputs[CV_X_INPUT].getChannels();
       for(int chn=0;chn<16;chn++) {
-        int index=int(inputs[CV_X_INPUT].getVoltage(chn)/10.f*float(MAX_SIZE));
+        int index=int(inputs[CV_X_INPUT].getVoltage(chn)/10.f*float(MAX_SIZE_X));
         index+=params[CV_X_PARAM].getValue();
         while(index<0)
-          index+=MAX_SIZE;
-        index%=MAX_SIZE;
+          index+=MAX_SIZE_X;
+        index%=MAX_SIZE_X;
         curCol[chn]=index;
       }
     } else {
-      curCol[0]=(int(params[CV_X_PARAM].getValue())%MAX_SIZE);
+      curCol[0]=(int(params[CV_X_PARAM].getValue())%MAX_SIZE_X);
       for(int chn=1;chn<16;chn++) curCol[chn]=0;
     }
     int channelsY=0;
     if(inputs[CV_Y_INPUT].isConnected()) {
       channelsY=inputs[CV_Y_INPUT].getChannels();
       for(int chn=0;chn<16;chn++) {
-        int index=int(inputs[CV_Y_INPUT].getVoltage(chn)/10.f*float(MAX_SIZE));
+        int index=int(inputs[CV_Y_INPUT].getVoltage(chn)/10.f*float(MAX_SIZE_Y));
         index+=params[CV_Y_PARAM].getValue();
         while(index<0)
-          index+=MAX_SIZE;
-        index%=MAX_SIZE;
+          index+=MAX_SIZE_Y;
+        index%=MAX_SIZE_Y;
         curRow[chn]=index;
       }
     } else {
-      curRow[0]=(int(params[CV_Y_PARAM].getValue())%MAX_SIZE);
+      curRow[0]=(int(params[CV_Y_PARAM].getValue())%MAX_SIZE_Y);
       for(int chn=1;chn<16;chn++) curRow[chn]=0;
     }
     channels=std::max(std::max(channelsX,channelsY),1);
@@ -307,8 +311,9 @@ struct TheMatrix : Module {
 
 };
 
+template<size_t MAX_SIZE_X,size_t MAX_SIZE_Y>
 struct MatrixDisplay : OpaqueWidget {
-  TheMatrix *theMatrix=nullptr;
+  TheMatrix<MAX_SIZE_X,MAX_SIZE_Y> *theMatrix=nullptr;
   std::basic_string<char> fontPath;
   const int cellXSize=11;
   const int cellYSize=11;
@@ -323,9 +328,9 @@ struct MatrixDisplay : OpaqueWidget {
   NVGcolor chnColors[16]={nvgRGB(200,0,0),nvgRGB(0,160,0),nvgRGB(55,55,200),nvgRGB(200,200,0),nvgRGB(200,0,200),nvgRGB(0,200,200),nvgRGB(128,0,0),nvgRGB(196,85,55),nvgRGB(128,128,80),nvgRGB(255,128,0),nvgRGB(255,0,128),nvgRGB(0,128,255),nvgRGB(128,66,128),nvgRGB(100,200,0),nvgRGB(128,128,255),nvgRGB(128,200,200)};
   json_t *oldModuleJson;
 
-  MatrixDisplay(TheMatrix *module,Vec pos) : theMatrix(module) {
+  MatrixDisplay(TheMatrix<MAX_SIZE_X,MAX_SIZE_Y> *module,Vec pos) : theMatrix(module) {
     fontPath=asset::plugin(pluginInstance,"res/FreeMonoBold.ttf");
-    box.size=Vec(MAX_SIZE*cellXSize+margin*2,MAX_SIZE*cellYSize+margin*2);
+    box.size=Vec(MAX_SIZE_X*cellXSize+margin*2,MAX_SIZE_Y*cellYSize+margin*2);
     box.pos=pos;
   }
 
@@ -398,8 +403,8 @@ struct MatrixDisplay : OpaqueWidget {
     nvgRect(args.vg,0,0,box.size.x,box.size.y);
     nvgFill(args.vg);
 
-    for(int k=0;k<MAX_SIZE;k++) {
-      for(int j=0;j<MAX_SIZE;j++) {
+    for(int k=0;k<MAX_SIZE_Y;k++) {
+      for(int j=0;j<MAX_SIZE_X;j++) {
         std::vector<int> selected=theMatrix->getSelected(k,j);
         NVGcolor color;
         if(selected.size()>0) {
@@ -424,7 +429,7 @@ struct MatrixDisplay : OpaqueWidget {
   void goLeft(bool updateSelect=true) {
     if(posX==0) {
       if(posY>0) {
-        posX=MAX_SIZE-1;
+        posX=MAX_SIZE_X-1;
         posY--;
       }
     } else {
@@ -437,7 +442,7 @@ struct MatrixDisplay : OpaqueWidget {
   }
 
   void goDown(int x) {
-    if(posY<MAX_SIZE-1) {
+    if(posY<MAX_SIZE_Y-1) {
       posX=x;
       posY++;
     }
@@ -446,8 +451,8 @@ struct MatrixDisplay : OpaqueWidget {
   }
 
   void goRight(bool updateSelect=true) {
-    if(posX==MAX_SIZE-1) {
-      if(posY<MAX_SIZE-1) {
+    if(posX==MAX_SIZE_X-1) {
+      if(posY<MAX_SIZE_Y-1) {
         posX=0;
         posY++;
       }
@@ -462,11 +467,11 @@ struct MatrixDisplay : OpaqueWidget {
 
   void setPos(Vec mouse) {
     posX=int(mouse.x/float(cellXSize));
-    if(posX>=MAX_SIZE)
-      posX=MAX_SIZE-1;
+    if(posX>=MAX_SIZE_X)
+      posX=MAX_SIZE_X-1;
     posY=int(mouse.y/float(cellYSize));
-    if(posY>=MAX_SIZE)
-      posY=MAX_SIZE-1;
+    if(posY>=MAX_SIZE_Y)
+      posY=MAX_SIZE_Y-1;
   }
 
   void onButton(const ButtonEvent &e) override {
@@ -560,7 +565,7 @@ struct MatrixDisplay : OpaqueWidget {
         e.consume(this);
       }
       if(e.key==GLFW_KEY_DOWN) {
-        if(posY<MAX_SIZE-1) {
+        if(posY<MAX_SIZE_Y-1) {
           posY++;
           if((e.mods&RACK_MOD_MASK)!=GLFW_MOD_SHIFT) {
             selY=posY;
@@ -609,7 +614,8 @@ struct MatrixDisplay : OpaqueWidget {
         e.consume(this);
       }
       if(e.key==GLFW_KEY_END) {
-        posX=posY=MAX_SIZE-1;
+        posX=MAX_SIZE_X-1;
+        posY=MAX_SIZE_Y-1;
         e.consume(this);
       }
       if(e.keyName=="v"&&(e.mods&RACK_MOD_MASK)==(RACK_MOD_CTRL|GLFW_MOD_SHIFT)) {
@@ -641,15 +647,15 @@ struct MatrixDisplay : OpaqueWidget {
     APP->event->setSelectedWidget(this);
   }
 };
-template<typename W>
+template<typename W,size_t MAX_SIZE_X,size_t MAX_SIZE_Y>
 struct RandomizeButton : MLEDM {
   W *widget;
   bool state=false;
   void onChange(const ChangeEvent &e) override {
     SvgSwitch::onChange(e);
-    auto module=(TheMatrix*)widget->getModule();
+    auto module=(TheMatrix<MAX_SIZE_X,MAX_SIZE_Y>*)widget->getModule();
     if(module) {
-      if(module->params[TheMatrix::RND_PARAM].getValue()==0 && state) {
+      if(module->params[TheMatrix<MAX_SIZE_X,MAX_SIZE_Y>::RND_PARAM].getValue()==0 && state) {
         widget->save();
         module->randomize();
         widget->pushHistory();
@@ -660,43 +666,46 @@ struct RandomizeButton : MLEDM {
     }
   }
 };
-struct TheMatrixWidget : ModuleWidget {
+
+typedef TheMatrix<32,32> Matrix32;
+
+struct TheMatrixWidget32 : ModuleWidget {
   json_t *oldModuleJson;
-  TheMatrixWidget(TheMatrix *module) {
+  TheMatrixWidget32(Matrix32 *module) {
     setModule(module);
     setPanel(createPanel(asset::plugin(pluginInstance,"res/TheMatrix.svg")));
 
-    auto matrixDisplay=new MatrixDisplay(module,mm2px(Vec(6,4)));
+    auto matrixDisplay=new MatrixDisplay<32,32>(module,mm2px(Vec(6,4)));
     addChild(matrixDisplay);
     float y=15;
     float x=132;
-    auto rndButton=createParam<RandomizeButton<TheMatrixWidget>>(mm2px(Vec(x,y)),module,TheMatrix::RND_PARAM);
+    auto rndButton=createParam<RandomizeButton<TheMatrixWidget32,32,32>>(mm2px(Vec(x,y)),module,Matrix32::RND_PARAM);
     rndButton->widget=this;
     addParam(rndButton);
-    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,TheMatrix::RND_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,Matrix32::RND_INPUT));
     y+=12;
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,TheMatrix::DENS_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,TheMatrix::DENS_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix32::DENS_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,Matrix32::DENS_INPUT));
     y+=12;
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,TheMatrix::FROM_PARAM));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(x+8,y)),module,TheMatrix::TO_PARAM));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix32::FROM_PARAM));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x+8,y)),module,Matrix32::TO_PARAM));
     y+=12;
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,TheMatrix::CV_X_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,TheMatrix::CV_X_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix32::CV_X_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,Matrix32::CV_X_INPUT));
     y+=12;
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,TheMatrix::CV_Y_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,TheMatrix::CV_Y_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix32::CV_Y_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,Matrix32::CV_Y_INPUT));
     y+=12;
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,TheMatrix::LEVEL_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,TheMatrix::LEVEL_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix32::LEVEL_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,Matrix32::LEVEL_INPUT));
     y=93;
     x=130;
-    addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,TheMatrix::TRIG_INPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y)),module,TheMatrix::TRIG_OUTPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,Matrix32::TRIG_INPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y)),module,Matrix32::TRIG_OUTPUT));
     y+=12;
-    addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,TheMatrix::VOCT_INPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y)),module,TheMatrix::GATE_OUTPUT));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y+12)),module,TheMatrix::CV_OUTPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,Matrix32::VOCT_INPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y)),module,Matrix32::GATE_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(x+12,y+12)),module,Matrix32::CV_OUTPUT));
   }
 
   void pushHistory() {
@@ -711,16 +720,97 @@ struct TheMatrixWidget : ModuleWidget {
     oldModuleJson = toJson();
   }
   void appendContextMenu(Menu *menu) override {
-    TheMatrix *module=dynamic_cast<TheMatrix *>(this->module);
+    Matrix32 *module=dynamic_cast<Matrix32 *>(this->module);
     assert(module);
     struct ClearItem : ui::MenuItem {
-      TheMatrixWidget *widget;
+      TheMatrixWidget32 *widget;
 
-      ClearItem(TheMatrixWidget *w) : widget(w) {
+      ClearItem(TheMatrixWidget32 *w) : widget(w) {
       }
 
       void onAction(const ActionEvent &e) override {
-        TheMatrix *module=(TheMatrix*)widget->module;
+        Matrix32 *module=(Matrix32*)widget->module;
+        if(!module)
+          return;
+        widget->save();
+        module->m.clear();
+        widget->pushHistory();
+      }
+    };
+    auto clearMenu=new ClearItem(this);
+    clearMenu->text="Clear";
+    menu->addChild(clearMenu);
+    std::vector<std::string> colorModeLabels={"Blue","Matrix","Grey"};
+    auto colorSelect=new LabelIntSelectItem(&module->colorMode,colorModeLabels);
+    colorSelect->text="Color Mode";
+    colorSelect->rightText=colorModeLabels[module->colorMode]+"  "+RIGHT_ARROW;
+    menu->addChild(colorSelect);
+
+  }
+};
+typedef TheMatrix<4,32> Matrix4;
+
+struct TheMatrixWidget4 : ModuleWidget {
+  json_t *oldModuleJson;
+  TheMatrixWidget4(Matrix4 *module) {
+    setModule(module);
+    setPanel(createPanel(asset::plugin(pluginInstance,"res/MMatrix.svg")));
+    auto matrixDisplay=new MatrixDisplay<4,32>(module,mm2px(Vec(4,4)));
+    addChild(matrixDisplay);
+    float y=15;
+    float x=22;
+    float x2=32;
+    auto rndButton=createParam<RandomizeButton<TheMatrixWidget4,4,32>>(mm2px(Vec(x,y)),module,Matrix4::RND_PARAM);
+    rndButton->widget=this;
+    addParam(rndButton);
+    addInput(createInput<SmallPort>(mm2px(Vec(32,y)),module,Matrix4::RND_INPUT));
+    y+=12;
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix4::DENS_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(32,y)),module,Matrix4::DENS_INPUT));
+    y+=12;
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix4::FROM_PARAM));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(32,y)),module,Matrix4::TO_PARAM));
+    y+=12;
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix4::CV_X_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(32,y)),module,Matrix4::CV_X_INPUT));
+    y+=12;
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix4::CV_Y_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(32,y)),module,Matrix4::CV_Y_INPUT));
+    y+=12;
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(x,y)),module,Matrix4::LEVEL_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(32,y)),module,Matrix4::LEVEL_INPUT));
+    y=93;
+    x=22;
+    addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,Matrix4::TRIG_INPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(32,y)),module,Matrix4::TRIG_OUTPUT));
+    y+=12;
+    addInput(createInput<SmallPort>(mm2px(Vec(x,y)),module,Matrix4::VOCT_INPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(32,y)),module,Matrix4::GATE_OUTPUT));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(32,y+12)),module,Matrix4::CV_OUTPUT));
+  }
+
+  void pushHistory() {
+    history::ModuleChange *h = new history::ModuleChange;
+    h->name = "change matrix";
+    h->moduleId = module->id;
+    h->oldModuleJ = oldModuleJson;
+    h->newModuleJ = toJson();
+    APP->history->push(h);
+  }
+  void save() {
+    oldModuleJson = toJson();
+  }
+  void appendContextMenu(Menu *menu) override {
+    Matrix4 *module=dynamic_cast<Matrix4 *>(this->module);
+    assert(module);
+    struct ClearItem : ui::MenuItem {
+      TheMatrixWidget4 *widget;
+
+      ClearItem(TheMatrixWidget4 *w) : widget(w) {
+      }
+
+      void onAction(const ActionEvent &e) override {
+        Matrix4 *module=(Matrix4*)widget->module;
         if(!module)
           return;
         widget->save();
@@ -740,5 +830,5 @@ struct TheMatrixWidget : ModuleWidget {
   }
 };
 
-
-Model *modelTheMatrix=createModel<TheMatrix,TheMatrixWidget>("TheMatrix");
+Model *modelTheMatrix=createModel<Matrix32,TheMatrixWidget32>("TheMatrix");
+Model *modelTheMatrix4=createModel<Matrix4,TheMatrixWidget4>("MMatrix");

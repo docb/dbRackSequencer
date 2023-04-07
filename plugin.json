@@ -178,6 +178,15 @@
       ]
     },
     {
+      "slug": "MMatrix",
+      "name": "\u00b5Matrix",
+      "description": "A 32x4 Grid ASCII Sequencer with up to 16 play heads",
+      "tags": [
+        "Sequencer",
+        "Polyphonic"
+      ]
+    },
+    {
       "slug": "N3",
       "name": "N3",
       "description": "A trigger sequencer",
