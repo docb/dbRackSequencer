@@ -123,17 +123,17 @@ struct CCA : Module {
   }
 
   void setCurrent(int row,int col) {
-    getParamQuantity(CV_X_PARAM)->setValue(float(col));
-    getParamQuantity(CV_Y_PARAM)->setValue(float(row));
+    getParamQuantity(CV_X_PARAM)->setImmediateValue(float(col));
+    getParamQuantity(CV_Y_PARAM)->setImmediateValue(float(row));
   }
 
   void process(const ProcessArgs &args) override {
     if(divider.process()) {
       if(inputs[F_INPUT].isConnected()) {
-        getParamQuantity(F_PARAM)->setValue(inputs[F_INPUT].getVoltage()*0.4f);
+        getParamQuantity(F_PARAM)->setImmediateValue(inputs[F_INPUT].getVoltage()*0.4f);
       }
       if(inputs[CF_INPUT].isConnected()) {
-        getParamQuantity(CF_PARAM)->setValue(inputs[CF_INPUT].getVoltage()*0.1f);
+        getParamQuantity(CF_PARAM)->setImmediateValue(inputs[CF_INPUT].getVoltage()*0.1f);
       }
       bool changed=false;
       if(inputs[POLY_0_15_INPUT].isConnected()) {

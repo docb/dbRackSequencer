@@ -675,8 +675,8 @@ struct C42 : Module {
   }
 
   void setCurrent(int row,int col) {
-    getParamQuantity(CV_X_PARAM)->setValue(float(col));
-    getParamQuantity(CV_Y_PARAM)->setValue(float(row));
+    getParamQuantity(CV_X_PARAM)->setImmediateValue(float(col));
+    getParamQuantity(CV_Y_PARAM)->setImmediateValue(float(row));
   }
 
 
@@ -735,22 +735,22 @@ struct C42 : Module {
   void _process(const ProcessArgs &args) {
 
     if(inputs[ON_INPUT].isConnected()) {
-      getParamQuantity(ON_PARAM)->setValue(inputs[ON_INPUT].getVoltage()>1.f);
+      getParamQuantity(ON_PARAM)->setImmediateValue(inputs[ON_INPUT].getVoltage()>1.f);
     }
     if(inputs[CV_ON_X_INPUT].isConnected()) {
-      getParamQuantity(CV_ON_X_PARAM)->setValue(inputs[CV_ON_X_INPUT].getVoltage()>1.f);
+      getParamQuantity(CV_ON_X_PARAM)->setImmediateValue(inputs[CV_ON_X_INPUT].getVoltage()>1.f);
     }
     if(inputs[CV_ON_Y_INPUT].isConnected()) {
-      getParamQuantity(CV_ON_Y_PARAM)->setValue(inputs[CV_ON_Y_INPUT].getVoltage()>1.f);
+      getParamQuantity(CV_ON_Y_PARAM)->setImmediateValue(inputs[CV_ON_Y_INPUT].getVoltage()>1.f);
     }
     if(inputs[RND_INPUT].isConnected()) {
-      getParamQuantity(RND_PARAM)->setValue(inputs[RND_INPUT].getVoltage()>1.f);
+      getParamQuantity(RND_PARAM)->setImmediateValue(inputs[RND_INPUT].getVoltage()>1.f);
     }
     if(inputs[DENS_INPUT].isConnected()) {
-      getParamQuantity(DENS_PARAM)->setValue(inputs[DENS_INPUT].getVoltage()/10.f);
+      getParamQuantity(DENS_PARAM)->setImmediateValue(inputs[DENS_INPUT].getVoltage()/10.f);
     }
     if(inputs[LEVEL_INPUT].isConnected()) {
-      getParamQuantity(LEVEL_PARAM)->setValue(inputs[LEVEL_INPUT].getVoltage()/5.f);
+      getParamQuantity(LEVEL_PARAM)->setImmediateValue(inputs[LEVEL_INPUT].getVoltage()/5.f);
     }
     int channelsX=0;
     if(inputs[CV_X_INPUT].isConnected()&&params[CV_ON_X_PARAM].getValue()>0.f) {

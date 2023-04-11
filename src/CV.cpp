@@ -49,7 +49,7 @@ struct CV : Module {
   }
 
   void setLevelIndex(int index) {
-    getParamQuantity(LEVEL_PARAM)->setValue(sizes[index]);
+    getParamQuantity(LEVEL_PARAM)->setImmediateValue(sizes[index]);
   }
   unsigned getLevelIndex() {
     float value = params[LEVEL_PARAM].getValue();

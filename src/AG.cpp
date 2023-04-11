@@ -35,7 +35,7 @@ struct AG : Module {
 	void process(const ProcessArgs& args) override {
     if(inputs[PAT_CV_INPUT].isConnected() && params[EDIT_PARAM].getValue() == 0) {
       int c=clamp(inputs[PAT_CV_INPUT].getVoltage(),0.f,9.99f)*float(MAX_PATS)/10.f;
-      getParamQuantity(PAT_PARAM)->setValue(c);
+      getParamQuantity(PAT_PARAM)->setImmediateValue(c);
     }
     int currentPattern=params[PAT_PARAM].getValue();
     int k=0;

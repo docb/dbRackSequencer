@@ -42,18 +42,18 @@ struct PMod : Module {
   void process(const ProcessArgs &args) override {
     if(inputs[MOD_INPUT].isConnected()) {
       int c=clamp(inputs[MOD_INPUT].getVoltage(),0.f,9.99f)*3.2f;
-      getParamQuantity(MOD_PARAM)->setValue(c);
+      getParamQuantity(MOD_PARAM)->setImmediateValue(c);
     }
     bool changed=false;
     if(inputs[OFS_INPUT].isConnected()) {
       int old=params[OFS_PARAM].getValue();
       int c=clamp(inputs[OFS_INPUT].getVoltage(),0.f,9.99f)*1.6f;
-      getParamQuantity(OFS_PARAM)->setValue(c);
+      getParamQuantity(OFS_PARAM)->setImmediateValue(c);
       changed=resetOnOffset&&(old!=c);
     }
     if(inputs[MULT_INPUT].isConnected()) {
       int c=clamp(inputs[MULT_INPUT].getVoltage(),0.f,9.99f)*3.2f;
-      getParamQuantity(MULT_PARAM)->setValue(c);
+      getParamQuantity(MULT_PARAM)->setImmediateValue(c);
     }
 
     bool advance=false;

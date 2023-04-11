@@ -55,7 +55,7 @@ struct Track {
 
   int getLength() {
     if(module->inputs[lengthInputId].isConnected())
-      module->getParamQuantity(lengthId)->setValue(module->inputs[lengthInputId].getVoltage()*3.2f);
+      module->getParamQuantity(lengthId)->setImmediateValue(module->inputs[lengthInputId].getVoltage()*3.2f);
     return module->params[lengthId].getValue();
   }
 

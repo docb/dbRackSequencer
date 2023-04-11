@@ -227,22 +227,22 @@ struct CCA2 : Module {
   }
 
   void setCurrent(int row,int col) {
-    getParamQuantity(CV_X_PARAM)->setValue(float(col));
-    getParamQuantity(CV_Y_PARAM)->setValue(float(row));
+    getParamQuantity(CV_X_PARAM)->setImmediateValue(float(col));
+    getParamQuantity(CV_Y_PARAM)->setImmediateValue(float(row));
   }
 
   void process(const ProcessArgs &args) override {
     if(inputs[ON_INPUT].isConnected()) {
-      getParamQuantity(ON_PARAM)->setValue(inputs[ON_INPUT].getVoltage()>1.f);
+      getParamQuantity(ON_PARAM)->setImmediateValue(inputs[ON_INPUT].getVoltage()>1.f);
     }
     if(inputs[RND_INPUT].isConnected()) {
-      getParamQuantity(RND_PARAM)->setValue(inputs[RND_INPUT].getVoltage()>1.f);
+      getParamQuantity(RND_PARAM)->setImmediateValue(inputs[RND_INPUT].getVoltage()>1.f);
     }
     if(inputs[CF_INPUT].isConnected()) {
-      getParamQuantity(CF_PARAM)->setValue(inputs[CF_INPUT].getVoltage()/10.f);
+      getParamQuantity(CF_PARAM)->setImmediateValue(inputs[CF_INPUT].getVoltage()/10.f);
     }
     if(inputs[DENS_INPUT].isConnected()) {
-      getParamQuantity(DENS_PARAM)->setValue(inputs[DENS_INPUT].getVoltage());
+      getParamQuantity(DENS_PARAM)->setImmediateValue(inputs[DENS_INPUT].getVoltage());
     }
     if(setTrigger.process(inputs[SET_INPUT].getVoltage())) {
       ccaMatrix.save();

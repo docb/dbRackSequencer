@@ -55,18 +55,18 @@ struct P4 : Module {
 	void process(const ProcessArgs& args) override {
     if(inputs[PERM_INPUT].isConnected()) {
       int c=clamp(inputs[PERM_INPUT].getVoltage(),0.f,9.99f)*2.4f;
-      getParamQuantity(PERM_PARAM)->setValue(c);
+      getParamQuantity(PERM_PARAM)->setImmediateValue(c);
     }
     bool changed=false;
     if(inputs[OFS_INPUT].isConnected()) {
       int old=params[OFS_PARAM].getValue();
       int c=clamp(inputs[OFS_INPUT].getVoltage(),0.f,9.99f)*1.6f;
-      getParamQuantity(OFS_PARAM)->setValue(c);
+      getParamQuantity(OFS_PARAM)->setImmediateValue(c);
       changed=resetOnOffset && (old!=c);
     }
     if(inputs[XY_INPUT].isConnected()) {
       int c=clamp(inputs[XY_INPUT].getVoltage(),0.f,9.99f)*0.2f;
-      getParamQuantity(XY_PARAM)->setValue(c);
+      getParamQuantity(XY_PARAM)->setImmediateValue(c);
     }
 
     bool advance=false;

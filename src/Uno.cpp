@@ -91,12 +91,12 @@ struct Uno : Module {
     if(paramDivider.process()) {
       if(inputs[POLY_CV_INPUT].isConnected()) {
         for(int k=0;k<NUM_STEPS;k++) {
-          getParamQuantity(CV_PARAMS+k)->setValue(inputs[POLY_CV_INPUT].getVoltage(k));
+          getParamQuantity(CV_PARAMS+k)->setImmediateValue(inputs[POLY_CV_INPUT].getVoltage(k));
         }
       }
       if(inputs[POLY_PROB_INPUT].isConnected()) {
         for(int k=0;k<NUM_STEPS;k++) {
-          getParamQuantity(PROB_PARAMS+k)->setValue(inputs[POLY_PROB_INPUT].getVoltage(k));
+          getParamQuantity(PROB_PARAMS+k)->setImmediateValue(inputs[POLY_PROB_INPUT].getVoltage(k));
         }
       }
 
@@ -132,7 +132,7 @@ struct Uno : Module {
       if(value<min)
         value=min;
       configParam(CV_PARAMS+nr,min,max,0,"CV Step "+std::to_string(nr+1));
-      getParamQuantity(CV_PARAMS+nr)->setValue(value);
+      getParamQuantity(CV_PARAMS+nr)->setImmediateValue(value);
       dirty=8;// hack
     }
   }
