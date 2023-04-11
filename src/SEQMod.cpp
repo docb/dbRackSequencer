@@ -201,7 +201,7 @@ struct SEQMod : Module {
 
   void reconfig() {
     for(int k=0;k<3;k++) {
-      float value=getParamQuantity(CMP1_PARAM+k)->getValue();
+      float value=getParamQuantity(CMP1_PARAM+k)->getImmediateValue();
       if(value>max)
         value=max;
       if(value<min)

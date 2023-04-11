@@ -256,7 +256,7 @@ struct M851 : Module {
 
   void reconfig() {
     for(int nr=0;nr<8;nr++) {
-      float value=getParamQuantity(CV_PARAM+nr)->getValue();
+      float value=getParamQuantity(CV_PARAM+nr)->getImmediateValue();
       if(value>max)
         value=max;
       if(value<min)

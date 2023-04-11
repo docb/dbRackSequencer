@@ -107,7 +107,7 @@ struct TD4 : Module {
 
   void reconfig() {
     for(int nr=0;nr<16;nr++) {
-      float value=getParamQuantity(nr)->getValue();
+      float value=getParamQuantity(nr)->getImmediateValue();
       if(value>max)
         value=max;
       if(value<min)

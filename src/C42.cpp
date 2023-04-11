@@ -861,8 +861,8 @@ struct C42 : Module {
 
   void setSize(int size) {
     world.size=size;
-    float valueX=getParamQuantity(CV_X_PARAM)->getValue();
-    float valueY=getParamQuantity(CV_Y_PARAM)->getValue();
+    float valueX=getParamQuantity(CV_X_PARAM)->getImmediateValue();
+    float valueY=getParamQuantity(CV_Y_PARAM)->getImmediateValue();
     if(valueX>size)
       valueX=size;
     if(valueY>size)
