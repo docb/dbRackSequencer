@@ -190,10 +190,10 @@ struct M851 : Module {
 
   float getCV(int step) {
     if(inputs[POLY_CV_INPUT].isConnected()) {
-      getParamQuantity(CV_PARAM+step)->setImmediateValue(inputs[POLY_CV_INPUT].getVoltage(step));
+      setImmediateValue(getParamQuantity(CV_PARAM+step),inputs[POLY_CV_INPUT].getVoltage(step));
     }
     if(inputs[CV_INPUT+step].isConnected())
-      getParamQuantity(CV_PARAM+step)->setImmediateValue(inputs[CV_INPUT+step].getVoltage());
+      setImmediateValue(getParamQuantity(CV_PARAM+step),inputs[CV_INPUT+step].getVoltage());
     float cv=params[CV_PARAM+step].getValue();
     if(quantize) {
       return roundf(cv*12)/12.f;
@@ -262,7 +262,7 @@ struct M851 : Module {
       if(value<min)
         value=min;
       configParam(CV_PARAM+nr,min,max,0,"CV Step "+std::to_string(nr+1));
-      getParamQuantity(CV_PARAM+nr)->setImmediateValue(value);
+      setImmediateValue(getParamQuantity(CV_PARAM+nr),value);
       dirty=8;
     }
 
@@ -270,19 +270,19 @@ struct M851 : Module {
 
   void randomizeCV() {
     for(int k=0;k<8;k++) {
-      getParamQuantity(CV_PARAM+k)->setImmediateValue(min+rnd2.nextDouble()*(max-min));
+      setImmediateValue(getParamQuantity(CV_PARAM+k),min+rnd2.nextDouble()*(max-min));
     }
   }
 
   void randomizeGateMode() {
     for(int k=0;k<8;k++) {
-      getParamQuantity(GATE_MODE_PARAM+k)->setImmediateValue(rescale(rnd2.nextDouble(),0.f,1.f,0.f,7.9999f));
+      setImmediateValue(getParamQuantity(GATE_MODE_PARAM+k),rescale(rnd2.nextDouble(),0.f,1.f,0.f,7.9999f));
     }
   }
 
   void randomizeRepititions() {
     for(int k=0;k<8;k++) {
-      getParamQuantity(REP_PARAM+k)->setImmediateValue(rescale(rnd2.nextDouble(),0.f,1.f,0.f,7.9999f));
+      setImmediateValue(getParamQuantity(REP_PARAM+k),rescale(rnd2.nextDouble(),0.f,1.f,0.f,7.9999f));
     }
   }
   void fromJson(json_t *root) override {

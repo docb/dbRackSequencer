@@ -121,7 +121,7 @@ struct PwmClock : Module {
 
   float getPwm(int k) {
     if(inputs[PWM_INPUT+k].isConnected()) {
-      getParamQuantity(PWM_PARAM+k)->setImmediateValue(inputs[PWM_INPUT+k].getVoltage()/10.f);
+      setImmediateValue(getParamQuantity(PWM_PARAM+k),inputs[PWM_INPUT+k].getVoltage()/10.f);
     }
     return params[PWM_PARAM+k].getValue();
   };
@@ -139,14 +139,14 @@ struct PwmClock : Module {
       if(bpmVoltageStandard) {
         if(inputs[BPM_INPUT].isConnected()) {
           float freq=powf(2,clamp(inputs[BPM_INPUT].getVoltage(),-2.f,1.f));
-          getParamQuantity(BPM_PARAM)->setImmediateValue(freq*120.f);
+          setImmediateValue(getParamQuantity(BPM_PARAM),freq*120.f);
         }
         updateBpm(args.sampleRate);
         outputs[BPM_OUTPUT].setVoltage(log2f(params[BPM_PARAM].getValue()/120.f));
       } else {
         if(inputs[BPM_INPUT].isConnected()) {
           float freq=powf(2,clamp(inputs[BPM_INPUT].getVoltage(),-1.f,2.f));
-          getParamQuantity(BPM_PARAM)->setImmediateValue(freq*120.f);
+          setImmediateValue(getParamQuantity(BPM_PARAM),freq*120.f);
         }
         updateBpm(args.sampleRate);
         outputs[BPM_OUTPUT].setVoltage(log2f(params[BPM_PARAM].getValue()/60.f));
@@ -165,7 +165,7 @@ struct PwmClock : Module {
       }
     }
     if(inputs[RUN_INPUT].isConnected())
-      getParamQuantity(RUN_PARAM)->setImmediateValue(float(inputs[RUN_INPUT].getVoltage()>0.f));
+      setImmediateValue(getParamQuantity(RUN_PARAM),float(inputs[RUN_INPUT].getVoltage()>0.f));
     if(onTrigger.process(params[RUN_PARAM].getValue())) {
       sendReset();
       pos=0;

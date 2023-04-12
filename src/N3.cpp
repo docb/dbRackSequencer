@@ -140,20 +140,20 @@ struct N3 : Module {
     bool rstGate=rstPulse.process(args.sampleTime);
     if(paramDivider.process()) {
       if(inputs[DEGREE_INPUT].isConnected()) {
-        getParamQuantity(DEGREE_PARAM)->setImmediateValue(inputs[DEGREE_INPUT].getVoltage()*9);
+        setImmediateValue(getParamQuantity(DEGREE_PARAM),inputs[DEGREE_INPUT].getVoltage()*9);
       }
       for(int k=0;k<NUM_SEQ;k++) {
         if(inputs[ON_INPUT+k].isConnected()) {
-          getParamQuantity(ON_PARAM+k)->setImmediateValue(inputs[ON_INPUT+k].getVoltage()>0.f?1.f:0.f);
+          setImmediateValue(getParamQuantity(ON_PARAM+k),inputs[ON_INPUT+k].getVoltage()>0.f?1.f:0.f);
         }
         if(inputs[VERTICES_INPUT+k].isConnected()) {
-          getParamQuantity(VERTICES_PARAM+k)->setImmediateValue(inputs[VERTICES_INPUT+k].getVoltage()*3.2f);
+         setImmediateValue( getParamQuantity(VERTICES_PARAM+k),inputs[VERTICES_INPUT+k].getVoltage()*3.2f);
         }
         if(inputs[SKEW_INPUT+k].isConnected()) {
-          getParamQuantity(SKEW_PARAM+k)->setImmediateValue(inputs[SKEW_INPUT+k].getVoltage()*36);
+          setImmediateValue(getParamQuantity(SKEW_PARAM+k),inputs[SKEW_INPUT+k].getVoltage()*36);
         }
         if(inputs[ROT_INPUT+k].isConnected()) {
-          getParamQuantity(ROT_PARAM+k)->setImmediateValue(inputs[ROT_INPUT+k].getVoltage()*36);
+          setImmediateValue(getParamQuantity(ROT_PARAM+k),inputs[ROT_INPUT+k].getVoltage()*36);
         }
         seqs[k].set(params[VERTICES_PARAM+k].getValue(),params[ROT_PARAM+k].getValue(),params[SKEW_PARAM+k].getValue());
         seqs[k].enabled=params[ON_PARAM+k].getValue()>0.f;

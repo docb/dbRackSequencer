@@ -56,7 +56,7 @@ struct TD4 : Module {
 	void _process(const ProcessArgs& args) {
     if(inputs[POLY_CV_INPUT].isConnected()) {
       for(int k=0;k<16;k++) {
-        getParamQuantity(CV_INPUT+k)->setImmediateValue(inputs[POLY_CV_INPUT].getVoltage(k));
+        setImmediateValue(getParamQuantity(CV_INPUT+k),inputs[POLY_CV_INPUT].getVoltage(k));
       }
     }
     int channels=0;
@@ -113,7 +113,7 @@ struct TD4 : Module {
       if(value<min)
         value=min;
       configParam(nr,min,max,0,"CV "+std::to_string(nr+1));
-      getParamQuantity(nr)->setImmediateValue(value);
+      setImmediateValue(getParamQuantity(nr),value);
       dirty=16;
     }
   }

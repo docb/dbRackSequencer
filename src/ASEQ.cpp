@@ -195,7 +195,7 @@ struct ASEQ : Module {
     bool excl=true;
     if(setTrigger.process(inputs[SET_TRIG_INPUT].getVoltage())|setMTrigger.process(params[SET_TRIG_PARAM].getValue())) {
       for(int k=0;k<NUM_STEPS;k++) {
-        getParamQuantity(CV_PARAMS+k)->setImmediateValue(cv[k]);
+        setImmediateValue(getParamQuantity(CV_PARAMS+k),cv[k]);
         gates1[k]=gates[k];
       }
       update=true;

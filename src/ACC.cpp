@@ -40,13 +40,13 @@ struct ACC : Module {
 	void process(const ProcessArgs& args) override {
     if(divider.process()) {
       if(inputs[SET_INPUT].isConnected()) {
-        getParamQuantity(SET_PARAM)->setImmediateValue(inputs[SET_INPUT].getVoltage());
+        setImmediateValue(getParamQuantity(SET_PARAM),inputs[SET_INPUT].getVoltage());
       }
       if(inputs[STEP_AMT_INPUT].isConnected()) {
-        getParamQuantity(STEP_AMT_PARAM)->setImmediateValue(clamp(inputs[STEP_AMT_INPUT].getVoltage(),-10.f,10.f)/10.f);
+        setImmediateValue(getParamQuantity(STEP_AMT_PARAM),clamp(inputs[STEP_AMT_INPUT].getVoltage(),-10.f,10.f)/10.f);
       }
       if(inputs[THRESHOLD_INPUT].isConnected()) {
-        getParamQuantity(THRESHOLD_PARAM)->setImmediateValue(inputs[THRESHOLD_INPUT].getVoltage());
+        setImmediateValue(getParamQuantity(THRESHOLD_PARAM),inputs[THRESHOLD_INPUT].getVoltage());
       }
     }
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage())|manualRstTrigger.process(params[RST_PARAM].getValue())) {

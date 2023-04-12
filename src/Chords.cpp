@@ -47,7 +47,7 @@ struct Chords : Module {
       int c=round(clamp(inputs[CHORD_INPUT].getVoltage(),0.f,9.99f)*float(MAX_CHORDS)/10.f);
       //if(c!=chrMgr.lastChord) {
       //  chrMgr.lastChord = c;
-      getParamQuantity(CHORD_PARAM)->setImmediateValue(c);
+      setImmediateValue(getParamQuantity(CHORD_PARAM),c);
       //}
     }
     int autoMaxChannels=0;

@@ -204,6 +204,7 @@ struct P16A : Module {
     json_object_set_new(data,"patterns",patternList);
     json_object_set_new(data,"rndMin",json_integer(rndMin));
     json_object_set_new(data,"rndMax",json_integer(rndMax));
+    json_object_set_new(data,"divBy10",json_boolean(divBy10));
     return data;
   }
 
@@ -227,6 +228,10 @@ struct P16A : Module {
     json_t *jRndMax=json_object_get(rootJ,"rndMax");
     if(jRndMax) {
       rndMax=json_integer_value(jRndMax);
+    }
+    json_t *jDivBy10=json_object_get(rootJ,"divBy10");
+    if(jDivBy10) {
+      divBy10=json_boolean_value(jDivBy10);
     }
   }
 
