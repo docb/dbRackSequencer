@@ -288,7 +288,7 @@ struct ASEQ : Module {
   }
   void reconfig() {
     for(int nr=0;nr<16;nr++) {
-      float value=getParamQuantity(CV_PARAMS+nr)->getImmediateValue();
+      float value=getParamQuantity(CV_PARAMS+nr)->getValue();
       if(value>max)
         value=max;
       if(value<min)

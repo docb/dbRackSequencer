@@ -126,7 +126,7 @@ struct Uno : Module {
 
   void reconfig() {
     for(int nr=0;nr<NUM_STEPS;nr++) {
-      float value=getParamQuantity(CV_PARAMS+nr)->getImmediateValue();
+      float value=getParamQuantity(CV_PARAMS+nr)->getValue();
       if(value>max)
         value=max;
       if(value<min)

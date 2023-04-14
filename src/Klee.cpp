@@ -307,7 +307,7 @@ struct Klee : Module {
   }
   void reconfig() {
     for(int nr=0;nr<16;nr++) {
-      float value=getParamQuantity(CV_PARAM+nr)->getImmediateValue();
+      float value=getParamQuantity(CV_PARAM+nr)->getValue();
       if(value>max)
         value=max;
       if(value<min)
