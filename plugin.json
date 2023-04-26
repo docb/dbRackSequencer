@@ -359,6 +359,15 @@
         "Polyphonic",
         "Utility"
       ]
+    },
+    {
+      "slug": "HexSeqP2",
+      "name": "HexSeqP2",
+      "description": "A 100x16x64 Trigger Sequencer with probability",
+      "tags": [
+        "Sequencer",
+        "Polyphonic"
+      ]
     }
   ]
 }

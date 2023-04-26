@@ -393,7 +393,7 @@ struct MatrixDisplay : OpaqueWidget {
       theMatrix->m.set(posY,posX,char(roundf(clamp(theMatrix->voct*12+80.f,33.f,126.f))));
       theMatrix->extNote=false;
       pushHistory();
-      goRight();
+      if(MAX_SIZE_X==4) goDown(posX); else goRight();
     }
     colorMode=theMatrix->colorMode;
     std::shared_ptr <Font> font=APP->window->loadFont(fontPath);
@@ -548,7 +548,7 @@ struct MatrixDisplay : OpaqueWidget {
     save();
     if(e.codepoint<128&&e.codepoint>31) {
       theMatrix->m.set(posY,posX,e.codepoint);
-      goRight();
+      if(MAX_SIZE_X==4) goDown(posX); else goRight();
     }
     e.consume(this);
     pushHistory();
