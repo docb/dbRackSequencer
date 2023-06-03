@@ -77,29 +77,37 @@ struct AntMatrix {
 
   void next(int nr=0) {
     if(rule.empty()) return;
-    ants[nr].updateState(rule[grid[ants[nr].posY][ants[nr].posX]]);
-    grid[ants[nr].posY][ants[nr].posX]=(grid[ants[nr].posY][ants[nr].posX]+1)%rule.size();
+    if(nr>=NUM_ANTS) nr=0;
+    ants[nr].updateState(rule[getValue(ants[nr].posY,ants[nr].posX)%rule.size()]);
+    setValue(ants[nr].posY,ants[nr].posX,(getValue(ants[nr].posY,ants[nr].posX)+1)%rule.size());
+    //grid[ants[nr].posY][ants[nr].posX]=(grid[ants[nr].posY][ants[nr].posX]+1)%rule.size();
     ants[nr].updatePos();
   }
 
-  int getSize() {
+  uint8_t getSize() const {
     return rule.size();
   }
 
-  uint8_t getValue(int nr) {
-    return grid[ants[nr].posY][ants[nr].posX];
+  uint8_t getValue(uint8_t nr) {
+    if(nr>=NUM_ANTS) nr=0;
+    return getValue(ants[nr].posY,ants[nr].posX);
   }
 
-  uint8_t getValue(int row,int col) {
+  uint8_t getValue(uint8_t row,uint8_t col) {
+    row&=(CASIZE-1);
+    col&=(CASIZE-1);
     return grid[row][col];
   }
 
-  void setValue(int row, int col, uint8_t v) {
+  void setValue(uint8_t row,uint8_t col, uint8_t v) {
+    row&=(CASIZE-1);
+    col&=(CASIZE-1);
     grid[row][col]=v;
     setSave();
   }
 
-  int getAnt(int row,int col,int nr=0) {
+  int getAnt(uint8_t row,uint8_t col,uint8_t nr=0) {
+    if(nr>=NUM_ANTS) nr=0;
     return (ants[nr].posX==col&&ants[nr].posY==row)?ants[nr].state:-1;
   }
 
@@ -182,6 +190,7 @@ struct AntMatrix {
 
   json_t *toJson() {
     json_t *jWorld=json_object();
+
     json_t *dataGridSave=json_array();
     json_t *dataGrid=json_array();
     for(int k=0;k<CASIZE;k++) {
@@ -208,7 +217,8 @@ struct AntMatrix {
       json_array_append_new(jStartAntList,startAnts[k].toJson());
     }
     json_object_set_new(jWorld,"ants",jAntList);
-    json_object_set_new(jWorld,"startAnts",jAntList);
+    json_object_set_new(jWorld,"startAnts",jStartAntList);
+
     return jWorld;
   }
 };
@@ -267,6 +277,7 @@ struct Ant : Module {
     configInput(OFS_INPUT,"Out voltage offset");
     configInput(SCALE_INPUT,"Out scale factor");
     configInput(ANTS_INPUT,"Ants");
+    configInput(STEP_INPUT,"Next Step");
     configParam(SCALE_PARAM,0,10,2,"Out Scale Factor");
     configParam(OFS_PARAM,-5,5,-1,"Out Offset Factor");
     configParam(NUM_STEPS_PARAM,1,32,1,"Steps per Clock");

@@ -65,7 +65,7 @@ struct PwmClock : Module {
   float sampleRate=0;
   float bpm=0.f;
   bool init=true;
-  bool bpmVoltageStandard=false;
+  bool bpmVoltageStandard=true;
   bool showTime=true;
   uint32_t pos=0;
 
