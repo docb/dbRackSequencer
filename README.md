@@ -462,7 +462,11 @@ Here an impression what can be done with multiple playheads:
 
 https://user-images.githubusercontent.com/1134412/198893701-24a33a29-0b95-4325-b53b-31a91c0a0682.mp4
 
+### µMatrix
 
+![](images/uMatrix.png?raw=true)
+
+Same as TheMatrix but with only four columns.
 
 ### CCA
 ![](images/CCA.png?raw=true)
@@ -695,6 +699,27 @@ Note that in the Exact mode (exact hits) the Skew,Rotate and Degree parameters s
 fit together to get overall some hits, e.g. could be integers.
 
 ## Some further sequencers
+
+### HexSeqP2
+
+![](images/hexseqp2.png?raw=true)
+
+This is version 2 of  [HexSeqP](https://github.com/docb/dbRackModules#hexseqp) from dbRackModules.
+
+Enhancements:
+- HexSeqP2 has a clock output for inverted triggers.
+- There are 100 voltage selectable patterns
+  - The address input recognizes 0.1V per step.
+  - If the Edit button is pressed the module behaves like the address input is not connected i.e. the steps
+  can be manually selected, otherwise a connected address input will disable manual stepping.
+  - A click on the copy button will make a copy of the gate values.
+  - After selecting a new step it can be pasted there.
+  - The + button inserts an empty pattern i.e. moves the following patterns one to the right. The last pattern is removed.
+  - The - button removes the current pattern by moving all following patterns one to the left.
+- Randomly add or remove triggers based on the Main parameter
+- Randomly remove inverted triggers controlled by the Inv parameter
+- Single tracks can be turned on and off
+
 
 ### ASEQ
 ![](images/ASEQ.png?raw=true)
