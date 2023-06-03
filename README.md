@@ -3,13 +3,14 @@
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
+New modules in 2.3.0: [µMatrix](#%C2%B5matrix), [HexSeqP2](#hexseqp2)
+
 New modules in 2.2.2: [ASEQ](#aseq), [TXVI](#txvi),[M16](#m16), [S16](#s16), [M16S](#m16s)
 
 New modules in 2.2.0 [PMod](#pmod),[Carambol](#carambol)
 
 New modules in 2.1.0: [P16A](#p16a), [P16B](#p16b), [P16S](#p16s), [UnoA](#unoa), [CCA](#cca), [CCA2](#cca2),
 [Ant](#ant), [TME](#tme), [SigMod](#sigmod), [MouseSeq](#mouseseq), [Preset](#preset), [CDiv](#cdiv), [CSR](#csr)
-
 
 See also the demo patches on [PatchStorage](https://patchstorage.com/author/docb/) or on [youtube](https://www.youtube.com/@docb7593)
 
@@ -42,6 +43,7 @@ See also the demo patches on [PatchStorage](https://patchstorage.com/author/docb
       - [Classic Sequencing](#classic-sequencing)
       - [Chaos](#chaos)
   - [TheMatrix](#thematrix)
+  - [µMatrix](#%C2%B5matrix)
   - [CCA](#cca)
   - [CCA2](#cca2)
   - [Ant](#ant)
@@ -52,6 +54,7 @@ See also the demo patches on [PatchStorage](https://patchstorage.com/author/docb
   - [CYC](#cyc)
   - [N3](#n3)
 - [Some further sequencers](#some-further-sequencers)
+  - [HexSeqP2](#hexseqp2)
   - [ASEQ](#aseq)
   - [TXVI](#txvi)
   - [Carambol](#carambol)
