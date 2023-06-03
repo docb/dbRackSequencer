@@ -70,9 +70,10 @@ struct HexSeqP2 : Module {
     configOutput(CLK_OUTPUT,"Inverted Clock");
     configOutput(INV_OUTPUT,"Inverted");
     for(int k=0;k<16;k++) {
-      configParam(MAIN_PROB_PARAM+k,0,2,1,"Trigger Probability");
-      configParam(INV_PROB_PARAM+k,0,1,1,"Inverted Trigger Probability");
-      configButton(ON_PARAM+k,"On/Off");
+      std::string nr=std::to_string(k+1);
+      configParam(MAIN_PROB_PARAM+k,0,2,1,"Trigger Probability " + nr);
+      configParam(INV_PROB_PARAM+k,0,1,1,"Inverted Trigger Probability " + nr);
+      configButton(ON_PARAM+k,"On/Off " + nr);
       getParamQuantity(ON_PARAM+k)->setValue(1.f);
     }
   }

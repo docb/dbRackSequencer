@@ -268,15 +268,18 @@ struct Ant : Module {
   Ant() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     configButton(STEP_PARAM,"Next Step");
+    configButton(ON_PARAM,"Step On");
     configButton(RST_PARAM,"Reset");
     configInput(RST_INPUT,"Reset");
     configInput(RND_INPUT,"Rnd Trigger");
     configButton(RND_PARAM,"Rnd Trigger");
     configButton(SET_PARAM,"Save Grid");
+    configInput(SET_INPUT,"Save Grid");
     configParam(DENS_PARAM,0,1,0.2,"Rnd Density");
     configInput(OFS_INPUT,"Out voltage offset");
     configInput(SCALE_INPUT,"Out scale factor");
     configInput(ANTS_INPUT,"Ants");
+    configInput(RULE_INPUT,"Rule");
     configInput(STEP_INPUT,"Next Step");
     configParam(SCALE_PARAM,0,10,2,"Out Scale Factor");
     configParam(OFS_PARAM,-5,5,-1,"Out Offset Factor");
