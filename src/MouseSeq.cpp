@@ -115,6 +115,7 @@ struct MouseSeq : Module {
   int size=32;
   int offset=0;
   uint8_t oldY=0;
+  uint8_t oldX=0;
   int oldPY=0;
   uint8_t playX=0;
   uint8_t playY=0;
@@ -249,14 +250,17 @@ struct MouseSeq : Module {
         points[currentPattern].clear();
       }
       if(!play) {
-        uint8_t curScale=uint8_t(params[CUR_SCALE_PARAM].getValue());
+        auto curScale=uint8_t(params[CUR_SCALE_PARAM].getValue());
         if(oldY!=y) {
           reTrigPulse.trigger(0.01f);
           if(gate) {
             points[currentPattern].emplace_back(recPos,y,x,curScale);
           }
+        } else if(oldX!=x) {
+          if(gate) {
+            points[currentPattern].emplace_back(recPos,y,x,curScale);
+          }
         }
-
         if(!gate&&oldGate) {
           points[currentPattern].emplace_back(recPos,y,x,curScale,1);
         }
