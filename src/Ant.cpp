@@ -79,8 +79,7 @@ struct AntMatrix {
     if(rule.empty()) return;
     if(nr>=NUM_ANTS) nr=0;
     ants[nr].updateState(rule[getValue(ants[nr].posY,ants[nr].posX)%rule.size()]);
-    setValue(ants[nr].posY,ants[nr].posX,(getValue(ants[nr].posY,ants[nr].posX)+1)%rule.size());
-    //grid[ants[nr].posY][ants[nr].posX]=(grid[ants[nr].posY][ants[nr].posX]+1)%rule.size();
+    setValue(ants[nr].posY,ants[nr].posX,(getValue(ants[nr].posY,ants[nr].posX)+1)%rule.size(),false);
     ants[nr].updatePos();
   }
 
@@ -99,11 +98,11 @@ struct AntMatrix {
     return grid[row][col];
   }
 
-  void setValue(uint8_t row,uint8_t col, uint8_t v) {
+  void setValue(uint8_t row,uint8_t col, uint8_t v,bool save=true) {
     row&=(CASIZE-1);
     col&=(CASIZE-1);
     grid[row][col]=v;
-    setSave();
+    if(save) setSave();
   }
 
   int getAnt(uint8_t row,uint8_t col,uint8_t nr=0) {
