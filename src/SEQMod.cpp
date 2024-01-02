@@ -44,7 +44,7 @@ struct SEQMod : Module {
     getParamQuantity(READ_POS_PARAM)->snapEnabled=true;
     configParam(OUT_POS_PARAM,0,15,0,"Out Pos");
     getParamQuantity(OUT_POS_PARAM)->snapEnabled=true;
-    configSwitch(MODE_PARAM,0,3,0,"Mode",{"Mod","SR","Seq"});
+    configSwitch(MODE_PARAM,0,2,0,"Mode",{"Mod","SR","Seq"});
     configInput(POS1_INPUT,"Read Pos 1");
     configInput(POS2_INPUT,"Read Pos 2");
     configInput(POS3_INPUT,"Read Pos 3");
@@ -148,6 +148,9 @@ struct SEQMod : Module {
   void process(const ProcessArgs &args) override {
     if(lightDivider.process()) showLights();
     if(paramDivider.process()) {
+      if(inputs[MODE_INPUT].isConnected()) {
+        getParamQuantity(MODE_PARAM)->setValue(inputs[MODE_INPUT].getVoltage()/5.f);
+      }
       if(inputs[POS1_INPUT].isConnected()) {
         getParamQuantity(POS1_PARAM)->setValue(inputs[POS1_INPUT].getVoltage()*1.6);
       }
