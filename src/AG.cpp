@@ -161,7 +161,7 @@ struct GateButton : OpaqueWidget {
     fontPath = asset::plugin(pluginInstance, "res/FreeMonoBold.ttf");
     box.size = size;
     box.pos = pos;
-    label = string::f("chn %d",key);
+    label = string::f("chn %d",key + 1);
   }
   void onButton(const event::Button &e) override {
     if(!(e.button==GLFW_MOUSE_BUTTON_LEFT&&(e.mods&RACK_MOD_MASK)==0)) {
