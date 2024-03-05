@@ -1,4 +1,5 @@
 #include "plugin.hpp"
+
 #define NUM_STEPS 16
 
 struct ASEQ : Module {
@@ -17,6 +18,8 @@ struct ASEQ : Module {
   bool gates[NUM_STEPS]={};
   bool gates1[NUM_STEPS]={};
   float cv[NUM_STEPS]={};
+  float currentCV=0;
+  bool sampleAndHold=true;
   //float cv1[NUM_STEPS]={};
   int pos=0;
   float pmin=-1;
@@ -46,7 +49,7 @@ struct ASEQ : Module {
   ASEQ() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     for(int k=0;k<NUM_STEPS;k++) {
-      configParam(CV_PARAMS+k,-2,2,0,"CV " + std::to_string(k+1));
+      configParam(CV_PARAMS+k,-2,2,0,"CV "+std::to_string(k+1));
     }
     configButton(DICE_TRIG_PARAM,"Dice");
     configButton(VAR_TRIG_PARAM,"Variant");
@@ -58,7 +61,7 @@ struct ASEQ : Module {
     getParamQuantity(LEN_PARAM)->snapEnabled=true;
     configParam(DENS_PARAM,2,16,16,"Density");
     getParamQuantity(DENS_PARAM)->snapEnabled=true;
-    configParam(RANGE_PARAM,0.1,4,2,"CV Range");
+    configParam(RANGE_PARAM,0.1,10,2,"CV Range");
     configParam(HOLD_PARAM,0,1,0,"Hold","%",0,100);
     configParam(ADD_PARAM,0,6,1,"Add Gate");
     getParamQuantity(ADD_PARAM)->snapEnabled=true;
@@ -83,7 +86,8 @@ struct ASEQ : Module {
   int getDens() {
     int dens=0;
     for(int k=0;k<NUM_STEPS;k++) {
-      if(gates[k]) dens++;
+      if(gates[k])
+        dens++;
     }
     return dens;
   }
@@ -105,7 +109,8 @@ struct ASEQ : Module {
         }
       }
       dn--;
-      if(dn<0) break;
+      if(dn<0)
+        break;
     }
     int add=clamp(int(getValue(ADD_PARAM)),0,len-dens+rm);
     dn=len-(dens-rm);
@@ -122,7 +127,8 @@ struct ASEQ : Module {
         }
       }
       dn--;
-      if(dn<0) break;
+      if(dn<0)
+        break;
     }
     //INFO("%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",gates[0],gates[1],gates[2],gates[3],gates[4],gates[5],gates[6],gates[7],gates[8],gates[9],gates[10],gates[11],gates[12],gates[13],gates[14],gates[15]);
   }
@@ -190,8 +196,13 @@ struct ASEQ : Module {
     int len=int(getValue(LEN_PARAM));
     int dens=clamp(int(getValue(DENS_PARAM)),0,len);
     float range=std::min(params[RANGE_PARAM].getValue(),getParamQuantity(CV_PARAMS)->getMaxValue());
-    pmin=range;
-    pmax=-range;
+    if(getParamQuantity(CV_PARAMS)->getMinValue()<0) {
+      pmin=-range;
+      pmax=range;
+    } else {
+      pmin=0;
+      pmax=range;
+    }
     bool excl=true;
     if(setTrigger.process(inputs[SET_TRIG_INPUT].getVoltage())|setMTrigger.process(params[SET_TRIG_PARAM].getValue())) {
       for(int k=0;k<NUM_STEPS;k++) {
@@ -224,10 +235,13 @@ struct ASEQ : Module {
       changeNote(len);
     }
     outputs[GATE_OUTPUT].setVoltage(gates[pos]?inputs[CLK_INPUT].getVoltage():0.f);
-    float out=cv[pos];
-    if(quantize) {
-      out=std::round(out*12.f)/12.f;
+    if(sampleAndHold) {
+      if(gates[pos])
+        currentCV=cv[pos];
+    } else {
+      currentCV=cv[pos];
     }
+    float out=quantize?std::round(currentCV*12.f)/12.f:currentCV;
     outputs[CV_OUTPUT].setVoltage(out);
   }
 
@@ -255,6 +269,7 @@ struct ASEQ : Module {
     json_object_set_new(data,"min",json_real(min));
     json_object_set_new(data,"max",json_real(max));
     json_object_set_new(data,"quantize",json_integer(quantize));
+    json_object_set_new(data,"sampleAndHold",json_integer(sampleAndHold));
 
     return data;
   }
@@ -284,8 +299,13 @@ struct ASEQ : Module {
     if(jQuantize) {
       quantize=json_integer_value(jQuantize);
     }
+    json_t *jSampleAndHold=json_object_get(rootJ,"sampleAndHold");
+    if(jSampleAndHold) {
+      sampleAndHold=json_integer_value(jSampleAndHold);
+    }
     reconfig();
   }
+
   void reconfig() {
     for(int nr=0;nr<16;nr++) {
       float value=getParamQuantity(CV_PARAMS+nr)->getValue();
@@ -303,12 +323,13 @@ struct ASEQ : Module {
 struct ASEQColorKnobWidget : Widget {
   ASEQ *module=nullptr;
   int nr;
+
   void init(ASEQ *_module,int _nr) {
     module=_module;
     nr=_nr;
   }
 
-  void draw(const DrawArgs& args) override {
+  void draw(const DrawArgs &args) override {
     NVGcolor color=nvgRGB(0xff,0xff,0xff);
     if(module) {
       if(nr>=int(module->params[ASEQ::LEN_PARAM].getValue())) {
@@ -328,20 +349,20 @@ struct ASEQColorKnobWidget : Widget {
         }
       }
     }
-    float c = box.size.x * 0.5f;
+    float c=box.size.x*0.5f;
 
     nvgBeginPath(args.vg);
-    nvgCircle(args.vg, c, c, c);
-    nvgFillColor(args.vg, nvgRGB(0xbe,0xb5,0xd5));
+    nvgCircle(args.vg,c,c,c);
+    nvgFillColor(args.vg,nvgRGB(0xbe,0xb5,0xd5));
     nvgFill(args.vg);
 
     nvgBeginPath(args.vg);
-    nvgCircle(args.vg, c, c, c-2);
+    nvgCircle(args.vg,c,c,c-2);
     nvgFillColor(args.vg,nvgRGB(0xd8,0xd8,0xd8));
     nvgFill(args.vg);
     nvgBeginPath(args.vg);
-    nvgCircle(args.vg, c, c, c-2);
-    nvgFillColor(args.vg, color);
+    nvgCircle(args.vg,c,c,c-2);
+    nvgFillColor(args.vg,color);
     nvgFill(args.vg);
 
     nvgBeginPath(args.vg);
@@ -354,69 +375,70 @@ struct ASEQColorKnobWidget : Widget {
 };
 
 struct ASEQKnob : Knob {
-  FramebufferWidget* fb;
-  CircularShadow* shadow;
-  TransformWidget* tw;
+  FramebufferWidget *fb;
+  CircularShadow *shadow;
+  TransformWidget *tw;
   ASEQColorKnobWidget *w;
   ASEQ *module=nullptr;
   int nr=0;
+
   void init(ASEQ *_module,int _nr) {
     module=_module;
     nr=_nr;
     w->init(module,nr);
   }
+
   ASEQKnob() {
-    fb = new widget::FramebufferWidget;
+    fb=new widget::FramebufferWidget;
     addChild(fb);
     box.size=mm2px(Vec(6.23f,6.23f));
-    fb->box.size = box.size;
-    shadow = new CircularShadow;
+    fb->box.size=box.size;
+    shadow=new CircularShadow;
     fb->addChild(shadow);
-    shadow->box.size = box.size;
-    shadow->box.pos = math::Vec(0, box.size.y * 0.1f);
-    tw = new TransformWidget;
-    tw->box.size = box.size;
+    shadow->box.size=box.size;
+    shadow->box.pos=math::Vec(0,box.size.y*0.1f);
+    tw=new TransformWidget;
+    tw->box.size=box.size;
     fb->addChild(tw);
 
-    w = new ASEQColorKnobWidget;
+    w=new ASEQColorKnobWidget;
     w->box.size=box.size;
     tw->addChild(w);
-    minAngle=-0.83f * M_PI;
-    maxAngle=0.83f * M_PI;
+    minAngle=-0.83f*M_PI;
+    maxAngle=0.83f*M_PI;
   }
 
-  void onChange(const ChangeEvent& e) override {
+  void onChange(const ChangeEvent &e) override {
     // Re-transform the widget::TransformWidget
-    engine::ParamQuantity* pq = getParamQuantity();
-    if (pq) {
-      float value = pq->getValue();
+    engine::ParamQuantity *pq=getParamQuantity();
+    if(pq) {
+      float value=pq->getValue();
       float angle;
-      if (!pq->isBounded()) {
+      if(!pq->isBounded()) {
         // Number of rotations equals value for unbounded range
-        angle = value * (2 * M_PI);
-      }
-      else if (pq->getRange() == 0.f) {
+        angle=value*(2*M_PI);
+      } else if(pq->getRange()==0.f) {
         // Center angle for zero range
-        angle = (minAngle + maxAngle) / 2.f;
-      }
-      else {
+        angle=(minAngle+maxAngle)/2.f;
+      } else {
         // Proportional angle for finite range
-        angle = math::rescale(value, pq->getMinValue(), pq->getMaxValue(), minAngle, maxAngle);
+        angle=math::rescale(value,pq->getMinValue(),pq->getMaxValue(),minAngle,maxAngle);
       }
-      angle = std::fmod(angle, 2 * M_PI);
+      angle=std::fmod(angle,2*M_PI);
       if(module) {
         module->setCV(value,nr);
       }
       tw->identity();
       // Rotate SVG
-      math::Vec center = w->box.getCenter();
+      math::Vec center=w->box.getCenter();
       tw->translate(center);
       tw->rotate(angle);
       tw->translate(center.neg());
-      fb->dirty = true;
+      fb->dirty=true;
     }
     Knob::onChange(e);
   }
+
   void step() override {
     fb->dirty=true;
     if(module&&module->dirty) {
@@ -426,8 +448,10 @@ struct ASEQKnob : Knob {
     }
     Knob::step();
   }
+
   void onButton(const event::Button &e) override {
-    if(!module) return;
+    if(!module)
+      return;
     if(e.action==GLFW_PRESS&&e.button==GLFW_MOUSE_BUTTON_LEFT&&(e.mods&RACK_MOD_MASK)==GLFW_MOD_SHIFT) {
       module->gates[nr]=!module->gates[nr];
       module->gates1[nr]=!module->gates1[nr];
@@ -435,6 +459,7 @@ struct ASEQKnob : Knob {
     }
     Knob::onButton(e);
   }
+
   void onAction(const ActionEvent &e) override {
     if(module) {
       module->gates[nr]=!module->gates[nr];
@@ -499,22 +524,24 @@ struct ASEQWidget : ModuleWidget {
     ASEQ *module=dynamic_cast<ASEQ *>(this->module);
     assert(module);
     menu->addChild(new MenuSeparator);
-    std::vector <MinMaxRange> ranges={{-4,4},{-3,3},
-                                      {-2,2},
-                                      {-1,1},
-                                      {0,1},
-                                      {0,2}};
+    std::vector<MinMaxRange> ranges={{-10,10},
+                                     {-5, 5},
+                                     {-4, 4},
+                                     {-3, 3},
+                                     {-2, 2},
+                                     {-1, 1},
+                                     {0,  1},
+                                     {0,  2},
+                                     {0,  3},
+                                     {0,  5},
+                                     {0,  10}};
     auto rangeSelectItem=new RangeSelectItem<ASEQ>(module,ranges);
     rangeSelectItem->text="Range";
     rangeSelectItem->rightText=string::f("%0.1f/%0.1fV",module->min,module->max)+"  "+RIGHT_ARROW;
     menu->addChild(rangeSelectItem);
-    menu->addChild(createCheckMenuItem("Quantize", "",
-                                       [=]() {return module->quantize;},
-                                       [=]() { module->quantize=!module->quantize;}));
-
-    //menu->addChild(new RandomizeItem(module,RNDCV,"Randomize CV"));
-    //menu->addChild(new RandomizeItem(module,RNDBUS,"Randomize Bus"));
-    //menu->addChild(new RandomizeItem(module,RNDLOAD,"Randomize Load"));
+    menu->addChild(new MenuSeparator);
+    menu->addChild(createBoolPtrMenuItem("Quantize","",&module->quantize));
+    menu->addChild(createBoolPtrMenuItem("S&H Mode","",&module->sampleAndHold));
   }
 
 };
