@@ -893,3 +893,4 @@ inline void setImmediateValue(ParamQuantity *pq,float value) {
 }
 #define MHEIGHT 128.5f
 #define TY(x) MHEIGHT-(x)-6.237
+#define TWOPIF 6.2831853f

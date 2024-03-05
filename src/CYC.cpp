@@ -26,6 +26,8 @@ struct Track {
   int trackOnInputId;
   //int runModeInputBaseId;
   int lightBaseId;
+  bool sampleAndHold=false;
+  float currentCV=0;
 
 
   Track(M *_module,int _nr) : module(_module),nr(_nr) {
@@ -170,8 +172,14 @@ struct Track {
       int currentStep=getCurrentStep();
       module->outputs[M::GATE_OUTPUT+nr].setVoltage(gateOn(currentStep)?module->inputs[M::CLK_INPUT+nr].getVoltage():0.0f);
       if(advance) {
-        module->outputs[M::CV_OUTPUT+nr].setVoltage(getCV(currentStep));
-
+        if(sampleAndHold) {
+          if(gateOn(currentStep)) {
+            currentCV=getCV(currentStep);
+          }
+        } else {
+          currentCV=getCV(currentStep);
+        }
+        module->outputs[M::CV_OUTPUT+nr].setVoltage(currentCV);
       }
       if(divider.process())
         show();
@@ -326,6 +334,11 @@ struct CYC : Module {
     json_object_set_new(root,"min",json_real(min));
     json_object_set_new(root,"max",json_real(max));
     json_object_set_new(root,"quantize",json_integer(quantize));
+    json_t *shArray=json_array();
+    for(int k=0;k<NUM_TRACK;k++) {
+      json_array_append_new(shArray,json_integer(tracks[k].sampleAndHold));
+    }
+    json_object_set_new(root,"sh",shArray);
     return root;
   }
 
@@ -342,6 +355,13 @@ struct CYC : Module {
     json_t *jQuantize=json_object_get(root,"quantize");
     if(jQuantize) {
       quantize=json_integer_value(jQuantize);
+    }
+    json_t *jSHArray=json_object_get(root,"sh");
+    if(jSHArray) {
+      for(int k=0;k<NUM_TRACK;k++) {
+        json_t *sh=json_array_get(jSHArray,k);
+        tracks[k].sampleAndHold=json_integer_value(sh);
+      }
     }
     reconfig();
   }
@@ -497,15 +517,11 @@ struct CYCWidget : ModuleWidget {
     rangeSelectItem->text="Range";
     rangeSelectItem->rightText=string::f("%d/%dV",(int)module->min,(int)module->max)+"  "+RIGHT_ARROW;
     menu->addChild(rangeSelectItem);
-    menu->addChild(createCheckMenuItem("Quantize","",[=]() {
-      return module->quantize;
-    },[=]() {
-      module->quantize=!module->quantize;
-    }));
-
+    menu->addChild(createBoolPtrMenuItem("Quantize","",&module->quantize));
+    for(int k=0;k<NUM_TRACK;k++) {
+      menu->addChild(createBoolPtrMenuItem("S&H Mode Track " + std::to_string(k+1),"",&module->tracks[k].sampleAndHold));
+    }
     menu->addChild(new CYCRandomize(module,RNDCV,"Randomize CV"));
-    //menu->addChild(new RandomizeItem(module,RNDBUS,"Randomize Bus"));
-    //menu->addChild(new RandomizeItem(module,RNDLOAD,"Randomize Load"));
   }
 };
 

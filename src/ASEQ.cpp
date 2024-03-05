@@ -19,7 +19,7 @@ struct ASEQ : Module {
   bool gates1[NUM_STEPS]={};
   float cv[NUM_STEPS]={};
   float currentCV=0;
-  bool sampleAndHold=true;
+  bool sampleAndHold=false;
   //float cv1[NUM_STEPS]={};
   int pos=0;
   float pmin=-1;

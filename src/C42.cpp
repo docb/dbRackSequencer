@@ -1,4 +1,5 @@
 #include <utility>
+#include <iterator>
 
 #include "plugin.hpp"
 #include "rnd.h"
@@ -134,9 +135,25 @@ struct LifeWorld {
       INFO("%s",e.what());
     }
   }
+  void logRule() {
+    std::ostringstream vts;
+    std::copy(survive.begin(), survive.end()-1,
+              std::ostream_iterator<int>(vts, ", "));
+    vts << survive.back();
+    std::ostringstream vts1;
+    std::copy(birth.begin(), birth.end()-1,
+              std::ostream_iterator<int>(vts1, ", "));
+    vts1 << birth.back();
+    INFO("survive %s birth %s",vts.str().c_str(),vts1.str().c_str());
+  }
+  void setRule(const std::vector<int>& s, const std::vector<int>& b) {
+    survive=s;
+    birth=b;
+  }
 
   void setRule(unsigned r) {
     rule=r;
+    INFO("set rule %d",r);
     switch(r) {
       case 1:
         survive={0,0,0,1,1,0,0,0,0};
@@ -316,7 +333,6 @@ struct LifeWorld {
   }
 
   void nextGeneration() {
-
     for(int x=0;x<size;x++)
       for(int y=0;y<size;y++)
         grid2[x][y]=grid[x][y];
@@ -563,7 +579,7 @@ struct C42 : Module {
     CV_X_PARAM,CV_Y_PARAM,STEP_PARAM,ON_PARAM,RST_PARAM,DENS_PARAM,RND_PARAM,LEVEL_PARAM,CV_ON_X_PARAM,CV_ON_Y_PARAM,PARAMS_LEN
   };
   enum InputId {
-    CV_X_INPUT,CV_Y_INPUT,STEP_INPUT,RST_INPUT,ON_INPUT,DENS_INPUT,LEVEL_INPUT,RND_INPUT,CV_ON_X_INPUT,CV_ON_Y_INPUT,INPUTS_LEN
+    CV_X_INPUT,CV_Y_INPUT,STEP_INPUT,RST_INPUT,ON_INPUT,DENS_INPUT,LEVEL_INPUT,RND_INPUT,CV_ON_X_INPUT,CV_ON_Y_INPUT,B_INPUT,S_INPUT,INPUTS_LEN
   };
   enum OutputId {
     TRIG_OUTPUT,ROW_LEFT_OUTPUT,ROW_RIGHT_OUTPUT,COL_TOP_OUTPUT,COL_BOTTOM_OUTPUT,TOP_LEFT_OUTPUT,TOP_RIGHT_OUTPUT,BOTTOM_LEFT_OUTPUT,BOTTOM_RIGHT_OUTPUT,MIDDLE_OUTPUT,GATE_OUTPUT,CLOCK_OUTPUT,OUTPUTS_LEN
@@ -617,6 +633,8 @@ struct C42 : Module {
     configInput(DENS_INPUT,"Random Density");
     configInput(LEVEL_INPUT,"Out Level Factor");
     configInput(ON_INPUT,"On");
+    configInput(S_INPUT,"Survive");
+    configInput(B_INPUT,"Birth");
     configOutput(GATE_OUTPUT,"Gate");
 
     configOutput(ROW_LEFT_OUTPUT,"CV Row-Left");
@@ -725,6 +743,20 @@ struct C42 : Module {
     message->bottomLeft[chn]=world.getBottomLeftSum(curRow[chn],curCol[chn])*level;
   }
 
+  void setRule() {
+    if(inputs[B_INPUT].isConnected() && inputs[S_INPUT].isConnected()) {
+      std::vector<int> b;
+      std::vector<int> s;
+      for(int k=0;k<9;k++) {
+        b.push_back(inputs[B_INPUT].getVoltage(k)>0);
+        s.push_back(inputs[S_INPUT].getVoltage(k)>0);
+      }
+      world.setRule(s,b);
+    } else {
+      world.setRule(world.getRule());
+    }
+  }
+
   void process(const ProcessArgs &args) override {
 
     if(divider.process()) {
@@ -796,6 +828,7 @@ struct C42 : Module {
       for(int chn=0;chn<channels;chn++) {
         lastOn[chn]=isOn(curRow[chn],curCol[chn]);
       }
+      setRule();
       world.nextGeneration();
       for(int chn=0;chn<channels;chn++) {
         on[chn]=isOn(curRow[chn],curCol[chn])&&!lastOn[chn];
@@ -921,6 +954,9 @@ struct C42Widget : ModuleWidget {
     addInput(createInput<SmallPort>(mm2px(Vec(x+8,y)),module,C42::STEP_INPUT));
     addParam(createParam<MLED>(mm2px(Vec(x+18,y)),module,C42::ON_PARAM));
     addInput(createInput<SmallPort>(mm2px(Vec(x+25.5f,y)),module,C42::ON_INPUT));
+
+    addInput(createInput<HiddenPort>(mm2px(Vec(x,TY(103))),module,C42::S_INPUT));
+    addInput(createInput<HiddenPort>(mm2px(Vec(x+25.5f,TY(103))),module,C42::B_INPUT));
 
     addInput(createInput<SmallPort>(mm2px(Vec(133.5,TY(103))),module,C42::RST_INPUT));
     addParam(createParam<MLEDM>(mm2px(Vec(143,TY(103))),module,C42::RST_PARAM));

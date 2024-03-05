@@ -46,6 +46,9 @@ extern Model* modelM16;
 extern Model* modelS16;
 extern Model* modelM16S;
 extern Model* modelHexSeqP2;
+extern Model* modelSEQ22;
+extern Model *modelSwen;
+extern Model *modelMap;
 
 
 void init(Plugin *p) {
@@ -94,6 +97,10 @@ void init(Plugin *p) {
   p->addModel(modelS16);
   p->addModel(modelM16S);
   p->addModel(modelHexSeqP2);
+  p->addModel(modelSEQ22);
+  p->addModel(modelSwen);
+  p->addModel(modelMap);
+
 }
 
 void SmallButtonWithLabel::draw(const Widget::DrawArgs &args) {

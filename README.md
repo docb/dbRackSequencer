@@ -703,6 +703,15 @@ fit together to get overall some hits, e.g. could be integers.
 
 ## Some further sequencers
 
+### SEQ22
+![](images/seq22.png?raw=true)
+
+### Map
+![](images/map.png?raw=true)
+
+### Swen
+![](images/swen.png?raw=true)
+
 ### HexSeqP2
 
 ![](images/hexseqp2.png?raw=true)
