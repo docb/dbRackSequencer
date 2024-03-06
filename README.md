@@ -670,6 +670,7 @@ CYC is a reimplementation of the Spiral sequencer of the XOR plugin.
 - If one of the random modes is used with the polyphonic seed input a random seed 
 (by setting channel 1-6) can be set to obtain the same sequence (if the seed value is not zero)
 on every reset.
+- 2.4.0: There is now an option in the menu to hold the CV value on rests (muted steps)
 
 ### N3
 ![](images/n3.png?raw=true)
@@ -714,6 +715,7 @@ fit together to get overall some hits, e.g. could be integers.
 - If rests are generated the cv values are hold until another cv is selected without a rest (this can be changed in the menu smapleAndHold)
 - If a seed value is greater than zero on every reset the same sequence will occur.
 - Every slider has an input (0-10V) associated to control the value, and there is a polyphonic input (frq) to control all slider values.
+- The Clk and Rest inputs are polyphonic so it is possible to make up to 16 sequences in parallel
 
 ### Map
 ![](images/map.png?raw=true)
@@ -726,7 +728,7 @@ fit together to get overall some hits, e.g. could be integers.
 ![](images/swen.png?raw=true)
 
 This module is a port from the QWELK N.E.W.S module (Copyright 2017 Parsa 'raincheque' Jamshidi)
-with untouched functionality of the original.
+with unchanged functionality of the original.
 
 ### HexSeqP2
 
@@ -770,6 +772,7 @@ ASEQ is a 16-step sequencer with some fine-grained possibilities for random vari
 - Set "stores" a sequence to be recalled with a reset.
 - The voltage range of the knobs can be set in the menu.
 - The values can also be quantized to semi-tones if set in the menu. 
+- 2.4.0: There is an option in the menu to hold the CV value on rests (inactive steps)
 
 ### TXVI
 ![](images/TXVI.png?raw=true)

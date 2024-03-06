@@ -207,7 +207,7 @@ struct SEQ22Widget : ModuleWidget {
     auto *module=dynamic_cast<SEQ22 *>(this->module);
     assert(module);
     menu->addChild(new MenuSeparator);
-    menu->addChild(createBoolPtrMenuItem("S&H Mode","",&module->sampleAndHold));
+    menu->addChild(createBoolPtrMenuItem("Hold CV on Rest","",&module->sampleAndHold));
   }
 
 };

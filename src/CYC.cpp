@@ -519,7 +519,7 @@ struct CYCWidget : ModuleWidget {
     menu->addChild(rangeSelectItem);
     menu->addChild(createBoolPtrMenuItem("Quantize","",&module->quantize));
     for(int k=0;k<NUM_TRACK;k++) {
-      menu->addChild(createBoolPtrMenuItem("S&H Mode Track " + std::to_string(k+1),"",&module->tracks[k].sampleAndHold));
+      menu->addChild(createBoolPtrMenuItem("Hold CV on Rest - Track " + std::to_string(k+1),"",&module->tracks[k].sampleAndHold));
     }
     menu->addChild(new CYCRandomize(module,RNDCV,"Randomize CV"));
   }

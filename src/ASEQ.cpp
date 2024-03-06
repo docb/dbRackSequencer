@@ -541,7 +541,7 @@ struct ASEQWidget : ModuleWidget {
     menu->addChild(rangeSelectItem);
     menu->addChild(new MenuSeparator);
     menu->addChild(createBoolPtrMenuItem("Quantize","",&module->quantize));
-    menu->addChild(createBoolPtrMenuItem("S&H Mode","",&module->sampleAndHold));
+    menu->addChild(createBoolPtrMenuItem("Hold CV on Rest","",&module->sampleAndHold));
   }
 
 };
