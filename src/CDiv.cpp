@@ -19,7 +19,11 @@ struct CDiv : Module {
   dsp::SchmittTrigger rstTrigger;
   dsp::PulseGenerator rstPulse;
   dsp::ClockDivider paramDivider;
+  bool curHigh = true;
+  bool prevHigh = false;
   unsigned long  currentPos=0;
+  unsigned long edges=0;
+  bool orig_pw=true;
 	CDiv() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
     configInput(CLK_INPUT,"Clock");
@@ -46,6 +50,15 @@ struct CDiv : Module {
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage())) {
       rstPulse.trigger(0.001f);
       currentPos=0;
+      edges=0;
+      curHigh=true;
+      prevHigh=false;
+    } else {
+      prevHigh=curHigh;
+      curHigh=clockTrigger.isHigh();
+      if ((curHigh && !prevHigh) || (!curHigh && prevHigh)) {
+	edges++;
+      }
     }
     bool resetGate=rstPulse.process(args.sampleTime);
     if(clockTrigger.process(inputs[CLK_INPUT].getVoltage()) && !resetGate) {
@@ -53,8 +66,13 @@ struct CDiv : Module {
     }
     for(int k=0;k<NUM_DIV;k++) {
       int currentDiv=params[DIV_PARAM+k].getValue();
-      bool gate = currentPos%currentDiv==0;
-      outputs[CLK_OUTPUT+k].setVoltage(gate?inputs[CLK_INPUT].getVoltage():0.f);
+      if (orig_pw) {
+	bool gate = currentPos%currentDiv==0;
+	outputs[CLK_OUTPUT+k].setVoltage(gate?inputs[CLK_INPUT].getVoltage():0.f);
+      } else {
+	bool gate = edges%(currentDiv*2) < (unsigned long)currentDiv;
+	outputs[CLK_OUTPUT+k].setVoltage(gate?10.f:0.f);
+      }
     }
 	}
 };
@@ -90,6 +108,12 @@ struct CDivWidget : ModuleWidget {
       y+=30;
     }
 	}
+
+  void appendContextMenu(Menu* menu) override {
+    CDiv* module = getModule<CDiv>();
+    menu->addChild(new MenuSeparator);
+    menu->addChild(createBoolPtrMenuItem("Keep input clock original pulse width", "", &module->orig_pw));
+  }
 };
 
 
