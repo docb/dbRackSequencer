@@ -57,7 +57,7 @@ struct CDiv : Module {
       prevHigh=curHigh;
       curHigh=clockTrigger.isHigh();
       if ((curHigh && !prevHigh) || (!curHigh && prevHigh)) {
-	edges++;
+        edges++;
       }
     }
     bool resetGate=rstPulse.process(args.sampleTime);
@@ -67,11 +67,11 @@ struct CDiv : Module {
     for(int k=0;k<NUM_DIV;k++) {
       int currentDiv=params[DIV_PARAM+k].getValue();
       if (orig_pw) {
-	bool gate = currentPos%currentDiv==0;
-	outputs[CLK_OUTPUT+k].setVoltage(gate?inputs[CLK_INPUT].getVoltage():0.f);
+	      bool gate = currentPos%currentDiv==0;
+	      outputs[CLK_OUTPUT+k].setVoltage(gate?inputs[CLK_INPUT].getVoltage():0.f);
       } else {
-	bool gate = edges%(currentDiv*2) < (unsigned long)currentDiv;
-	outputs[CLK_OUTPUT+k].setVoltage(gate?10.f:0.f);
+	      bool gate = edges%(currentDiv*2) < (unsigned long)currentDiv;
+	      outputs[CLK_OUTPUT+k].setVoltage(gate?10.f:0.f);
       }
     }
 	}
@@ -82,10 +82,6 @@ struct DivisionSelect : SpinParamWidget {
   DivisionSelect() {
     init();
   }
-  //void onChange(const event::Change &e) override {
-  //  if(module)
-  //    module->switchPattern();
-  //}
 };
 
 struct CDivWidget : ModuleWidget {
