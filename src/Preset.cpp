@@ -91,7 +91,7 @@ struct Dir {
 
 struct Preset : Module {
 	enum ParamId {
-		PARAMS_LEN
+		REFRESH_PARAM,PARAMS_LEN
 	};
 	enum InputId {
 		CV_INPUT,TRIG_INPUT,INPUTS_LEN
@@ -394,7 +394,6 @@ struct Presets : OpaqueWidget {
     if(module) {
       if(module->expanderChanged) {
         module->updatePresets();
-        //std::vector <std::string> labels=module->getPresets();
         update();
         module->expanderChanged=false;
       }
@@ -417,6 +416,18 @@ struct Presets : OpaqueWidget {
 
 };
 
+struct RefreshButton : MLEDM {
+  Preset *module=nullptr;
+
+  void onChange(const ChangeEvent &e) override {
+    SvgSwitch::onChange(e);
+    if(module) {
+      if(module->params[Preset::REFRESH_PARAM].getValue()>0.f)
+        module->expanderChanged=true;
+    }
+  }
+};
+
 struct PresetWidget : ModuleWidget {
 	PresetWidget(Preset* module) {
 		setModule(module);
@@ -426,6 +437,9 @@ struct PresetWidget : ModuleWidget {
     auto presetsWidget=new Presets(module,mm2px(Vec(6,14)),mm2px(Vec(70,100)));
     addChild(presetsWidget);
     addInput(createInput<SmallPort>(mm2px(Vec(10,116)),module,Preset::CV_INPUT));
+    auto refreshParam= createParam<RefreshButton>(mm2px(Vec(40,116)),module,Preset::REFRESH_PARAM);
+    refreshParam->module=module;
+    addParam(refreshParam);
 	}
 };
 

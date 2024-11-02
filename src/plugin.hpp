@@ -891,6 +891,126 @@ inline void setImmediateValue(ParamQuantity *pq,float value) {
     value = std::round(value);
   APP->engine->setParamValue(pq->module, pq->paramId, value);
 }
+
+template<typename M>
+struct GateButton : OpaqueWidget {
+  M *module;
+  int key;
+  Tooltip *tooltip=nullptr;
+  std::string label;
+  NVGcolor onColor=nvgRGB(118,169,118);
+  NVGcolor offColor=nvgRGB(55,80,55);
+  NVGcolor onColorInactive=nvgRGB(128,128,128);
+  NVGcolor offColorInactive=nvgRGB(43,43,43);
+  NVGcolor border=nvgRGB(196,201,104);
+  NVGcolor borderInactive=nvgRGB(150,150,150);
+  std::basic_string<char> fontPath;
+
+  GateButton(M *_module,int _key,Vec pos,Vec size) : module(_module),key(_key) {
+    fontPath=asset::plugin(pluginInstance,"res/FreeMonoBold.ttf");
+    box.size=size;
+    box.pos=pos;
+    int g=module?int(!module->gateCountFromZero):1;
+    label=string::f("chn %d",key+g);
+  }
+
+  void onButton(const event::Button &e) override {
+    if(!(e.button==GLFW_MOUSE_BUTTON_LEFT&&(e.mods&RACK_MOD_MASK)==0)) {
+      return;
+    }
+    if(e.action==GLFW_PRESS) {
+      if(module) module->updateKey(key);
+    }
+  }
+
+  void createTooltip() {
+    if(!settings::tooltips)
+      return;
+    tooltip=new Tooltip;
+    tooltip->text=string::f("chn %d",key+int(!module->gateCountFromZero));
+    APP->scene->addChild(tooltip);
+  }
+
+
+  void destroyTooltip() {
+    if(!tooltip)
+      return;
+    APP->scene->removeChild(tooltip);
+    delete tooltip;
+    tooltip=nullptr;
+  }
+
+
+  void onEnter(const EnterEvent &e) override {
+    createTooltip();
+  }
+
+
+  void onLeave(const LeaveEvent &e) override {
+    destroyTooltip();
+  }
+
+  void drawLayer(const DrawArgs &args,int layer) override {
+    if(layer==1) {
+      _draw(args);
+    }
+    Widget::drawLayer(args,layer);
+  }
+
+  void _draw(const DrawArgs &args) {
+    std::shared_ptr<Font> font=APP->window->loadFont(fontPath);
+    NVGcolor color=offColor;
+    NVGcolor borderColor=border;
+    int g=1;
+    if(module) {
+      g=int(!module->gateCountFromZero);
+      if(key>=module->maxChannels) {
+        borderColor=borderInactive;
+        if(module->getGateStatus(key)) {
+          color=onColorInactive;
+        } else {
+          color=offColorInactive;
+        }
+      } else {
+        borderColor=border;
+        if(module->getGateStatus(key)) {
+          color=onColor;
+        } else {
+          color=offColor;
+        }
+      }
+    }
+    nvgBeginPath(args.vg);
+    nvgRoundedRect(args.vg,1,1,box.size.x-2,box.size.y-2,2);
+    nvgFillColor(args.vg,color);
+    nvgStrokeColor(args.vg,borderColor);
+    nvgFill(args.vg);
+    nvgStroke(args.vg);
+    nvgFontSize(args.vg,box.size.y-2);
+    nvgFontFaceId(args.vg,font->handle);
+    NVGcolor textColor=nvgRGB(0xff,0xff,0xff);
+    nvgTextAlign(args.vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+    nvgFillColor(args.vg,textColor);
+    nvgText(args.vg,box.size.x/2.f,box.size.y/2.f,std::to_string(key+g).c_str(),NULL);
+  }
+};
+
+template<typename M>
+struct GateDisplay : OpaqueWidget {
+  M *module;
+  Vec buttonSize;
+
+  GateDisplay(M *m,Vec _pos) : module(m) {
+    box.pos=_pos;
+    box.size=Vec(20,10*16);
+    for(int k=0;k<16;k++) {
+      addChild(new GateButton<M>(module,k,Vec(0,k*10),Vec(20,10)));
+    }
+  }
+};
+
+
+
 #define MHEIGHT 128.5f
 #define TY(x) MHEIGHT-(x)-6.237
 #define TWOPIF 6.2831853f

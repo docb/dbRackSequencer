@@ -2,24 +2,44 @@
 
 
 struct P4 : Module {
-	enum ParamId {
-		OFS_PARAM,PERM_PARAM,XY_PARAM,DIV_PARAM,PARAMS_LEN
-	};
-	enum InputId {
+  enum ParamId {
+    OFS_PARAM,PERM_PARAM,XY_PARAM,DIV_PARAM,PARAMS_LEN
+  };
+  enum InputId {
     CLK_INPUT,RST_INPUT,OFS_INPUT,PERM_INPUT,XY_INPUT,INPUTS_LEN
-	};
-	enum OutputId {
-		CV_OUTPUT,OUTPUTS_LEN
-	};
-	enum LightId {
-		LIGHTS_LEN
-	};
+  };
+  enum OutputId {
+    CV_OUTPUT,OUTPUTS_LEN
+  };
+  enum LightId {
+    LIGHTS_LEN
+  };
 
   int patterns[24][4]={
-    {1,2,3,4},{1,2,4,3},{1,3,2,4},{1,3,4,2},{1,4,2,3},{1,4,3,2},
-    {2,1,3,4},{2,1,4,3},{2,3,1,4},{2,3,4,1},{2,4,1,3},{2,4,3,1},
-    {3,2,1,4},{3,2,4,1},{3,1,2,4},{3,1,4,2},{3,4,2,1},{3,4,1,2},
-    {4,2,3,1},{4,2,1,3},{4,3,2,1},{4,3,1,2},{4,1,2,3},{4,1,3,2},
+    {1,2,3,4},
+    {1,2,4,3},
+    {1,3,2,4},
+    {1,3,4,2},
+    {1,4,2,3},
+    {1,4,3,2},
+    {2,1,3,4},
+    {2,1,4,3},
+    {2,3,1,4},
+    {2,3,4,1},
+    {2,4,1,3},
+    {2,4,3,1},
+    {3,2,1,4},
+    {3,2,4,1},
+    {3,1,2,4},
+    {3,1,4,2},
+    {3,4,2,1},
+    {3,4,1,2},
+    {4,2,3,1},
+    {4,2,1,3},
+    {4,3,2,1},
+    {4,3,1,2},
+    {4,1,2,3},
+    {4,1,3,2},
   };
 
   // 1234 2341 3412 4123 4321 3214 2143 1432
@@ -36,8 +56,9 @@ struct P4 : Module {
   dsp::PulseGenerator rstPulse;
   int stepCounter=0;
   bool resetOnOffset=true;
-	P4() {
-		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
+
+  P4() {
+    config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     configSwitch(PERM_PARAM,0,23,0,"Permutations",labels);
     configParam(OFS_PARAM,0,31,0,"Offset");
     getParamQuantity(OFS_PARAM)->snapEnabled=true;
@@ -50,9 +71,9 @@ struct P4 : Module {
     configOutput(CV_OUTPUT,"CV");
     configInput(CLK_INPUT,"Clock");
     configInput(RST_INPUT,"Reset");
-	}
+  }
 
-	void process(const ProcessArgs& args) override {
+  void process(const ProcessArgs &args) override {
     if(inputs[PERM_INPUT].isConnected()) {
       int c=clamp(inputs[PERM_INPUT].getVoltage(),0.f,9.99f)*2.4f;
       setImmediateValue(getParamQuantity(PERM_PARAM),c);
@@ -61,8 +82,8 @@ struct P4 : Module {
     if(inputs[OFS_INPUT].isConnected()) {
       int old=params[OFS_PARAM].getValue();
       int c=clamp(inputs[OFS_INPUT].getVoltage(),0.f,9.99f)*1.6f;
-     setImmediateValue( getParamQuantity(OFS_PARAM),c);
-      changed=resetOnOffset && (old!=c);
+      setImmediateValue(getParamQuantity(OFS_PARAM),c);
+      changed=resetOnOffset&&(old!=c);
     }
     if(inputs[XY_INPUT].isConnected()) {
       int c=clamp(inputs[XY_INPUT].getVoltage(),0.f,9.99f)*0.2f;
@@ -76,7 +97,7 @@ struct P4 : Module {
       advance=true;
     }
     bool resetGate=rstPulse.process(args.sampleTime);
-    if(clockTrigger.process(inputs[CLK_INPUT].getVoltage()) && !resetGate) {
+    if(clockTrigger.process(inputs[CLK_INPUT].getVoltage())&&!resetGate) {
       stepCounter++;
       if(stepCounter==4) stepCounter=0;
       advance=true;
@@ -91,46 +112,43 @@ struct P4 : Module {
       }
       outputs[CV_OUTPUT].setVoltage((float(index)/div)*10.f);
     }
-	}
+  }
 };
 
 
 struct P4Widget : ModuleWidget {
-	P4Widget(P4* module) {
-		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/P4.svg")));
+  P4Widget(P4 *module) {
+    setModule(module);
+    setPanel(createPanel(asset::plugin(pluginInstance,"res/P4.svg")));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     float xpos=1.9f;
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,MHEIGHT-115.f)),module,P4::CLK_INPUT));
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,MHEIGHT-103.f)),module,P4::RST_INPUT));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(78+6))),module,P4::OFS_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(71+6))),module,P4::OFS_INPUT));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(55+6))),module,P4::PERM_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(48+6))),module,P4::PERM_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,9)),module,P4::CLK_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,21)),module,P4::RST_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,33)),module,P4::OFS_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,41)),module,P4::OFS_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,56)),module,P4::PERM_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,64)),module,P4::PERM_INPUT));
 
-    auto selectParam=createParam<SelectParam>(mm2px(Vec(1.9,MHEIGHT-43-6)),module,P4::XY_PARAM);
+    auto selectParam=createParam<SelectParam>(mm2px(Vec(1.9,81)),module,P4::XY_PARAM);
     selectParam->box.size=mm2px(Vec(6.4,7));
     selectParam->init({"X","Y"});
     addParam(selectParam);
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(34))),module,P4::XY_INPUT));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(22))),module,P4::DIV_PARAM));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(xpos,TY(10))),module,P4::CV_OUTPUT));
-	}
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,90)),module,P4::XY_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,104)),module,P4::DIV_PARAM));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(xpos,116)),module,P4::CV_OUTPUT));
+  }
+
   void appendContextMenu(Menu *menu) override {
     P4 *module=dynamic_cast<P4 *>(this->module);
     assert(module);
     menu->addChild(new MenuSeparator);
-    menu->addChild(createCheckMenuItem("Reset on Offset Change", "",
-                                       [=]() {return module->resetOnOffset;},
-                                       [=]() { module->resetOnOffset=!module->resetOnOffset;}));
+    menu->addChild(createCheckMenuItem("Reset on Offset Change","",
+                                       [=]() { return module->resetOnOffset; },
+                                       [=]() { module->resetOnOffset=!module->resetOnOffset; }));
   }
 
 
 };
 
 
-Model* modelP4 = createModel<P4, P4Widget>("P4");
+Model *modelP4=createModel<P4,P4Widget>("P4");

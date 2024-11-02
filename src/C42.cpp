@@ -153,7 +153,7 @@ struct LifeWorld {
 
   void setRule(unsigned r) {
     rule=r;
-    INFO("set rule %d",r);
+    //INFO("set rule %d",r);
     switch(r) {
       case 1:
         survive={0,0,0,1,1,0,0,0,0};

@@ -202,25 +202,22 @@ struct P16Widget : ModuleWidget {
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/P16.svg")));
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-
     float xpos=1.9f;
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,MHEIGHT-115.f)),module,P16::CLK_INPUT));
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,MHEIGHT-103.f)),module,P16::RST_INPUT));
-    addParam(createParam<P16PatternSelect>(mm2px(Vec(xpos,TY(65))),module,P16::PAT_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(54))),module,P16::PAT_CV_INPUT));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(84))),module,P16::OFS_PARAM));
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(77))),module,P16::OFS_INPUT));
-    auto selectParam=createParam<SelectParam>(mm2px(Vec(1.9,MHEIGHT-43-6)),module,P16::DIR_PARAM);
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,9)),module,P16::CLK_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,21)),module,P16::RST_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,33)),module,P16::OFS_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,41)),module,P16::OFS_INPUT));
+
+    addParam(createParam<P16PatternSelect>(mm2px(Vec(xpos,55)),module,P16::PAT_PARAM));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,66)),module,P16::PAT_CV_INPUT));
+
+    auto selectParam=createParam<SelectParam>(mm2px(Vec(1.9,81)),module,P16::DIR_PARAM);
     selectParam->box.size=mm2px(Vec(6.4,7));
     selectParam->init({"-->","<--"});
     addParam(selectParam);
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,TY(34))),module,P16::DIR_INPUT));
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,TY(22))),module,P16::DIV_PARAM));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(xpos,TY(10))),module,P16::CV_OUTPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,90)),module,P16::DIR_INPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,104)),module,P16::DIV_PARAM));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(xpos,116)),module,P16::CV_OUTPUT));
   }
 };
 

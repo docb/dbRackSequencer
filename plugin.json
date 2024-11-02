@@ -396,6 +396,49 @@
         "Random",
         "Polyphonic"
       ]
+    },
+    {
+      "slug": "BC",
+      "name": "BC",
+      "description": "Binary Counter",
+      "tags": [
+        "Sequencer",
+        "Logic"
+      ]
+    },
+    {
+      "slug": "MP8",
+      "name": "MP8",
+      "description": "8 bit mapper",
+      "tags": [
+        "Sequencer"
+      ]
+    },
+    {
+      "slug": "TT",
+      "name": "TT",
+      "description": "A modulated truth table",
+      "tags": [
+        "Sequencer",
+        "Logic"
+      ]
+    },
+    {
+      "slug": "Mix8",
+      "name": "Mix8",
+      "description": "CV Mixer with 8 channels",
+      "tags": [
+        "Mixer"
+      ]
+    },
+    {
+      "slug": "AD",
+      "name": "AD",
+      "description": "Analog to 8 Bit Converter",
+      "tags": [
+        "Sequencer",
+        "Logic"
+      ]
     }
   ]
 }
