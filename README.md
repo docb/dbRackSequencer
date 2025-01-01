@@ -2,6 +2,7 @@
 
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
+
 New modules in 2.5.0: [BC](#bc), [AD](#ad), [MP8](#mp8), [TT](#tt), [Mix8](#mix8), [VCM8](#vcm8)
 
 New modules in 2.4.0: [SEQ22](#seq22), [Map](#map), [Swen](#swen)
@@ -949,10 +950,10 @@ If it can be read without errors it will be taken instead otherwise it falls bac
 TT is a polyphonic truth table for up to 4 inputs.
 
 ### Mix8
-Mix8 can be used for converting 8bits to a cv value (DAC). It also can be used as an 8 channel cv mixer.
+Mix8 can be used for converting 8bits to a cv value (DAC). It also can be used as a polyphonic 8 channel cv mixer.
 
 ### VCM8
-VCM8 is a voltage controlled 8 channel mixer, which can be used as modulated 8bit DAC.
+VCM8 is a voltage controlled polyphonic 8 channel mixer, which can be used as modulated 8bit DAC.
 
 
 ## Utilities
