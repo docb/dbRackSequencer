@@ -100,7 +100,6 @@ struct Klee : Module {
   bool computeTabs16(bool lastBit) {
     bool ret=lastBit;
     for(int k=1;k<16;k++) {
-      //if(inputs[TAB_INPUT].getVoltage(k)>1.f) {
       if(params[TAB_PARAMS+k].getValue()>0.f) {
         ret = ret ^ shiftRegister.P[k];
       }
@@ -412,7 +411,7 @@ struct KleeWidget : ModuleWidget {
     }
     start=180-4.25;
     for(int k=0;k<16;k++) {
-      float alpha=M_PI*((k+1)*360.f/float(16)+start)/180.f;
+      float alpha=M_PI*((k)*360.f/float(16)+start)/180.f;
       float x=cosf(alpha);
       float y=ratio*sinf(alpha);
       if(k>0)

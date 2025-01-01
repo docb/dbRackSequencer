@@ -25,6 +25,7 @@ struct AG : Module {
   AG() {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     configParam(PAT_PARAM,0,MAX_PATS-1,0,"Pattern Selection");
+    getParamQuantity(PAT_PARAM)->snapEnabled=true;
     configButton(COPY_PARAM,"Copy");
     configButton(PASTE_PARAM,"Paste");
     configButton(INSERT_PARAM,"Insert");

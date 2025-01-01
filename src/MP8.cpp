@@ -149,7 +149,7 @@ struct MP8 : Module {
     }
     for(int k=0;k<8;k++) {
       if(inputs[k].isConnected()) {
-        if(inputs[k].getVoltage(k)>1.f) {
+        if(inputs[k].getVoltage()>1.f) {
           in|=(1<<k);
         } else {
           in&=~(1<<k);

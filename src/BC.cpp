@@ -45,6 +45,8 @@ struct BC : Module {
         }
       }
       stepValue=s;
+    } else {
+      stepValue=1;
     }
     if(rstTrigger.process(inputs[RST_INPUT].getVoltage())) {
       pos=0;

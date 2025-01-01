@@ -86,14 +86,9 @@ struct PModWidget : ModuleWidget {
     setModule(module);
     setPanel(createPanel(asset::plugin(pluginInstance,"res/PMod.svg")));
 
-    addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH,0)));
-    addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,0)));
-    addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
-    addChild(createWidget<ScrewSilver>(Vec(box.size.x-2*RACK_GRID_WIDTH,RACK_GRID_HEIGHT-RACK_GRID_WIDTH)));
-
     float xpos=1.9f;
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,14)),module,PMod::CLK_INPUT));
-    addInput(createInput<SmallPort>(mm2px(Vec(xpos,26)),module,PMod::RST_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,9)),module,PMod::CLK_INPUT));
+    addInput(createInput<SmallPort>(mm2px(Vec(xpos,21)),module,PMod::RST_INPUT));
     addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,38)),module,PMod::OFS_PARAM));
     addInput(createInput<SmallPort>(mm2px(Vec(xpos,46)),module,PMod::OFS_INPUT));
     addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,58)),module,PMod::MOD_PARAM));
@@ -101,8 +96,8 @@ struct PModWidget : ModuleWidget {
     addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,78)),module,PMod::MULT_PARAM));
     addInput(createInput<SmallPort>(mm2px(Vec(xpos,86)),module,PMod::MULT_INPUT));
 
-    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,100)),module,PMod::SIZE_PARAM));
-    addOutput(createOutput<SmallPort>(mm2px(Vec(xpos,112)),module,PMod::CV_OUTPUT));
+    addParam(createParam<TrimbotWhite>(mm2px(Vec(xpos,104)),module,PMod::SIZE_PARAM));
+    addOutput(createOutput<SmallPort>(mm2px(Vec(xpos,116)),module,PMod::CV_OUTPUT));
 
 
   }

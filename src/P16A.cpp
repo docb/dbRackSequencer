@@ -163,6 +163,7 @@ struct P16A : Module {
     configOutput(POLY_CV_OUTPUT,"Poly CV (static)");
 
     configParam(PAT_PARAM,0,MAX_PATS-1,0,"Pattern Selection");
+    getParamQuantity(PAT_PARAM)->snapEnabled=true;
     init();
     paramDivider.setDivision(32);
     lightDivider.setDivision(32);

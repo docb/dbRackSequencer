@@ -1,7 +1,7 @@
 {
   "slug": "dbRackSequencer",
   "name": "dbRackSequencer",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "license": "GPL-3.0-or-later",
   "brand": "docB",
   "author": "docB",
@@ -438,6 +438,15 @@
       "tags": [
         "Sequencer",
         "Logic"
+      ]
+    },
+    {
+      "slug": "VCM8",
+      "name": "VCM8",
+      "description": "8 channel voltage controlled CV mixer",
+      "tags": [
+        "Mixer",
+        "Polyphonic"
       ]
     }
   ]

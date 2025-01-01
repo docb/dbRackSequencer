@@ -20,7 +20,7 @@ struct Mix8 : Module {
     config(PARAMS_LEN,INPUTS_LEN,OUTPUTS_LEN,LIGHTS_LEN);
     for(int k=0;k<8;k++) {
       std::string label=std::to_string(k+1);
-      configParam(k,0,1,0,"P"+label,"%",0,100);
+      configParam(k,-1,1,0,"P"+label,"%",0,100);
       configInput(k,label);
     }
     configOutput(CV_OUTPUT,"CV");

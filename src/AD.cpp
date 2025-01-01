@@ -36,7 +36,7 @@ struct AD : Module {
       input = clamp(input / 2.f, .0f, 1.0f);
     }
     auto bitValue = uint32_t(std::round(input * float((1 << 8) - 1)));
-    for (int k = 0; k <= 8; k++) {
+    for (int k = 0; k < 8; k++) {
       uint32_t mask = 1 << k;
       outputs[k].setVoltage(bitValue & mask ? 10.f : 0.f);
       outputs[POLY_OUTPUT].setVoltage(bitValue & mask ? 10.f : 0.f, k);

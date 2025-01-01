@@ -479,7 +479,7 @@ struct NumberDisplayWidget : Widget {
 
     if(pq) {
       std::stringstream stream;
-      stream<<std::setfill('0')<<std::setw(2)<<int(pq->getValue());
+      stream<<std::setfill('0')<<std::setw(2)<<int(roundf(pq->getValue()));
       nvgFillColor(args.vg,highLight?nvgRGB(255,255,128):nvgRGB(0,255,0));
       nvgFontFaceId(args.vg,font->handle);
       nvgFontSize(args.vg,10);
