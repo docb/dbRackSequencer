@@ -2,6 +2,7 @@
 
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
+New modules in 2.5.0: [BC](#bc), [AD](#ad), [MP8](#mp8), [TT](#tt), [Mix8](#mix8), [VCM8](#vcm8)
 
 New modules in 2.4.0: [SEQ22](#seq22), [Map](#map), [Swen](#swen)
 
@@ -67,6 +68,13 @@ See also the demo patches on [PatchStorage](https://patchstorage.com/author/docb
   - [SigMod](#sigmod)
   - [MouseSeq](#mouseseq)
   - [Preset](#preset)
+- [8-Bit System](#8-bit-system)
+  - [BC](#bc)
+  - [AD](#ad)
+  - [MP8](#mp8)
+  - [TT](#tt)
+  - [Mix8](#mix8)
+  - [VCM8](#vcm8)
 - [Utilities](#utilities)
   - [Sum](#sum)
   - [CV](#cv)
@@ -912,6 +920,40 @@ https://user-images.githubusercontent.com/1134412/198819843-25800021-1423-41da-b
 
 - Shows the presets of a module (user and factory)
 - Presets are selectable via mouse or CV (0.1V steps)
+
+## 8-Bit System
+
+![](images/8bit.png?raw=true)
+
+### BC
+BC is a binary counter which outputs the bit values as gates via single outputs or the polyphonic output.
+It can be seeded with a 16bit integer through a polyphonic gate input. If not connected the seed is 1.
+On a C+ trigger the seed is added to the current output value, on a C- trigger the seed is subtracted 
+from the current output value. On a reset trigger the current output is set to zero.
+
+### AD
+The AD module converts the input to an 8 bit representation and outputs it on the gate outputs
+or the polyphonic gate output. If the clock input is connected it works as sample & hold.
+If BiPolar is on 5V is added before conversion.
+
+### MP8
+MP8 maps a 8 bit input to an output defined by a 256x256 table. There are 20 banks of tables which can be smoothly 
+scanned via the wave parameter or input. The phase can be adjusted via the phase parameter.
+
+The banks are defined  in res/rom_default.json in the dbRackSequencer plugin directory.
+You can copy this file to rom.json in the same directory and make your own version of it.
+If it can be read without errors it will be taken instead otherwise it falls back to rom_default.json
+(which should never be changed)
+
+### TT
+TT is a polyphonic truth table for up to 4 inputs.
+
+### Mix8
+Mix8 can be used for converting 8bits to a cv value (DAC). It also can be used as an 8 channel cv mixer.
+
+### VCM8
+VCM8 is a voltage controlled 8 channel mixer, which can be used as modulated 8bit DAC.
+
 
 ## Utilities
 
