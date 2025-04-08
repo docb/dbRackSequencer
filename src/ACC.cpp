@@ -14,13 +14,17 @@ struct ACC : Module {
 	enum LightId {
 		LIGHTS_LEN
 	};
-  float state = 0;
-  dsp::SchmittTrigger clockTrigger;
-  dsp::SchmittTrigger rstTrigger;
+  float state[16] ={};
+  dsp::SchmittTrigger clockTrigger[16];
+  dsp::SchmittTrigger rstTrigger[16];
   dsp::SchmittTrigger manualRstTrigger;
-  dsp::PulseGenerator rstPulse;
-  dsp::PulseGenerator trigPulse;
+  dsp::PulseGenerator rstPulse[16];
+  dsp::PulseGenerator trigPulse[16];
   dsp::ClockDivider divider;
+  bool setInputConnected=false;
+  bool stepAmountInputConnected=false;
+  bool thresholdInputConnected=false;
+
 	ACC() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
     configParam(STEP_AMT_PARAM,-1,1,0,"Step Amount");
@@ -36,8 +40,7 @@ struct ACC : Module {
     configOutput(CV_OUTPUT,"CV");
     divider.setDivision(32);
 	}
-
-	void process(const ProcessArgs& args) override {
+  void process(const ProcessArgs& args) override {
     if(divider.process()) {
       if(inputs[SET_INPUT].isConnected()) {
         setImmediateValue(getParamQuantity(SET_PARAM),inputs[SET_INPUT].getVoltage());
@@ -49,27 +52,40 @@ struct ACC : Module {
         setImmediateValue(getParamQuantity(THRESHOLD_PARAM),inputs[THRESHOLD_INPUT].getVoltage());
       }
     }
-    if(rstTrigger.process(inputs[RST_INPUT].getVoltage())|manualRstTrigger.process(params[RST_PARAM].getValue())) {
-      rstPulse.trigger(0.001f);
-      state = params[SET_PARAM].getValue();
+    stepAmountInputConnected=inputs[STEP_AMT_INPUT].isConnected();
+    thresholdInputConnected=inputs[THRESHOLD_INPUT].isConnected();
+    setInputConnected=inputs[SET_INPUT].isConnected();
+    int channels = inputs[CLOCK_INPUT].getChannels();
+    bool manualReset=manualRstTrigger.process(params[RST_PARAM].getValue());
+    for(int k=0;k<channels;k++) {
+      processChannel(k,args,manualReset);
     }
-    bool restGate=rstPulse.process(args.sampleTime);
-    if(clockTrigger.process(inputs[CLOCK_INPUT].getVoltage()) & !restGate) {
-        float amount=params[STEP_AMT_PARAM].getValue();
-        float threshold=params[THRESHOLD_PARAM].getValue();
+    outputs[TRIG_OUTPUT].setChannels(channels);
+    outputs[CV_OUTPUT].setChannels(channels);
+  }
+
+	void processChannel(int c,const ProcessArgs& args,bool manualReset) {
+    if(rstTrigger[c].process(inputs[RST_INPUT].getPolyVoltage(c))|manualReset) {
+      rstPulse[c].trigger(0.001f);
+      state[c] = setInputConnected?inputs[SET_INPUT].getPolyVoltage(c):params[SET_PARAM].getValue();
+    }
+    bool restGate=rstPulse[c].process(args.sampleTime);
+    if(clockTrigger[c].process(inputs[CLOCK_INPUT].getVoltage(c)) & !restGate) {
+        float amount=stepAmountInputConnected?inputs[STEP_AMT_INPUT].getPolyVoltage(c):params[STEP_AMT_PARAM].getValue();
+        float threshold=thresholdInputConnected?inputs[THRESHOLD_INPUT].getPolyVoltage(c):params[THRESHOLD_PARAM].getValue();
         if(amount<0) {
-          if(state>threshold && state+amount <=threshold) {
-            trigPulse.trigger();
+          if(state[c]>threshold && state[c]+amount <=threshold) {
+            trigPulse[c].trigger();
           }
         } else {
-          if(state<threshold && state+amount >=threshold) {
-            trigPulse.trigger();
+          if(state[c]<threshold && state[c]+amount >=threshold) {
+            trigPulse[c].trigger();
           }
         }
-        state+=amount;
+        state[c]+=amount;
     }
-    outputs[TRIG_OUTPUT].setVoltage(trigPulse.process(args.sampleTime)?10.f:0.f);
-    outputs[CV_OUTPUT].setVoltage(state);
+    outputs[TRIG_OUTPUT].setVoltage(trigPulse[c].process(args.sampleTime)?10.f:0.f,c);
+    outputs[CV_OUTPUT].setVoltage(state[c],c);
 	}
 };
 

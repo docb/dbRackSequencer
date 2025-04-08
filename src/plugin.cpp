@@ -55,6 +55,7 @@ extern Model* modelTT;
 extern Model* modelMix8;
 extern Model* modelAD;
 extern Model* modelVCM8;
+extern Model* modelG32;
 
 void init(Plugin *p) {
     pluginInstance = p;
@@ -111,6 +112,7 @@ void init(Plugin *p) {
     p->addModel(modelMix8);
     p->addModel(modelAD);
     p->addModel(modelVCM8);
+    p->addModel(modelG32);
 }
 
 void SmallButtonWithLabel::draw(const Widget::DrawArgs &args) {

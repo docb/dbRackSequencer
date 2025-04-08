@@ -53,7 +53,7 @@ struct PwmClock : Module {
   enum LightId {
     LIGHTS_LEN
   };
-  std::vector<std::string> labels={"16/1 (/64)","8/1 (/32)","4/1 (/16)","2/1 (/8)","1/1 (/4)","3/4 (/3)","1/2 (/2)","3/8 (/1.5)","1/3 (4/3)","1/4 (x1 Beat)","3/16 (x1.5)","1/6","1/8 x2","3/32 x2.5","1/12","1/16 (x4)","3/64","1/24 x6","1/32 (x8)","3/128","1/48 (x12)","1/64 (x16)","1/96 (x24)","1/128 (x32)"};
+  std::vector<std::string> labels={"16/1 (/64)","8/1 (/32)","4/1 (/16)","2/1 (/8)","1/1 (/4)","3/4 (/3)","1/2 (/2)","3/8 (/1.5)","1/3 (4/3)","1/4 (x1 Beat)","3/16 (x1.33)","1/6 (x1.5)","1/8 (x2)","3/32 (x2.66)","1/12 (x3)","1/16 (x4)","3/64 (x5.33)","1/24 (x6)","1/32 (x8)","3/128 (x10.66)","1/48 (x12)","1/64 (x16)","1/96 (x24)","1/128 (x32)"};
   float ticks[24]={16*4,8*4,4*4,2*4,4,0.75*4,0.5*4,0.375*4,4/3.f,0.25*4,0.1875*4,4.f/6.f,0.125*4,0.09375*4,1.f/3.f,0.0625*4,0.046875*4,1/6.f,0.03125*4,0.0234375*4,1/12.f,0.015625*4,1/24.f,0.015625*2};
 
   Clock clocks[NUM_CLOCKS];
@@ -67,6 +67,7 @@ struct PwmClock : Module {
   bool init=true;
   bool bpmVoltageStandard=true;
   bool showTime=true;
+  bool showAlternativeLabels=false;
   uint32_t pos=0;
 
   PwmClock() {
@@ -299,6 +300,7 @@ struct RatioDisplay : OpaqueWidget {
 
   std::basic_string<char> fontPath;
   std::vector<std::string> labels={"16/1","8/1","4/1","2/1","1/1","3/4","1/2","3/8","1/3","1/4","3/16","1/6","1/8","3/32","1/12","1/16","3/64","1/24","1/32","3/128","1/48","1/64","1/96","1/128"};
+  std::vector<std::string> alternativeLabels={"/64","/32","/16","/8","/4","/3","/2","/1.5","4/3","x1","x1.33","x1.5","x2","x2.66","x3","x4","x5.33","x6","x8","x10.66","x12","x16","x24","x32"};
 
   RatioDisplay(PwmClock *_module,int _nr) : OpaqueWidget(),module(_module),nr(_nr) {
     fontPath=asset::plugin(pluginInstance,"res/FreeMonoBold.ttf");
@@ -314,7 +316,7 @@ struct RatioDisplay : OpaqueWidget {
   void _draw(const DrawArgs &args) {
     std::string text="1/16";
     if(module) {
-      text=labels[module->getRatioIndex(nr)];
+      text=module->showAlternativeLabels?alternativeLabels[module->getRatioIndex(nr)]:labels[module->getRatioIndex(nr)];
     }
     std::shared_ptr<Font> font=APP->window->loadFont(fontPath);
     nvgFillColor(args.vg,nvgRGB(255,255,128));
@@ -379,6 +381,7 @@ struct PwmClockWidget : ModuleWidget {
     menu->addChild(new MenuSeparator);
     menu->addChild(createBoolPtrMenuItem("BPM Voltage Standard", "", &module->bpmVoltageStandard));
     menu->addChild(createBoolPtrMenuItem("Show Time", "", &module->showTime));
+    menu->addChild(createBoolPtrMenuItem("Show Alternative Labels", "", &module->showAlternativeLabels));
 
   }
 

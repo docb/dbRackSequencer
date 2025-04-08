@@ -334,7 +334,7 @@ struct P16A : Module {
       if(stepCounter==16) stepCounter=0;
     }
     int pos=(ofs+stepCounter)%16;
-    outputs[CV_OUTPUT].setVoltage(float(patterns[pat][pos]%16)*(divBy10?1.f:10.01f)/params[SIZE_PARAM].getValue());
+    outputs[CV_OUTPUT].setVoltage(float(patterns[pat][pos]%16)*(divBy10?1.f:10.000001f)/params[SIZE_PARAM].getValue());
 
     if(lightDivider.process()) {
       for(int k=0;k<16;k++) {

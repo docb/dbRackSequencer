@@ -3,6 +3,8 @@
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
+New modules in 2.6.0: [G32](#g32) 
+
 New modules in 2.5.0: [BC](#bc), [AD](#ad), [MP8](#mp8), [TT](#tt), [Mix8](#mix8), [VCM8](#vcm8)
 
 New modules in 2.4.0: [SEQ22](#seq22), [Map](#map), [Swen](#swen)
@@ -68,6 +70,7 @@ See also the demo patches on [PatchStorage](https://patchstorage.com/author/docb
   - [TME](#tme)
   - [SigMod](#sigmod)
   - [MouseSeq](#mouseseq)
+  - [G32](#g32)
   - [Preset](#preset)
 - [8-Bit System](#8-bit-system)
   - [BC](#bc)
@@ -913,8 +916,14 @@ Here an example:
 
 https://user-images.githubusercontent.com/1134412/198819843-25800021-1423-41da-b80b-4b2a301cdc4f.mp4
 
+### G32
 
+![](images/G32.png)
 
+Generates deterministic 32 Gates from an input signal on each clock signal with three methods:
+- ieee: outputs the ieee floating point representation of the normalized (0,1) input
+- int: outputs the bits of an integer which is the input normalized to (0,MAX_INT)
+- rnd: uses the input as seed for one random operation.
 
 ### Preset
 ![](images/Preset.png?raw=true)

@@ -1009,7 +1009,9 @@ struct GateDisplay : OpaqueWidget {
   }
 };
 
-
+inline static double clampd(double x, double a, double b) {
+  return std::max(std::min(x, b), a);
+}
 
 #define MHEIGHT 128.5f
 #define TY(x) MHEIGHT-(x)-6.237
