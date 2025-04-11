@@ -6,7 +6,7 @@ struct G32 : Module {
     BI_PARAM,METHOD_PARAM,PARAMS_LEN
   };
   enum InputId {
-    CV_INPUT,CLK_INPUT,INPUTS_LEN
+    CV_INPUT,CLK_INPUT,METHOD_INPUT,INPUTS_LEN
   };
   enum OutputId {
     CV1_OUTPUT,CV2_OUTPUT,OUTPUTS_LEN
@@ -22,6 +22,7 @@ struct G32 : Module {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
     configButton(BI_PARAM,"BiPolar");
     configInput(CV_INPUT,"CV");
+    configInput(METHOD_INPUT,"Method");
     configInput(CLK_INPUT,"Clk");
     configOutput(CV1_OUTPUT,"CV1");
     configOutput(CV2_OUTPUT,"CV2");
@@ -67,6 +68,9 @@ struct G32 : Module {
   }
 
   void process() {
+    if(inputs[METHOD_INPUT].isConnected()) {
+      setImmediateValue(getParamQuantity(METHOD_PARAM),inputs[METHOD_INPUT].getVoltage());
+    }
     auto method=(uint8_t )params[METHOD_PARAM].getValue();
     switch(method) {
       case 0: floatcast();break;
@@ -106,6 +110,7 @@ struct G32Widget : ModuleWidget {
     selectParam->box.size=mm2px(Vec(7,12));
     selectParam->init({"ieee","int","rnd"});
     addParam(selectParam);
+    addInput(createInput<SmallPort>(mm2px(Vec(x,58)),module,G32::METHOD_INPUT));
     addOutput(createOutput<SmallPort>(mm2px(Vec(x,116)),module,G32::CV2_OUTPUT));
     addOutput(createOutput<SmallPort>(mm2px(Vec(x,108)),module,G32::CV1_OUTPUT));
 

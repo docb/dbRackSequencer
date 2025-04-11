@@ -27,6 +27,7 @@ struct Klee : Module {
   dsp::PulseGenerator stepTriggers[16];
   dsp::PulseGenerator loadPulse;
   bool instant = false;
+  bool extAsGate = false;
   union {
     struct {
       bool A[8];
@@ -91,6 +92,7 @@ struct Klee : Module {
   bool getCoin() {
     float threshold=params[RANDOM_THRESHOLD_PARAM].getValue();
     if(inputs[EXT_INPUT].isConnected()) {
+      if(extAsGate) return inputs[EXT_INPUT].getVoltage()>1.f;
       return rescale(inputs[EXT_INPUT].getVoltage(),-5.f,5.f,0.f,1.f)<threshold;
     } else {
       return rnd.nextCoin(1-threshold);
@@ -327,6 +329,7 @@ struct Klee : Module {
     json_object_set_new(root,"min",json_real(min));
     json_object_set_new(root,"max",json_real(max));
     json_object_set_new(root,"quantize",json_integer(quantize));
+    json_object_set_new(root,"extAsGate",json_boolean(extAsGate));
     return root;
   }
 
@@ -343,6 +346,10 @@ struct Klee : Module {
     json_t *jQuantize=json_object_get(root,"quantize");
     if(jQuantize) {
       quantize=json_integer_value(jQuantize);
+    }
+    json_t *jExtAsGate=json_object_get(root,"extAsGate");
+    if(jExtAsGate) {
+      extAsGate=json_boolean_value(jExtAsGate);
     }
     reconfig();
   }
@@ -501,12 +508,11 @@ struct KleeWidget : ModuleWidget {
     rangeSelectItem->text="Range";
     rangeSelectItem->rightText=string::f("%0.1f/%0.1fV",module->min,module->max)+"  "+RIGHT_ARROW;
     menu->addChild(rangeSelectItem);
-    menu->addChild(createCheckMenuItem("Quantize", "",
-                                       [=]() {return module->quantize;},
-                                       [=]() { module->quantize=!module->quantize;}));
-    menu->addChild(createCheckMenuItem("Instant mode", "",
-                                       [=]() {return module->instant;},
-                                       [=]() { module->instant=!module->instant;}));
+    menu->addChild(new MenuSeparator);
+    menu->addChild(createBoolPtrMenuItem("Quantize", "", &module->quantize));
+    menu->addChild(createBoolPtrMenuItem("Instant mode", "", &module->instant));
+    menu->addChild(createBoolPtrMenuItem("Ext as Gate", "", &module->extAsGate));
+    menu->addChild(new MenuSeparator);
     menu->addChild(new RandomizeItem(module,RNDCV,"Randomize CV"));
     menu->addChild(new RandomizeItem(module,RNDBUS,"Randomize Bus"));
     menu->addChild(new RandomizeItem(module,RNDLOAD,"Randomize Load"));

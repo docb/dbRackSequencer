@@ -200,6 +200,7 @@ struct PwmClock : Module {
     json_t *root=json_object();
     json_object_set_new(root,"bpmVoltageStandard",json_boolean(bpmVoltageStandard));
     json_object_set_new(root,"showTime",json_boolean(showTime));
+    json_object_set_new(root,"showAlternativeLabels",json_boolean(showAlternativeLabels));
     return root;
   }
 
@@ -211,6 +212,10 @@ struct PwmClock : Module {
     json_t *jShowTime=json_object_get(root,"showTime");
     if(jShowTime) {
       showTime=json_boolean_value(jShowTime);
+    }
+    json_t *jShowAlternativeLabels=json_object_get(root,"showAlternativeLabels");
+    if(jShowAlternativeLabels) {
+      showAlternativeLabels=json_boolean_value(jShowAlternativeLabels);
     }
   }
 
