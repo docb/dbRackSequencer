@@ -61,10 +61,11 @@ struct JTChords : Module {
     FILE *file=fopen(path.c_str(),"r");
     if(!file)
       return false;
-    DEFER({fclose(file);});
 
     json_error_t error;
     json_t *rootJ=json_loadf(file,0,&error);
+    fclose(file);
+
     if(!rootJ) {
       WARN("%s",string::f("Scales file has invalid JSON at %d:%d %s",error.line,error.column,error.text).c_str());
       return false;

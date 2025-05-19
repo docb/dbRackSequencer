@@ -2,6 +2,26 @@
 #include <sstream>
 
 #define NUM_CLOCKS 9
+struct Clock2 {
+  double phs=0;
+  bool sw=false;
+  void updatePhs(float sampleTime,float freq) {
+    phs+=double(freq)*double(sampleTime);
+    sw=(phs>=1);
+    if(phs>=2) phs=0;
+  }
+
+  bool process(float pwm,float swing) {
+    if(swing>0.f && sw) {
+      return phs-1>=swing && phs-1<std::min(swing+pwm,1.f);
+    }
+    return sw?phs-1<pwm:phs<pwm;
+  }
+
+  void reset() {
+    phs=0.f;
+  }
+};
 
 struct Clock {
   double period=0;
@@ -57,6 +77,7 @@ struct PwmClock : Module {
   float ticks[24]={16*4,8*4,4*4,2*4,4,0.75*4,0.5*4,0.375*4,4/3.f,0.25*4,0.1875*4,4.f/6.f,0.125*4,0.09375*4,1.f/3.f,0.0625*4,0.046875*4,1/6.f,0.03125*4,0.0234375*4,1/12.f,0.015625*4,1/24.f,0.015625*2};
 
   Clock clocks[NUM_CLOCKS];
+  Clock2 clocks2[NUM_CLOCKS];
   dsp::SchmittTrigger resetTrigger;
   dsp::SchmittTrigger onTrigger;
   dsp::SchmittTrigger resetInputTrigger;
@@ -65,7 +86,7 @@ struct PwmClock : Module {
   float sampleRate=0;
   float bpm=0.f;
   bool init=true;
-  bool bpmVoltageStandard=true;
+  bool accurate=true;
   bool showTime=true;
   bool showAlternativeLabels=false;
   uint32_t pos=0;
@@ -89,7 +110,7 @@ struct PwmClock : Module {
     configOutput(BPM_OUTPUT,"BPM (V/Oct)");
     configInput(BPM_INPUT,"BPM (V/Oct)");
     configOutput(RST_OUTPUT,"Reset");
-    bpmParamDivider.setDivision(64);
+    bpmParamDivider.setDivision(1024);
   }
 
   float getBpm() {
@@ -120,6 +141,11 @@ struct PwmClock : Module {
     clocks[k].setNewLength(length);
   }
 
+  float getFreq(int k) {
+    int idx=int(params[RATIO_PARAM+k].getValue());
+    return bpm/(ticks[idx]*60.f);
+  }
+
   float getPwm(int k) {
     if(inputs[PWM_INPUT+k].isConnected()) {
       setImmediateValue(getParamQuantity(PWM_PARAM+k),inputs[PWM_INPUT+k].getVoltage()/10.f);
@@ -137,21 +163,12 @@ struct PwmClock : Module {
 
   void process(const ProcessArgs &args) override {
     if(bpmParamDivider.process()) {
-      if(bpmVoltageStandard) {
         if(inputs[BPM_INPUT].isConnected()) {
           float freq=powf(2,clamp(inputs[BPM_INPUT].getVoltage(),-2.f,1.f));
           setImmediateValue(getParamQuantity(BPM_PARAM),freq*120.f);
         }
         updateBpm(args.sampleRate);
         outputs[BPM_OUTPUT].setVoltage(log2f(params[BPM_PARAM].getValue()/120.f));
-      } else {
-        if(inputs[BPM_INPUT].isConnected()) {
-          float freq=powf(2,clamp(inputs[BPM_INPUT].getVoltage(),-1.f,2.f));
-          setImmediateValue(getParamQuantity(BPM_PARAM),freq*120.f);
-        }
-        updateBpm(args.sampleRate);
-        outputs[BPM_OUTPUT].setVoltage(log2f(params[BPM_PARAM].getValue()/60.f));
-      }
     }
     if(init) {
       updateBpm(args.sampleRate);
@@ -162,6 +179,7 @@ struct PwmClock : Module {
       pos=0;
       for(int k=0;k<NUM_CLOCKS;k++) {
         clocks[k].reset();
+        clocks2[k].reset();
         changeRatio(k);
       }
     }
@@ -172,6 +190,7 @@ struct PwmClock : Module {
       pos=0;
       for(int k=0;k<NUM_CLOCKS;k++) {
         clocks[k].reset();
+        clocks2[k].reset();
         changeRatio(k);
       }
     }
@@ -182,7 +201,12 @@ struct PwmClock : Module {
         if(outputs[CLK_OUTPUT+k].isConnected()) {
           float pwm=getPwm(k);
           float swing=params[SWING_PARAM+k].getValue();
-          outputs[CLK_OUTPUT+k].setVoltage(clocks[k].process(pwm,args.sampleRate,swing,pos)?10.f:0.f);
+          if(accurate) {
+            outputs[CLK_OUTPUT+k].setVoltage(clocks[k].process(pwm,args.sampleRate,swing,pos)?10.f:0.f);
+          } else {
+            clocks2[k].updatePhs(args.sampleTime,getFreq(k));
+            outputs[CLK_OUTPUT+k].setVoltage(clocks2[k].process(pwm,swing)?10.f:0.f);
+          }
         }
       }
     } else {
@@ -198,16 +222,16 @@ struct PwmClock : Module {
 
   json_t *dataToJson() override {
     json_t *root=json_object();
-    json_object_set_new(root,"bpmVoltageStandard",json_boolean(bpmVoltageStandard));
+    json_object_set_new(root,"accurate",json_boolean(accurate));
     json_object_set_new(root,"showTime",json_boolean(showTime));
     json_object_set_new(root,"showAlternativeLabels",json_boolean(showAlternativeLabels));
     return root;
   }
 
   void dataFromJson(json_t *root) override {
-    json_t *jBpmVoltageStandard=json_object_get(root,"bpmVoltageStandard");
-    if(jBpmVoltageStandard) {
-      bpmVoltageStandard=json_boolean_value(jBpmVoltageStandard);
+    json_t *jAccurate=json_object_get(root,"accurate");
+    if(jAccurate) {
+      accurate=json_boolean_value(jAccurate);
     }
     json_t *jShowTime=json_object_get(root,"showTime");
     if(jShowTime) {
@@ -384,7 +408,7 @@ struct PwmClockWidget : ModuleWidget {
     auto *module=dynamic_cast<PwmClock *>(this->module);
     assert(module);
     menu->addChild(new MenuSeparator);
-    menu->addChild(createBoolPtrMenuItem("BPM Voltage Standard", "", &module->bpmVoltageStandard));
+    menu->addChild(createBoolPtrMenuItem("Accurate", "", &module->accurate));
     menu->addChild(createBoolPtrMenuItem("Show Time", "", &module->showTime));
     menu->addChild(createBoolPtrMenuItem("Show Alternative Labels", "", &module->showAlternativeLabels));
 
