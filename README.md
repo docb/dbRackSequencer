@@ -3,6 +3,8 @@
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
+New modules in 2.6.2: [µTD4](#%C2%B5td4)
+
 New modules in 2.6.0: [G32](#g32) 
 
 New modules in 2.5.0: [BC](#bc), [AD](#ad), [MP8](#mp8), [TT](#tt), [Mix8](#mix8), [VCM8](#vcm8)
@@ -41,6 +43,7 @@ See also the demo patches on [PatchStorage](https://patchstorage.com/author/docb
     - [UnoA](#unoa)
     - [PXY](#pxy)
     - [PMod](#pmod)
+  - [µTD4](#%C2%B5td4)
   - [C42](#c42)
     - [Gate/Trigger Sequencer](#gatetrigger-sequencer)
     - [Creating melodies](#creating-melodies)
@@ -289,6 +292,11 @@ https://user-images.githubusercontent.com/1134412/167461807-b4f6fbb2-5726-4762-a
 Generates address sequences by multiplying the step number (increased by the clock input)
 with the value of the Mult parameter and modulo the value given by the Mod parameter.
 
+### µTD4
+
+A small version of TD4 providing a polyphonic cv address input and a polyphonic input for the parameters.
+The polyphonic output reflects the addressed parameter for each channel of the cv address input.
+The trigger output fires if an output cv has changed.
 
 ### C42
 A universal sequencer. Vaguely inspired by the o88o module from the XOR plugin.

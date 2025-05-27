@@ -141,7 +141,11 @@ struct Track {
   }
 
   float getCV(int step) {
-    return module->params[M::CV_PARAM+step].getValue();
+    float val=module->params[M::CV_PARAM+step].getValue();
+    if(module->quantize) {
+      val=roundf(val*12.f)/12.f;
+    }
+    return val;
   }
 
   void process(const Module::ProcessArgs &args) {
