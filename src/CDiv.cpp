@@ -24,6 +24,8 @@ struct CDiv : Module {
   unsigned long  currentPos=0;
   unsigned long edges=0;
   bool orig_pw=true;
+  bool roundSteps=false;
+
 	CDiv() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
     configInput(CLK_INPUT,"Clock");
@@ -41,8 +43,10 @@ struct CDiv : Module {
     if(paramDivider.process()) {
       for(int k=0;k<NUM_DIV;k++) {
         if(inputs[DIV_INPUT+k].isConnected()) {
-          int c=clamp(inputs[DIV_INPUT+k].getVoltage(),0.f,9.99f)*float(MAX_DIV)/10.f;
-          setImmediateValue(getParamQuantity(DIV_PARAM+k),c);
+          float f=clamp(inputs[DIV_INPUT+k].getVoltage(),0.f,9.99f)*float(MAX_DIV)/10.f;
+          int c;
+          if(roundSteps) c=(int)std::round(f); else c=(int)f;
+          setImmediateValue(getParamQuantity(DIV_PARAM+k),float(c));
         }
       }
     }
@@ -75,6 +79,20 @@ struct CDiv : Module {
       }
     }
 	}
+
+  json_t *dataToJson() override {
+    json_t *data=json_object();
+    json_object_set_new(data,"roundSteps",json_boolean(roundSteps));
+    return data;
+  }
+
+  void dataFromJson(json_t *rootJ) override {
+    json_t *jRoundSteps=json_object_get(rootJ,"roundSteps");
+    if(jRoundSteps)
+      roundSteps=json_boolean_value(jRoundSteps);
+  }
+
+
 };
 
 struct DivisionSelect : SpinParamWidget {
@@ -109,6 +127,7 @@ struct CDivWidget : ModuleWidget {
     CDiv* module = getModule<CDiv>();
     menu->addChild(new MenuSeparator);
     menu->addChild(createBoolPtrMenuItem("Keep input clock original pulse width", "", &module->orig_pw));
+    menu->addChild(createBoolPtrMenuItem("Round division input","",&module->roundSteps));
   }
 };
 

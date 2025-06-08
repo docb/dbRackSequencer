@@ -17,6 +17,7 @@ struct AG : Module {
   };
   RND rnd;
   bool gateCountFromZero=false;
+  bool roundSteps=false;
   float randomDens=0.5f;
   bool gates[MAX_PATS][PORT_MAX_CHANNELS]={};
   bool cbGates[PORT_MAX_CHANNELS]={};
@@ -37,8 +38,10 @@ struct AG : Module {
 
   void process(const ProcessArgs &args) override {
     if(inputs[PAT_CV_INPUT].isConnected()&&params[EDIT_PARAM].getValue()==0) {
-      int c=clamp(inputs[PAT_CV_INPUT].getVoltage(),0.f,9.99f)*float(MAX_PATS)/10.f;
-      setImmediateValue(getParamQuantity(PAT_PARAM),c);
+      float f=clamp(inputs[PAT_CV_INPUT].getVoltage(),0.f,9.99f)*float(MAX_PATS)/10.f;
+      int c;
+      if(roundSteps) c=(int)std::round(f); else c=(int)f;
+      setImmediateValue(getParamQuantity(PAT_PARAM),float(c));
     }
     int currentPattern=params[PAT_PARAM].getValue();
     int k=0;
@@ -61,6 +64,7 @@ struct AG : Module {
     json_object_set_new(data,"gates",patternList);
     json_object_set_new(data,"channels",json_integer(maxChannels));
     json_object_set_new(data,"gateCountFromZero",json_boolean(gateCountFromZero));
+    json_object_set_new(data,"roundSteps",json_boolean(roundSteps));
     return data;
   }
 
@@ -83,6 +87,9 @@ struct AG : Module {
     json_t *jGateCountFromZero=json_object_get(rootJ,"gateCountFromZero");
     if(jGateCountFromZero)
       gateCountFromZero=json_boolean_value(jGateCountFromZero);
+    json_t *jRoundSteps=json_object_get(rootJ,"roundSteps");
+    if(jRoundSteps)
+      roundSteps=json_boolean_value(jRoundSteps);
   }
 
   void onReset(const ResetEvent &e) override {
@@ -216,6 +223,7 @@ struct AGWidget : ModuleWidget {
     menu->addChild(channelSelect);
     menu->addChild(new DensMenuItem<AG>(module));
     menu->addChild(createBoolPtrMenuItem("Count from zero","",&module->gateCountFromZero));
+    menu->addChild(createBoolPtrMenuItem("Round pattern input","",&module->roundSteps));
 
   }
 };

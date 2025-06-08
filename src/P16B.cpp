@@ -135,7 +135,8 @@ struct P16B : Module {
         if(i>1) outputs[GATE_DIV_OUTPUT].setVoltage(getBit(i)^gateInv?10.f:0.f,i-2);
       }
       for(int k=0;k<4;k++) {
-        bool bit=getBit(params[A_PARAM+k].getValue());
+        uint8_t nt=params[k+NOT_A_PARAM].getValue()>0;
+        uint8_t bit=getBit(params[A_PARAM+k].getValue())^nt;
         outputs[GATE_A_OUTPUT+k].setVoltage(bit?10.f:0.f);
         lights[GATE_LIGHTS+k].setBrightness(bit?1.f:0.f);
       }

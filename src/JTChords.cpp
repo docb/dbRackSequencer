@@ -45,6 +45,7 @@ struct JTChords : Module {
   ChordManager<156,100> chrMgr;
   bool autoChannels=false;
   bool autoReorder=false;
+  bool roundSteps=false;
   std::vector<Scale<31>> scaleVector;
 
   void parseJson(json_t *rootJ) {
@@ -120,9 +121,12 @@ struct JTChords : Module {
     int currentScale=params[SCALE_PARAM].getValue();
 
     if(inputs[CHORD_INPUT].isConnected() && params[EDIT_PARAM].getValue() == 0.f) {
-      int c=clamp(inputs[CHORD_INPUT].getVoltage(),0.f,9.99f)*10.f;
-      getParamQuantity(CHORD_PARAM)->setValue(c);
+      float f=clamp(inputs[CHORD_INPUT].getVoltage(),0.f,9.99f)*10.f;
+      int c;
+      if(roundSteps) c=(int)std::round(f); else c=(int)f;
+      setImmediateValue(getParamQuantity(CHORD_PARAM),float(c));
     }
+
     int currentChord=params[CHORD_PARAM].getValue();
     int autoMaxChannels=0;
     for(int k=0;k<chrMgr.maxChannels;k++) {
@@ -152,6 +156,7 @@ struct JTChords : Module {
     json_t *data=chrMgr.dataToJson();
     json_object_set_new(data,"autoReorder",json_integer(autoReorder));
     json_object_set_new(data,"autoChannels",json_integer(autoChannels));
+    json_object_set_new(data,"roundSteps",json_boolean(roundSteps));
     return data;
   }
 
@@ -165,7 +170,9 @@ struct JTChords : Module {
     if(jAutoReorder) {
       autoReorder=json_integer_value(jAutoReorder);
     }
-
+    json_t *jRoundSteps=json_object_get(rootJ,"roundSteps");
+    if(jRoundSteps)
+      roundSteps=json_boolean_value(jRoundSteps);
   }
 
 
@@ -474,6 +481,8 @@ struct JTChordsWidget : ModuleWidget {
     auto delMenu=new DelItem(module);
     delMenu->text="Delete Chord";
     menu->addChild(delMenu);
+    menu->addChild(createBoolPtrMenuItem("Round pattern input","",&module->roundSteps));
+
   }
 };
 

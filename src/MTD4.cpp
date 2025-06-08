@@ -40,6 +40,7 @@ struct MTD4 : Module {
       outputs[TRIG_OUTPUT].setVoltage(triggers[k].process(args.sampleTime)?10.f:0.f);
     }
     outputs[CV_OUTPUT].setChannels(channels);
+    outputs[TRIG_OUTPUT].setChannels(channels);
 	}
 };
 
