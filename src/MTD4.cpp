@@ -37,7 +37,7 @@ struct MTD4 : Module {
         lastCV[k]=a;
       }
       outputs[CV_OUTPUT].setVoltage(a,k);
-      outputs[TRIG_OUTPUT].setVoltage(triggers[k].process(args.sampleTime)?10.f:0.f);
+      outputs[TRIG_OUTPUT].setVoltage(triggers[k].process(args.sampleTime)?10.f:0.f,k);
     }
     outputs[CV_OUTPUT].setChannels(channels);
     outputs[TRIG_OUTPUT].setChannels(channels);

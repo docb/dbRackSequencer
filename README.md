@@ -292,6 +292,18 @@ https://user-images.githubusercontent.com/1134412/167461807-b4f6fbb2-5726-4762-a
 Generates address sequences by multiplying the step number (increased by the clock input)
 with the value of the Mult parameter and modulo the value given by the Mod parameter.
 
+#### PMKV
+
+![](images/PMKV.png?raw=true)
+
+Generates address sequences using Markov Chains. Using the polyphonic inputs a maximal 
+16x16 probability matrix can be connected e.g. via PLC or other voltage providers.
+The current step is output as (0.625 x step number). 
+Thus, the output can directly be connected to CVS, TD4 or µTD4. 
+Additionally, there are polyphonic clock, gate and trigger outputs representing 
+the current step via the polyphonic channels.  
+
+
 ### µTD4
 
 A small version of TD4 providing a polyphonic cv address input and a polyphonic input for the parameters.
@@ -974,6 +986,11 @@ VCM8 is a voltage controlled polyphonic 8 channel mixer, which can be used as mo
 
 
 ## Utilities
+
+### MC1
+![](images/MC1.png?raw=true)
+
+A recordable mouse controller/slider. 
 
 ### Sum
 ![](images/Sum.png?raw=true)

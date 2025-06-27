@@ -69,7 +69,7 @@ struct Track {
 
   int getStride() {
     if(module->inputs[strideInputId].isConnected())
-      module->getParamQuantity(strideId)->setValue(module->inputs[strideInputId].getVoltage()*0.8f);
+      module->getParamQuantity(strideId)->setValue(module->inputs[strideInputId].getVoltage()*3.2f);
     return module->params[strideId].getValue();
   }
 
@@ -275,7 +275,7 @@ struct CYC : Module {
       configParam(LENGTH_PARAM+k,1,32,8,"Length "+std::to_string(k+1));
       getParamQuantity(LENGTH_PARAM+k)->snapEnabled=true;
       configInput(LENGTH_INPUT+k,"Length "+std::to_string(k+1));
-      configParam(STRIDE_PARAM+k,1,8,1,"Stride "+std::to_string(k+1));
+      configParam(STRIDE_PARAM+k,1,32,1,"Stride "+std::to_string(k+1));
       getParamQuantity(STRIDE_PARAM+k)->snapEnabled=true;
       configInput(STRIDE_INPUT+k,"Stride "+std::to_string(k+1));
       configSwitch(TRACK_ON_PARAM+k,0,1,k==0?1:0,"Track "+std::to_string(k+1),{"Off","On"});

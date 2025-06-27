@@ -459,10 +459,27 @@
     },
     {
       "slug": "MTD4",
-      "name": "µTD4",
+      "name": "\u00b5TD4",
       "description": "Mini TD4",
       "tags": [
         "Sequencer"
+      ]
+    },
+    {
+      "slug": "PMKV",
+      "name": "PMKV",
+      "description": "Markov Chain for address CV",
+      "tags": [
+        "Sequencer"
+      ]
+    },
+    {
+      "slug": "MC1",
+      "name": "MC1",
+      "description": "Recordable Mouse Controller",
+      "tags": [
+        "Controller",
+        "Envelope Generator"
       ]
     }
   ]

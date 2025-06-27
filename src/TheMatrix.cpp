@@ -177,7 +177,7 @@ struct TheMatrix : Module {
     configParam(CV_Y_PARAM,0,MAX_SIZE_Y-1,0,"Y");
     getParamQuantity(CV_Y_PARAM)->snapEnabled=true;
     configParam(DENS_PARAM,0,1,0.9,"Random Density");
-    configParam(LEVEL_PARAM,0.01,1,0.1,"Out Level Factor");
+    configParam(LEVEL_PARAM,0.01,1,0.0833333f,"Out Level Factor");
     configParam(FROM_PARAM,33,126,65,"Random Range From");
     getParamQuantity(FROM_PARAM)->snapEnabled=true;
     configParam(TO_PARAM,33,126,90,"Random Range To");
