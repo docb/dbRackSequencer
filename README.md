@@ -3,6 +3,8 @@
 A collection of sequencers. Some modules of this plugin are inspired by the XOR plugin
 which is not available in Rack v2.
 
+New modules in 2.6.3: [PMKV](#pmkv), [MC1](#mc1)
+
 New modules in 2.6.2: [µTD4](#%C2%B5td4)
 
 New modules in 2.6.0: [G32](#g32) 
@@ -43,6 +45,7 @@ See also the demo patches on [PatchStorage](https://patchstorage.com/author/docb
     - [UnoA](#unoa)
     - [PXY](#pxy)
     - [PMod](#pmod)
+    - [PMKV](#pmkv)
   - [µTD4](#%C2%B5td4)
   - [C42](#c42)
     - [Gate/Trigger Sequencer](#gatetrigger-sequencer)
@@ -83,6 +86,7 @@ See also the demo patches on [PatchStorage](https://patchstorage.com/author/docb
   - [Mix8](#mix8)
   - [VCM8](#vcm8)
 - [Utilities](#utilities)
+  - [MC1](#mc1)
   - [Sum](#sum)
   - [CV](#cv)
   - [PwmClock](#pwmclock)
