@@ -159,7 +159,7 @@ struct Preset : Module {
       expanderChanged=true;
     }
   }
-  void applyPreset(int nr) {
+  void applyPreset(unsigned int nr) {
     if(!currentDir) return;
     if(nr<currentDir->presetData.size()) {
       if(leftModule) {
@@ -274,9 +274,9 @@ struct DirButton : OpaqueWidget {
   }
 };
 
-static int getMaxLength(const std::vector<std::string>& list) {
-  int max=0;
-  for(const std::string s:list) {
+static unsigned int getMaxLength(const std::vector<std::string>& list) {
+  unsigned int max=0;
+  for(const std::string& s:list) {
     if(s.length()>max) max=s.length();
   }
   return max;
@@ -284,19 +284,19 @@ static int getMaxLength(const std::vector<std::string>& list) {
 
 struct DirWidget : OpaqueWidget {
   Preset *module=nullptr;
-  DirWidget(Preset *p) : module(p) {
+  explicit DirWidget(Preset *p) : module(p) {
     box.pos=Vec(0,0);
   }
-  void init(std::vector<std::string> names) {
+  void init(const std::vector<std::string>& names) {
     clearChildren();
     if(!module) return;
-    int max=getMaxLength(names);
+    unsigned int max=getMaxLength(names);
     if(max<8) max=8;
     box.size=Vec(max*6,(names.size()+1)*11);
     float y=0;
     addChild(new DirButton(module,-1,"..",Vec(0,y),Vec(max*5.5f,11)));
     int k=0;
-    for(std::string name:names) {
+    for(const std::string& name:names) {
       y+=11;
       addChild(new DirButton(module,k,name,Vec(0,y),Vec(max*5.5f,11)));
       k++;
@@ -309,19 +309,19 @@ struct DirWidget : OpaqueWidget {
 };
 struct PresetItemWidget : OpaqueWidget {
   Preset *module=nullptr;
-  PresetItemWidget(Preset *p) : module(p) {
+  explicit PresetItemWidget(Preset *p) : module(p) {
     box.pos=Vec(0,0);
   }
   void init(std::vector<std::string> names) {
-    int max=getMaxLength(names);
+    unsigned int max=getMaxLength(names);
     if(max<8) max=8;
     box.size=Vec(max*6,(names.size()+1)*12);
     clearChildren();
     int k=0;
     int y=0;
-    for(auto itr=names.begin();itr!=names.end();itr++,k++,y+=12) {
-      std::string l=*itr;
-      PresetButton *p=new PresetButton(module,k,l,Vec(0,y),Vec(max*6,11));
+    for(auto itr=names.begin();itr!=names.end();++itr,k++,y+=12) {
+      const std::string& l=*itr;
+      auto *p=new PresetButton(module,k,l,Vec(0,y),Vec(max*6,11));
       addChild(p);
     }
   }
@@ -334,6 +334,8 @@ struct PresetItemWidget : OpaqueWidget {
 struct PathWidget : OpaqueWidget {
   Preset *module=nullptr;
   std::string fontPath;
+  Tooltip *tooltip=nullptr;
+
   PathWidget(Preset *p,Vec pos, Vec size) : OpaqueWidget(),module(p) {
     box.pos=pos;
     box.size=size;
@@ -343,8 +345,8 @@ struct PathWidget : OpaqueWidget {
     if(!module) return;
     if(!module->currentDir) return;
     std::string path=module->currentDir->getPath();
-    if(path.length()>36) {
-      path=".."+path.substr(0,34);
+    if(path.length()>14) {
+      path=".."+path.substr(path.length()-12);
     }
     std::shared_ptr<Font> font =  APP->window->loadFont(fontPath);
     nvgFontSize(args.vg, box.size.y-2);
@@ -353,6 +355,50 @@ struct PathWidget : OpaqueWidget {
     nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
     nvgFillColor(args.vg, textColor);
     nvgText(args.vg, 2, box.size.y/2+1.5, path.c_str(), NULL);
+  }
+  void onDragHover(const event::DragHover &e) override {
+    if(e.button==GLFW_MOUSE_BUTTON_LEFT) {
+      e.consume(this);
+    }
+    Widget::onDragHover(e);
+  }
+
+  void onDragEnter(const event::DragEnter &e) override {
+    createTooltip();
+    Widget::onDragEnter(e);
+  };
+
+  void createTooltip() {
+    if(!module) return;
+    if(!module->currentDir) return;
+    std::string path=module->currentDir->getPath();
+    if(tooltip==nullptr) {
+      tooltip=new Tooltip;
+      tooltip->text=path;
+      APP->scene->addChild(tooltip);
+    }
+  }
+
+
+  void destroyTooltip() {
+    if(!tooltip)
+      return;
+    APP->scene->removeChild(tooltip);
+    delete tooltip;
+    tooltip=nullptr;
+  }
+
+
+  void onEnter(const EnterEvent &e) override {
+    createTooltip();
+  }
+
+  void onLeave(const LeaveEvent &e) override {
+    destroyTooltip();
+  }
+
+  void onDragLeave(const DragLeaveEvent &e) override {
+    destroyTooltip();
   }
 };
 
@@ -367,14 +413,14 @@ struct Presets : OpaqueWidget {
     dirWidget=new DirWidget(module);
     presetWidget=new PresetItemWidget(module);
 
-    ScrollWidget *scrollDirWidget=new ScrollWidget();
-    scrollDirWidget->box.size=Vec(size.x*0.3,size.y);
+    auto *scrollDirWidget=new ScrollWidget();
+    scrollDirWidget->box.size=Vec(size.x,size.y*0.3);
     scrollDirWidget->box.pos=Vec(0,0);
     addChild(scrollDirWidget);
     scrollDirWidget->container->addChild(dirWidget);
-    ScrollWidget *scrollPresetWidget=new ScrollWidget();
-    scrollPresetWidget->box.size=Vec(size.x*0.7,size.y);
-    scrollPresetWidget->box.pos=Vec(size.x*0.3,0);
+    auto *scrollPresetWidget=new ScrollWidget();
+    scrollPresetWidget->box.size=Vec(size.x,size.y*0.7);
+    scrollPresetWidget->box.pos=Vec(size.x*0,size.y*0.3);
     addChild(scrollPresetWidget);
     scrollPresetWidget->container->addChild(presetWidget);
   }
@@ -432,12 +478,12 @@ struct PresetWidget : ModuleWidget {
 	PresetWidget(Preset* module) {
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/Preset.svg")));
-    auto pathWidget=new PathWidget(module,mm2px(Vec(6,8)),mm2px(Vec(70,4)));
+    auto pathWidget=new PathWidget(module,mm2px(Vec(1,6)),mm2px(Vec(29,4)));
     addChild(pathWidget);
-    auto presetsWidget=new Presets(module,mm2px(Vec(6,14)),mm2px(Vec(70,100)));
+    auto presetsWidget=new Presets(module,mm2px(Vec(1,14)),mm2px(Vec(29,94)));
     addChild(presetsWidget);
-    addInput(createInput<SmallPort>(mm2px(Vec(10,116)),module,Preset::CV_INPUT));
-    auto refreshParam= createParam<RefreshButton>(mm2px(Vec(40,116)),module,Preset::REFRESH_PARAM);
+    addInput(createInput<SmallPort>(mm2px(Vec(6,116)),module,Preset::CV_INPUT));
+    auto refreshParam= createParam<RefreshButton>(mm2px(Vec(18,116)),module,Preset::REFRESH_PARAM);
     refreshParam->module=module;
     addParam(refreshParam);
 	}
