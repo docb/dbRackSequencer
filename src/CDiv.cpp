@@ -83,6 +83,7 @@ struct CDiv : Module {
   json_t *dataToJson() override {
     json_t *data=json_object();
     json_object_set_new(data,"roundSteps",json_boolean(roundSteps));
+    json_object_set_new(data, "origPW", json_boolean(orig_pw));
     return data;
   }
 
@@ -90,6 +91,10 @@ struct CDiv : Module {
     json_t *jRoundSteps=json_object_get(rootJ,"roundSteps");
     if(jRoundSteps)
       roundSteps=json_boolean_value(jRoundSteps);
+
+    json_t *jOrigPW = json_object_get(rootJ, "origPW");
+    if (jOrigPW)
+      orig_pw = json_boolean_value(jOrigPW);
   }
 
 
