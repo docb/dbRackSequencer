@@ -119,6 +119,7 @@ void init(Plugin *p) {
     p->addModel(modelMTD4);
     p->addModel(modelPMKV);
     p->addModel(modelMC1);
+
 }
 
 void SmallButtonWithLabel::draw(const Widget::DrawArgs &args) {
